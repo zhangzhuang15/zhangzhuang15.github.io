@@ -1,37 +1,52 @@
-## Welcome to GitHub Pages
+## 个人信息
 
-You can use the [editor on GitHub](https://github.com/zhangzhuang15/zhangzhuang15.github.io/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+<div style="overflow: hidden">
+    <div style="width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                background: url('./image/me.jpeg');
+                background-position: 50% 30%;
+                background-size: 100px;
+                float:left;"
+    >
+    </div>
+    <ul style="text-align: center;
+               padding: 10px 0px;"
+    >
+      <li>Life is short, you should do something.</li>
+      <li>Think you like, think you want.</li>
+      <li>Then, do it.</li>
+    </ul>
+</div>
+<br>
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+姓名：张僮  
+年龄：24    
+现居地: 北京房山  
 
-### Markdown
+学历：本科  
+毕业院校： 北京科技大学  
+专业： 自动化  
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+职业定位： web前端开发工程师 & golang后端开发技术迷  
+工作经验： 1年（2020.07——2021.10）  
+接触过的框架： Vue2.0、Angular8.0、Express、Gin
 
-```markdown
-Syntax highlighted code block
+喜欢的编程语言：Nodejs、Typescript、Golang、Python、C\C++    
+不喜欢的编程语言： Java  
+又爱又恨的编程语言： Rust  
 
-# Header 1
-## Header 2
-### Header 3
+爱好： 篮球、诗歌、音乐、写小说、做饭  
+喜欢的动漫： 名侦探柯南、火影忍者疾风传、游戏王  
+喜欢的特摄：迪迦、艾斯、怪兽之王特斯拉
 
-- Bulleted
-- List
+最近想要尝试的内容： 视频拍摄
 
-1. Numbered
-2. List
+<br>
 
-**Bold** and _Italic_ and `Code` text
+## github上都尝试了啥
 
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/zhangzhuang15/zhangzhuang15.github.io/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+* c++入门demo教程： https://github.com/zhangzhuang15/Step-Cplusplus.git
+* shell用法教程：https://github.com/zhangzhuang15/short-shell.git  
+* git用法总结： https://github.com/zhangzhuang15/git-command.git  
+* nodejs 方面的技术总结demo： https://github.com/zhangzhuang15/JSLook.git
