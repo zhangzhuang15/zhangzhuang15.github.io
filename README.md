@@ -11,7 +11,8 @@
     >
     </div>
     <ul style="text-align: center;
-               padding: 10px 0px;"
+               padding: 10px 0px;
+               list-style: none;"
     >
       <li>Life is short, you should do something.</li>
       <li>Think you like, think you want.</li>
