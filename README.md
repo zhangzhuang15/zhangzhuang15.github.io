@@ -47,7 +47,7 @@
 
 ## github上都尝试了啥
 
-* c++入门demo教程： https://github.com/zhangzhuang15/Step-Cplusplus.git
-* shell用法教程：https://github.com/zhangzhuang15/short-shell.git  
-* git用法总结： https://github.com/zhangzhuang15/git-command.git  
-* nodejs 方面的技术总结demo： https://github.com/zhangzhuang15/JSLook.git
+* [c++入门demo教程](https://github.com/zhangzhuang15/Step-Cplusplus.git)
+* [shell用法教程](https://github.com/zhangzhuang15/short-shell.git)  
+* [git用法总结](https://github.com/zhangzhuang15/git-command.git)  
+* [nodejs方面的技术总结demo](https://github.com/zhangzhuang15/JSLook.git)
