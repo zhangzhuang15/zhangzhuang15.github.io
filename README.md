@@ -51,3 +51,22 @@
 * [shell用法教程](https://github.com/zhangzhuang15/short-shell.git)  
 * [git用法总结](https://github.com/zhangzhuang15/git-command.git)  
 * [nodejs方面的技术总结demo](https://github.com/zhangzhuang15/JSLook.git)
+
+
+## Description
+zhangzhuang's personal website
+
+in this website, you could see:
+- zhangzhuang's introduction
+- front-end development articles
+- rust articles
+- go articles
+
+## Tech
+- `Vue3`  + `vitepress`
+- vite 
+- naiveUI ( I hear it from a chatgpt project)
+
+## How to build up this project
+- `pnpm create vite`, automatically create the project
+- install other packages you need   

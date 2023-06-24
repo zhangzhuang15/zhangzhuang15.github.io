@@ -1,0 +1,29 @@
+:root:is(.dark) .VPNavBar, :root:is(.dark) .VPNavBar.fill{
+    border-bottom-color: rgba(84, 84, 84, 0.5);
+}
+
+:root:not(.dark) .VPNavBar, :root:not(.dark) .VPNavBar.fill{
+    border-bottom-color: rgba(60, 60, 60, .12)
+}
+
+:root .VPNavBar, :root .VPNavBar.fill {
+    background-color: transparent !important;
+}
+
+:root .VPNavBar div, :root .VPNavBar.fill div {
+    background: transparent !important;
+}
+
+:root .VPNav {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+:root .VPNav {
+    position: fixed;
+    top: 0px;
+}
+
+:root {
+    --vp-c-brand: rgb(135, 85, 244);
+}
