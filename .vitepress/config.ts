@@ -4,8 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "杰克-逊の黑豹",
   description: "JasonZhang's personal website",
-  srcDir: "docs",
-
+  srcDir: "./docs",
   /**
    *  How to resolve favicon of Safari?
    * 
@@ -54,8 +53,32 @@ export default defineConfig({
     logo: "/favicon.png",
     aside: false,
     nav: [
-      { text: 'Me', link: '/me/work-experience' },
-      { text: 'Examples', link: '/markdown-examples' }
+      { 
+        text: 'Me', 
+        activeMatch: `^/me/`,
+        items: [
+          { text: 'work experience', link: '/me/work-experience'},
+          { text: 'work thoughts', link: '/me/work-thoughts'},
+          { text: 'my life', link: '/me/my-life'},
+        ],
+      },
+      { 
+        text: 'Go', 
+        activeMatch: '^/go/',
+        items: [
+          { text: 'how to learn', link: '/go/how-to-learn'},
+        ],
+      },
+      { 
+        text: 'Rust', 
+        activeMatch: '^/rust/',
+        items: [
+          { text: 'how to learn', link: '/rust/how-to-learn'},
+        ],
+      },
+      { text: 'Frontend', link: '/frontend'},
+      { text: '开源项目', link: '/open-source'},
+      { text: '博客', link: '/blog'}
     ],
     sidebar: {
       "/me": [
@@ -63,11 +86,14 @@ export default defineConfig({
           text: 'About Me',
           items: [
             { text: 'work experience', link: '/me/work-experience' },
-            { text: 'work thoughts', link: '/me/work-thoughts' }
+            { text: 'work thoughts', link: '/me/work-thoughts' },
+            { text: 'my life', link: '/me/my-life'},
           ]
         }
       ],
-      "/go": [],
+      "/go": [
+        { text: "how to learn", link: '/go/how-to-learn'}
+      ],
     },
 
     socialLinks: [

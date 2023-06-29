@@ -3,7 +3,7 @@ import { NButton, NIcon, NDivider } from "naive-ui";
 import { useData, useRouter } from "vitepress";
 import { computed } from "vue";
 
-const { isDark, theme } = useData();
+const { isDark } = useData();
 
 const { go } = useRouter();
 
@@ -30,6 +30,8 @@ const cardMessages: { title: string; content: string; key: number }[] = [
 
 const visitMe = () => go("/me/work-experience");
 
+const visitBlog = () => go("/blog/");
+
 </script>
 <template>
     <section>
@@ -48,7 +50,7 @@ const visitMe = () => go("/me/work-experience");
                 <NIcon><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 20"><g fill="none"><path d="M9 2c.607 0 1.157.36 1.4.916l2.368 5.41l3.236-.201a1.879 1.879 0 0 1 1.992 1.758L18 10a1.879 1.879 0 0 1-1.879 1.879l-.117-.004l-3.236-.202l-2.367 5.41A1.529 1.529 0 0 1 9 18a.883.883 0 0 1-.883-.883l.002-.055l.703-5.636l-2.458-.154l-1.14 2.28A.809.809 0 0 1 4.5 14a.5.5 0 0 1-.5-.5v-2.376l-1.062-.065A1 1 0 0 1 2 10.06v-.122a1 1 0 0 1 .938-.998L4 8.875V6.5a.5.5 0 0 1 .5-.5c.306 0 .587.173.724.447l1.139 2.28l2.459-.154l-.698-5.58A.883.883 0 0 1 9 2z" fill="currentColor"></path></g></svg></NIcon>
             </template>
             快速认识我</NButton>
-        <NButton type="tertiary">瞧瞧我的分享</NButton>
+        <NButton type="tertiary" @click="() => visitBlog()">瞧瞧我的博客</NButton>
     </section>
 
     <section class="gap-space">

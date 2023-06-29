@@ -10,9 +10,9 @@
     "preview": "vite preview",
     "deploy": "pnpm run build && gh-pages -d build",
     "docs:init": "vitepress init",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
   },
   "dependencies": {
     "naive-ui": "^2.34.4",

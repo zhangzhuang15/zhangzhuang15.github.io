@@ -68,5 +68,13 @@ in this website, you could see:
 - naiveUI ( I hear it from a chatgpt project)
 
 ## How to build up this project
-- `pnpm create vite`, automatically create the project
+- `npx vitepress init`, automatically create the project
 - install other packages you need   
+
+> if you want to make a project organized by `vite`, run `pnpm create vite`
+
+## Notice During Development
+when you drag the .vitepress directory out from docs directory,
+change the command of starting dev server:
+before: `vitepress dev docs`
+after: `vitepress dev`
