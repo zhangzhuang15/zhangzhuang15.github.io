@@ -114,5 +114,14 @@ export default defineConfig({
       { icon: 'github', link: 'https://github.com/zhangzhuang15?tab=repositories' },
     ]
   },
-  base: "/"
+  base: "/",
+
+  vite: {
+    // resolve the problem described in this issue: https://github.com/antfu/vite-ssg/issues/324
+    ssr: {
+      noExternal: ["naive-ui"],
+    },
+
+  }
+  
 })
