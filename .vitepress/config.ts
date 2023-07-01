@@ -74,11 +74,12 @@ export default defineConfig({
         activeMatch: '^/rust/',
         items: [
           { text: 'how to learn', link: '/rust/how-to-learn'},
+          { text: "question in Rust", link: "/rust/question"}
         ],
       },
-      { text: 'Frontend', link: '/frontend'},
-      { text: '开源项目', link: '/open-source'},
-      { text: '博客', link: '/blog'}
+      { text: 'Frontend', link: '/frontend/index'},
+      { text: '开源项目', link: '/open-source/index'},
+      { text: '博客', link: '/blog/index'}
     ],
     sidebar: {
       "/me": [
@@ -94,6 +95,19 @@ export default defineConfig({
       "/go": [
         { text: "how to learn", link: '/go/how-to-learn'}
       ],
+      "/rust": [
+        { text: "how to learn", link: "/rust/how-to-learn"},
+        { text: "question in rust", link: "/rust/question"}
+      ],
+      "/blog": [
+        { text: "首页", link: "/blog/index" }
+      ],
+      "/open-source": [
+        { text: "首页", link: "/open-source/index" }
+      ],
+      "/frontend": [
+        { text: "首页", link: "/frontend/index"}
+      ]
     },
 
     socialLinks: [

@@ -2,6 +2,7 @@
 import { NButton, NIcon, NDivider } from "naive-ui";
 import { useData, useRouter } from "vitepress";
 import { computed } from "vue";
+import MusicIconButton from "./MusicIconButton.vue";
 
 const { isDark } = useData();
 
@@ -27,6 +28,8 @@ const cardMessages: { title: string; content: string; key: number }[] = [
         content: `记录自己接触过、研究过的开源项目，以及一些自己的开源尝试经历`
     }
 ];
+
+const themeMusic = "/follow_you.mp3";
 
 const visitMe = () => go("/me/work-experience");
 
@@ -68,6 +71,10 @@ const visitBlog = () => go("/blog/");
                 <div style="margin-top: 8px">{{ message.content }}</div>
         </div>
     </section>
+
+    <div style="position: fixed; bottom: 150px; right: 50px">
+        <MusicIconButton :size="'40px'" :source="themeMusic"/>
+    </div>
 </template>
 
 <style scoped>
