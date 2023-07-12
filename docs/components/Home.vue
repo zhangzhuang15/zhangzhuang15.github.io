@@ -61,7 +61,7 @@ const visitBlog = () => go("/blog/");
     </section>
    
 
-    <section class="gap-space flex gap-12px">
+    <section id="card-group" class="gap-space flex gap-12px">
         <div 
             class="evenly-flex-item bordered space-spare-box hover-box" 
             :style="borderColor"
@@ -72,8 +72,8 @@ const visitBlog = () => go("/blog/");
         </div>
     </section>
 
-    <div style="position: fixed; bottom: 150px; right: 50px">
-        <MusicIconButton :size="'40px'" :source="themeMusic"/>
+    <div class="music">
+        <MusicIconButton :size="'100%'" :source="themeMusic"/>
     </div>
 </template>
 
@@ -86,14 +86,65 @@ const visitBlog = () => go("/blog/");
 }
 .intro-title {
     color: transparent;
-    font-size: 80px;
-    line-height: 108px;
+    font-size: 4.6rem;
+    line-height: 5rem;
     font-weight: 800;
     white-space: nowrap;
     word-break: break-all;
     background-clip: text !important;
     -webkit-background-clip: text !important;
     background: linear-gradient(to right bottom, grey, rgb(33, 61, 187),rgb(152, 217, 125),rgb(233, 112, 20), rgb(139, 18, 139), black);
+}
+
+.music {
+    position: fixed;
+    bottom: 8rem;
+    right: 4rem;
+    width: 3rem;
+    height: 3rem;
+}
+
+/** 适配 iphone8 小屏  */
+@media (max-width: 415px) {
+    .intro-title {
+        font-size: 2rem;
+        line-height: 3rem;
+    }
+
+    section {
+        margin-top: 2rem;
+    }
+
+    .music {
+        right: 1rem;
+        top: 8rem;
+        width: 2rem;
+        height: 2rem;
+    }
+
+    #card-group {
+        flex-direction: column;
+    }
+}
+
+/** 适配 iphoneSE 特小屏幕 */
+@media (max-width: 320px) {
+    .intro-title {
+        font-size: 1.8rem;
+        line-height: 2rem;
+    }
+
+    .music {
+        top: 10rem;
+    }
+
+}
+
+/** 适配914px宽度屏幕下，标语向上错位 */
+@media (max-width: 914px) {
+    section {
+        margin-top: 2rem;
+    }
 }
 
 .gap-space {
