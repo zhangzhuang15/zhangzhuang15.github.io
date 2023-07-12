@@ -52,6 +52,12 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     logo: "/favicon.png",
     aside: false,
+
+    // refer: https://vitepress.dev/reference/default-theme-search
+    // 使用vitepress内置的minisearch文档搜索方案，不采用algolia
+    search: {
+      provider: "local"
+    },
     nav: [
       { 
         text: 'Me', 
@@ -60,6 +66,7 @@ export default defineConfig({
           { text: 'work experience', link: '/me/work-experience'},
           { text: 'work thoughts', link: '/me/work-thoughts'},
           { text: 'my life', link: '/me/my-life'},
+          { text: 'my travel', link: '/me/my-travel'},
         ],
       },
       { 
@@ -77,9 +84,14 @@ export default defineConfig({
           { text: "question in Rust", link: "/rust/question"}
         ],
       },
-      { text: 'Frontend', link: '/frontend/index'},
-      { text: '开源项目', link: '/open-source/index'},
-      { text: '博客', link: '/blog/index'}
+      { text: 'Frontend', link: '/frontend/index-page', activeMatch: "^/frontend/"},
+      { text: '开源项目', link: '/open-source/index-page', activeMatch: "^/open-source/"},
+      // index.md 将被特殊处理，其路由是 /blog/ 而不是 /blog/index，
+      // 这会影响到sidebar的高亮问题，因此重命名为index-page;
+      //
+      // activeMatch必须存在，否则，阅读“首页”内容时，nav中的“博客”高亮，
+      // 阅读“偷师tapable三个技术点”内容时，nav中的“博客”失去高亮
+      { text: '博客', link: '/blog/index-page', activeMatch: "^/blog/" }
     ],
     sidebar: {
       "/me": [
@@ -89,6 +101,7 @@ export default defineConfig({
             { text: 'work experience', link: '/me/work-experience' },
             { text: 'work thoughts', link: '/me/work-thoughts' },
             { text: 'my life', link: '/me/my-life'},
+            { text: 'my travel', link: '/me/my-travel'},
           ]
         }
       ],
@@ -100,18 +113,41 @@ export default defineConfig({
         { text: "question in rust", link: "/rust/question"}
       ],
       "/blog": [
-        { text: "首页", link: "/blog/index" }
+        { 
+          items: [
+            { text: "首页", link: "/blog/index-page" },
+            { text: "偷师tapable三个技术点", link: "/blog/tapable" },
+            { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
+            { text: "`ps`咋获取进程命令行参数的？", link: "/blog/ps-how-to-get-args" },
+            { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
+            { text: "不懂代码有可能是少了一篇论文", link: "/blog/doug-lee-concurrent-paper"},
+            { text: "几个clang/gcc常见扩展功能", link: "/blog/gcc-extension-short-intro"},
+            { text: "透过Redis看待我们是否应该继续使用c语言", link: "/blog/consider-c-by-redis" }
+          ]
+        },
       ],
       "/open-source": [
-        { text: "首页", link: "/open-source/index" }
+        { text: "首页", link: "/open-source/index-page" },
+        { text: "个人学习项目", link: "/open-source/personnal-learn-project"}
       ],
       "/frontend": [
-        { text: "首页", link: "/frontend/index"}
+        { text: "首页", link: "/frontend/index-page"}
       ]
     },
 
+    // 稀土掘金logo的svg出自稀土掘金官网，使用devtools查出来的
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zhangzhuang15?tab=repositories' },
+      { 
+        icon: {
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="28" viewBox="0 0 36 28" fill="none">' +
+                   '<title>稀土掘金</title>' +
+                   '<path fill-rule="evenodd" clip-rule="evenodd" d="M17.5875 6.77268L21.8232 3.40505L17.5875 0.00748237L17.5837 0L13.3555 3.39757L17.5837 6.76894L17.5875 6.77268ZM17.5863 17.3955H17.59L28.5161 8.77432L25.5526 6.39453L17.59 12.6808H17.5863L17.5825 12.6845L9.61993 6.40201L6.66016 8.78181L17.5825 17.3992L17.5863 17.3955ZM17.5828 23.2891L17.5865 23.2854L32.2133 11.7456L35.1768 14.1254L28.5238 19.3752L17.5865 28L0.284376 14.3574L0 14.1291L2.95977 11.7531L17.5828 23.2891Z" fill="#1E80FF"></path>' +
+               '</svg>',
+        },
+        link: "https://juejin.cn/user/4174182871215693",
+        ariaLabel: "稀土掘金"
+      },
     ]
   },
   base: "/",
@@ -122,6 +158,6 @@ export default defineConfig({
       noExternal: ["naive-ui"],
     },
 
-  }
+  },
   
 })

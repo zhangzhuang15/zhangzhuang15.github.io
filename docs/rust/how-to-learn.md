@@ -97,3 +97,6 @@ aside: true
 [website](https://rustwasm.github.io/docs/wasm-bindgen/examples/closures.html)
 
 [crate](https://crates.io/crates/wasm-bindgen)
+
+
+<Giscus />

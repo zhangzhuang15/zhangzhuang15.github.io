@@ -11,6 +11,7 @@
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
+    "@giscus/vue": "^2.3.0",
     "vue": "^3.2.47",
     "vue-router": "^4.2.2"
   },
