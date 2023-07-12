@@ -155,7 +155,7 @@ export default defineConfig({
   vite: {
     // resolve the problem described in this issue: https://github.com/antfu/vite-ssg/issues/324
     ssr: {
-      noExternal: ["naive-ui"],
+      noExternal: ["naive-ui", "vueuc"],
     },
 
   },
