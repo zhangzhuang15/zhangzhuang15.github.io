@@ -158,6 +158,15 @@ export default defineConfig({
       noExternal: ["naive-ui", "vueuc"],
     },
 
+    server: {
+      /** 
+       * 采用默认的 localhost作为域名，在macOS上运行服务器后，同网络下的手机无法访问；
+       * 为此，舍弃127.0.0.1和localhost，通过 ifconfig | grep inet 查询电脑wifi
+       * 环境下的ip地址，作为服务器域名
+       */
+      host: "192.168.0.196"
+    }
+
   },
   
 })
