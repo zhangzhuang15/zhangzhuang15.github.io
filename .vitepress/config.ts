@@ -130,7 +130,8 @@ export default defineConfig({
             { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
             { text: "不懂代码有可能是少了一篇论文", link: "/blog/doug-lee-concurrent-paper"},
             { text: "几个clang/gcc常见扩展功能", link: "/blog/gcc-extension-short-intro"},
-            { text: "透过Redis看待我们是否应该继续使用c语言", link: "/blog/consider-c-by-redis" }
+            { text: "透过Redis看待我们是否应该继续使用c语言", link: "/blog/consider-c-by-redis" },
+            { text: "学习Redis有感：开发一个npm package", link: "/blog/line-noise.md"}
           ]
         },
       ],
