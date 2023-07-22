@@ -2,7 +2,7 @@
   "name": "jason-personal-website",
   "homepage": "https://zhangzhuang15.github.io",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "docs:init": "vitepress init",
