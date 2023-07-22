@@ -91,7 +91,15 @@ export default defineConfig({
       //
       // activeMatch必须存在，否则，阅读“首页”内容时，nav中的“博客”高亮，
       // 阅读“偷师tapable三个技术点”内容时，nav中的“博客”失去高亮
-      { text: '博客', link: '/blog/index-page', activeMatch: "^/blog/" }
+      { text: '博客', link: '/blog/index-page', activeMatch: "^/blog/" },
+      { 
+        text: '工具', 
+        // link: '/tool/index-page', 
+        activeMatch: "^/tool/", 
+        items: [
+          { text: 'homebrew tool', link: '/tool/brew-tool'}
+        ]
+      }
     ],
     sidebar: {
       "/me": [
@@ -132,6 +140,10 @@ export default defineConfig({
       ],
       "/frontend": [
         { text: "首页", link: "/frontend/index-page"}
+      ],
+      "/tool": [
+        { text: "首页", link: "/tool/index-page"},
+        { text: "homebrew tool", link: "/tool/brew-tool"}
       ]
     },
 
@@ -164,7 +176,7 @@ export default defineConfig({
        * 为此，舍弃127.0.0.1和localhost，通过 ifconfig | grep inet 查询电脑wifi
        * 环境下的ip地址，作为服务器域名
        */
-      host: "192.168.0.196"
+      host: "192.168.0.199"
     }
 
   },
