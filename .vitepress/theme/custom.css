@@ -36,6 +36,8 @@
 }
 
 :root {
+    --vp-c-brand-light: rgb(154, 112, 243);
     --vp-c-brand: rgb(135, 85, 244);
+    --vp-c-brand-bold: rgb(101, 34, 245);
     --vp-c-brand-dark: rgb(161, 124, 243);
 }
