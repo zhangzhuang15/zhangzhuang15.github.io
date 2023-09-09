@@ -3,7 +3,7 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2020", "DOM", "DOM.Iterable", "ESNext.Symbol"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -20,10 +20,28 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
+    "baseUrl": ".",
+    /**
+     *  为什么不设置为 "@theme/components/*": [".vitepress/theme/components/*"] ?
+     *
+     *  因为vitepress在设置 vite 配置的时候，偷偷做了一层处理，官方文档没有说。它将 @theme 配置为
+     *  .vitepress/theme 路径的 alias, 这样在vite编译文件的时候，可以直接识别出 @theme。而此处这
+     *  是在ts里设置，在写import的时候，vscode可以识别 @theme/components/* 这样的路径，但在运行的
+     *  时候，vite 没法找到。所以，这里的ts配置，必须要和vite默认设置的 @theme 看齐。
+     *
+     *  如果非要坚持设置为 "@theme/components/*": [".vitepress/theme/components/*"]，
+     *  就需要在 .vitepress/config.ts 的 vite 配置项中，设置 resolve.alias.
+     *  refer: https://github.com/vuejs/vitepress/discussions/2746#discussioncomment-6661857
+     */
     "paths": {
-      "@components/*": ["./docs/components/*"]
+      "@theme/*": [".vitepress/theme/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "docs/**/*.ts",
+    "docs/**/*.d.ts",
+    "docs/**/*.tsx",
+    ".vitepress/**/*.ts"
+  ],
+  "exclude": [".vitepress/cache/**/*.ts", ".vitepress/dist/**/*.ts"]
 }
