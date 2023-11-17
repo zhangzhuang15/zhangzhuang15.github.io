@@ -96,7 +96,7 @@ import { B } from "B";
 
 `tsc`会仿照早期 nodejs 的方式寻找模块。
 
-`module`字段必须要设置为`CommonJS`, 否则你编写代码的时候不会有什么问题，编译的时候也不会有什么问题，但是用 node 执行代码的时候，会报错。那是因为早期 nodejs 是不支持 esModule 风格的代码。
+`module`字段必须要设置为`CommonJS`, 否则你编写代码的时候不会有什么问题，编译的时候也不会有什么问题，但是用 node 执行代码的时候，会报错。那是因为早期 nodejs 是不支持 esModule 风格的代码，而且 tsc 在编译的时候，不会对引入的路径自动做调整。
 
 ```ts
 // /demo/Hello/A.ts
@@ -242,7 +242,9 @@ import { B } from "B";
 
 #### Bundler
 
-在 vscode 编写代码的时候，不会遇到什么错误，但是不能用 tsc 编译代码！
+在 vscode 编写代码的时候，不会遇到什么错误，用 tsc 也可以编译代码，但是无法使用 node 运行。
+
+如果在 tsc 编译的时候出现错误，可能是 tsc 版本较低，请更新到最新版本。
 
 在搜索模块上，基本和 Node16 or NodeNext 一样。
 
