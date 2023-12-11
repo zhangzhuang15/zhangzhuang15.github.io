@@ -3,6 +3,7 @@ import { NButton, NIcon, NDivider } from "naive-ui";
 import { useData, useRouter } from "vitepress";
 import { computed } from "vue";
 import MusicIconButton from "./MusicIconButton.vue";
+import MemoryBoard from "./MemoryBoard.vue";
 
 const { isDark } = useData();
 
@@ -72,12 +73,18 @@ const visitBlog = () => go("/blog/index-page");
         </div>
     </section>
 
-    <div class="music">
-        <MusicIconButton :size="'100%'" :source="themeMusic"/>
-    </div>
+    <div class="button-container">
+        <div class="memory-board">
+          <MemoryBoard />
+        </div>
+
+        <div class="music">
+          <MusicIconButton :size="'100%'" :source="themeMusic"/>
+        </div>
+    </div>   
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .text-left {
     text-align: left;
 }
@@ -96,12 +103,37 @@ const visitBlog = () => go("/blog/index-page");
     background: linear-gradient(to right bottom, grey, rgb(33, 61, 187),rgb(152, 217, 125),rgb(233, 112, 20), rgb(139, 18, 139), black);
 }
 
-.music {
+
+.button-container {
     position: fixed;
-    bottom: 8rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--home-circle-size-half);
+    width: var(--home-circle-size);
     right: 4rem;
-    width: 3rem;
-    height: 3rem;
+    top: 10rem;
+
+    .memory-board {
+      position: relative;
+      flex: none;
+      height: var(--home-circle-size);
+      // 必须显示设置好，如果不设置的话，
+      // 从 hover 状态切换回去的话，
+      // 会导致页面层级不符合预期
+      z-index: 1;
+     
+      &:hover {
+            // hover 的时候，要把音乐按钮完全遮挡
+            z-index: 9;
+      }
+    }
+
+    .music {
+        position: relative;
+        flex: none;
+        height: var(--home-circle-size);
+        z-index: 3;
+    }
 }
 
 /** 适配 iphone8 小屏  */
@@ -115,11 +147,9 @@ const visitBlog = () => go("/blog/index-page");
         margin-top: 2rem;
     }
 
-    .music {
-        right: 1rem;
+    .button-container {
         top: 8rem;
-        width: 2rem;
-        height: 2rem;
+        right: 1rem;
     }
 
     #card-group {
@@ -134,7 +164,7 @@ const visitBlog = () => go("/blog/index-page");
         line-height: 2rem;
     }
 
-    .music {
+    .button-container {
         top: 10rem;
     }
 
@@ -173,9 +203,12 @@ const visitBlog = () => go("/blog/index-page");
     border-radius: 4px;
 }
 
+.hover-box {
+    transition: all .4s;
+}
 .hover-box:hover {
-    box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.5);
-    transform: translateY(-1px);
+    box-shadow: 1px 1px 8px 4px rgba(0, 0, 0, 0.5);
+    transform: translateY(-4px);
 }
 
 .gap-12px {

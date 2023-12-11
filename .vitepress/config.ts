@@ -68,6 +68,7 @@ export default defineConfig({
     search: {
       provider: "local",
     },
+    // 顶部导航栏
     nav: [
       {
         text: "Me",
@@ -112,10 +113,7 @@ export default defineConfig({
         text: "工具",
         // link: '/tool/index-page',
         activeMatch: "^/tool/",
-        items: [
-          { text: "homebrew tool", link: "/tool/brew-tool" },
-          { text: "downloader tool", link: "/tool/downloader" },
-        ],
+        items: [{ text: "homebrew tool", link: "/tool/brew-tool" }],
       },
       {
         text: "优质链接",
@@ -123,6 +121,7 @@ export default defineConfig({
         activeMatch: "^/links/",
       },
     ],
+    // 左侧导航栏
     sidebar: {
       "/me": [
         {
@@ -179,6 +178,10 @@ export default defineConfig({
               text: "可参考借用的代码片段",
               link: "/blog/pretty-snippets",
             },
+            {
+              text: "进程——问题清单",
+              link: "/blog/process_question",
+            },
           ],
         },
       ],
@@ -200,10 +203,12 @@ export default defineConfig({
       "/tool": [
         { text: "首页", link: "/tool/index-page" },
         { text: "homebrew tool", link: "/tool/brew-tool" },
+        { text: "rust CLI tool", link: "/tool/rust-tool" },
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
         { text: "社区", link: "/links/community" },
+        { text: "开发者", link: "/links/personal" },
       ],
     },
 

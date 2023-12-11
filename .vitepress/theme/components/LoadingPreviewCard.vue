@@ -14,8 +14,8 @@ const doError = (err: any) => {
     <Suspense v-if="renderPreviewCard">
         <PreviewCard :url="props.url" @error="(err) => doError(err)" />
         <template #fallback>
-            wait for a moment...
+            parsing url...
         </template>
     </Suspense>
-    <div v-else>😭cannot parse url</div>
+    <div v-else>😭sorry, visit the url directly please.</div>
 </template>

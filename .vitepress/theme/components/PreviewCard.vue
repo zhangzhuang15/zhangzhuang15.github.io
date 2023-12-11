@@ -11,20 +11,103 @@ const parseWebsite = (url: string): Promise<{ url: string, title: string }> => {
     const { signal } = controller;
     setTimeout(() => controller.abort(), 5_000);
 
-    return fetch(url, { method: 'GET', signal })
+    const parseIconUrl = (html: string) => {
+      const commonIconUrlReg = /<link.*?rel="icon".*?href="(.*?)".*?>/
+      const ogIconUrlReg = /<meta.*?property="og:image".*?content="(.*?)".*?>/;
+      const twitterIconUrlReg = /<meta.*?name="twitter:image".*?content="(.*?)".*?>/;
+
+      if (commonIconUrlReg.test(html)) {
+        const result = commonIconUrlReg.exec(html)
+        return result[1] || ''
+      }
+
+      if (ogIconUrlReg.test(html)) {
+        const result = ogIconUrlReg.exec(html)
+        return result[1] || ''
+      }
+
+      if (twitterIconUrlReg.test(html)) {
+        const result = twitterIconUrlReg.exec(html)
+        return result[1] || ''
+      }
+
+      return ''
+    }
+
+    const parseTitle = (html: string) => {
+      const commonTitleReg = /<title.*?>(.*)<\/title>/;
+      const ogTitleReg = /<meta.*?property="og:title".*?content="(.*?)".*?>/;
+      const twitterTitleReg = /<meta.*?name="twitter:title".*?content="(.*?)".*?>/;
+
+      if (commonTitleReg.test(html)) {
+        const result = commonTitleReg.exec(html)
+        return result[1] || ''
+      }
+
+      if (ogTitleReg.test(html)) {
+        const result = ogTitleReg.exec(html)
+        return result[1] || ''
+      }
+
+      if (twitterTitleReg.test(html)) {
+        const result = twitterTitleReg.exec(html)
+        return result[1] || ''
+      }
+
+      return ''
+    }
+
+    const parseDescription = (html: string) => {
+      const commonDescriptionReg = /<meta.*?name="description".*?content="(.*?)".*?>/;
+      const ogDescriptionReg = /<meta.*?property="og:description".*?content="(.*?)".*?>/;
+      const twitterDescriptionReg = /<meta.*?name="twitter:description".*?content="(.*?)".*?>/;
+
+      if (commonDescriptionReg.test(html)) {
+        const result = commonDescriptionReg.exec(html)
+        return result[1] || ''
+      }
+
+      if (ogDescriptionReg.test(html)) {
+        const result = ogDescriptionReg.exec(html)
+        return result[1] || ''
+      }
+
+      if (twitterDescriptionReg.test(html)) {
+        const result = twitterDescriptionReg.exec(html)
+        return result[1] || ''
+      }
+
+      return ''
+    }
+
+    return fetch(url, { method: 'GET', signal, headers: {
+      accept: "text/html",
+    } })
       .then((response) => response.text())
       .then((html) => {
-        const titleReg = /<title.*?>(.*)<\/title>/;
-        const iconUrlReg = /<link rel="icon" .*? href="(.*?)".*?\/>/;
-        const descriptionReg = /<meta.*?name="description".*?content="(.*?)".*?>/;
+        const iconUrl = parseIconUrl(html);
+        const title = parseTitle(html);
+        const description = parseDescription(html);
 
-        const url = iconUrlReg.exec(html)?.[1] || '';
-        const title = titleReg.exec(html)?.[1] || '';
-        const description = descriptionReg.exec(html)?.[1] || '';
+        if (iconUrl === '') {
+          emit("error", new Error("no icon in website"));
+        }
 
-        console.log(url, title);
+        if (title === '') {
+          emit("error", new Error("no title in website"));
+        }
+
+        if (description === '') {
+          emit("error", new Error("no description in website"));
+        }
         
-        return { url, title: title + '\n' + description};
+        const urlObj = new URL(iconUrl, url);
+
+        if (import.meta.env.mode === "development") {
+          console.log(urlObj.href, title);
+        }
+        
+        return { url: urlObj.href, title: title + '\n' + description};
       })
       .catch((err) => {
         console.log("error in PreviewCard: ", err.toString());
@@ -92,15 +175,15 @@ watch(
         img {
             object-fit: contain;
             width: 100%;
-            border-radius: 5px;
             transition: transform 0.6s;
-            transform: scale(0.7);
+            transform: scale(0.6);
         }
     }
 
     .title {
         flex: 1 1 initial;
         white-space: break-spaces;
+        font-weight: 500;
     }
 
     &:hover {
@@ -109,7 +192,7 @@ watch(
         cursor: pointer;
 
         .icon img {
-            transform: scale(1);
+            transform: scale(0.8);
         }
     }
 }

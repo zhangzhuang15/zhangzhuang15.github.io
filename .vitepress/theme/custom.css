@@ -1,43 +1,57 @@
-:root:is(.dark) .VPNavBar, :root:is(.dark) .VPNavBar.fill{
-    border-bottom-color: rgba(84, 84, 84, 0.5);
+:root:is(.dark) .VPNavBar,
+:root:is(.dark) .VPNavBar.fill {
+  border-bottom-color: rgba(84, 84, 84, 0.5);
 }
 
-:root:not(.dark) .VPNavBar, :root:not(.dark) .VPNavBar.fill{
-    border-bottom-color: rgba(60, 60, 60, .12)
+:root:not(.dark) .VPNavBar,
+:root:not(.dark) .VPNavBar.fill {
+  border-bottom-color: rgba(60, 60, 60, 0.12);
 }
 
-:root .VPNavBar, :root .VPNavBar.fill {
-    background-color: transparent !important;
+:root .VPNavBar,
+:root .VPNavBar.fill {
+  background-color: transparent !important;
 }
 
-:root .VPNavBar div:not(.VPMenu), :root .VPNavBar.fill div:not(.VPMenu) {
-    background: transparent !important;
+:root .VPNavBar div:not(.VPMenu),
+:root .VPNavBar.fill div:not(.VPMenu) {
+  background: transparent !important;
 }
 
 :root .VPNav {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 :root .VPNav {
-    position: fixed;
-    top: 0px;
+  position: fixed;
+  top: 0px;
 }
 
 /* 解决手机屏幕和iPad屏幕中，sidebar被nav栏遮挡的问题 */
 :root .VPLocalNav {
-    padding-top: var(--vp-nav-height, 0px);
+  padding-top: var(--vp-nav-height, 0px);
 }
 
 /* 解决手机屏幕无法展开收起的nav栏 */
 :root .VPNavScreen {
-    z-index: 999;
-    height: 100vh;
+  z-index: 999;
+  height: 100vh;
 }
 
 :root {
-    --vp-c-brand-light: rgb(154, 112, 243);
-    --vp-c-brand: rgb(135, 85, 244);
-    --vp-c-brand-bold: rgb(101, 34, 245);
-    --vp-c-brand-dark: rgb(161, 124, 243);
+  --vp-c-brand-light: rgb(154, 112, 243);
+  --vp-c-brand: rgb(135, 85, 244);
+  --vp-c-brand-bold: rgb(101, 34, 245);
+  --vp-c-brand-dark: rgb(161, 124, 243);
+
+  --home-circle-size: 3rem;
+  --home-circle-size-half: 1.5rem;
+}
+
+@media (max-width: 415px), (max-width: 320px) {
+  :root {
+    --home-circle-size: 2rem;
+    --home-circle-size-half: 1rem;
+  }
 }
