@@ -12,46 +12,46 @@ const parseWebsite = (url: string): Promise<{ url: string, title: string }> => {
     setTimeout(() => controller.abort(), 5_000);
 
     const parseIconUrl = (html: string) => {
-      const commonIconUrlReg = /<link.*?rel="icon".*?href="(.*?)".*?>/
+      const commonIconUrlReg = /<link.*?rel=".*?icon".*?href="(.*?)".*?>/
       const ogIconUrlReg = /<meta.*?property="og:image".*?content="(.*?)".*?>/;
       const twitterIconUrlReg = /<meta.*?name="twitter:image".*?content="(.*?)".*?>/;
 
-      if (commonIconUrlReg.test(html)) {
-        const result = commonIconUrlReg.exec(html)
-        return result[1] || ''
-      }
-
       if (ogIconUrlReg.test(html)) {
         const result = ogIconUrlReg.exec(html)
-        return result[1] || ''
+        return result?.[1] || ''
       }
 
       if (twitterIconUrlReg.test(html)) {
         const result = twitterIconUrlReg.exec(html)
-        return result[1] || ''
+        return result?.[1] || ''
+      }
+
+      if (commonIconUrlReg.test(html)) {
+        const result = commonIconUrlReg.exec(html)
+        return result?.[1] || ''
       }
 
       return ''
     }
 
     const parseTitle = (html: string) => {
-      const commonTitleReg = /<title.*?>(.*)<\/title>/;
+      const commonTitleReg = /<title>(.*?)<\/title>/;
       const ogTitleReg = /<meta.*?property="og:title".*?content="(.*?)".*?>/;
       const twitterTitleReg = /<meta.*?name="twitter:title".*?content="(.*?)".*?>/;
 
-      if (commonTitleReg.test(html)) {
-        const result = commonTitleReg.exec(html)
-        return result[1] || ''
-      }
-
       if (ogTitleReg.test(html)) {
         const result = ogTitleReg.exec(html)
-        return result[1] || ''
+        return result?.[1] || ''
       }
 
       if (twitterTitleReg.test(html)) {
         const result = twitterTitleReg.exec(html)
-        return result[1] || ''
+        return result?.[1] || ''
+      }
+
+      if (commonTitleReg.test(html)) {
+        const result = commonTitleReg.exec(html)
+        return result?.[1] || ''
       }
 
       return ''
@@ -62,27 +62,41 @@ const parseWebsite = (url: string): Promise<{ url: string, title: string }> => {
       const ogDescriptionReg = /<meta.*?property="og:description".*?content="(.*?)".*?>/;
       const twitterDescriptionReg = /<meta.*?name="twitter:description".*?content="(.*?)".*?>/;
 
-      if (commonDescriptionReg.test(html)) {
-        const result = commonDescriptionReg.exec(html)
-        return result[1] || ''
-      }
-
       if (ogDescriptionReg.test(html)) {
         const result = ogDescriptionReg.exec(html)
-        return result[1] || ''
+        return result?.[1] || ''
       }
 
       if (twitterDescriptionReg.test(html)) {
         const result = twitterDescriptionReg.exec(html)
-        return result[1] || ''
+        return result?.[1] || ''
+      }
+
+      if (commonDescriptionReg.test(html)) {
+        const result = commonDescriptionReg.exec(html)
+        return result?.[1] || ''
       }
 
       return ''
     }
 
-    return fetch(url, { method: 'GET', signal, headers: {
-      accept: "text/html",
-    } })
+    return fetch(url, { 
+      method: 'GET', 
+      signal, 
+      headers: {
+        accept: "text/html",
+      }, 
+      // 设置此项，发送请求不会带上 referrer
+      // referrerPolicy: 'no-referrer',
+      // 
+      // 设置此项，就是想走一个简单请求，拿到数据，
+      // 不受到CORS约束，但实际上，浏览器还是会施加
+      // CORS约束，其结果就是，在 network 面板上，
+      // 你可以看到完整的响应体，但是在 response.text()
+      // 无法读到实际数据
+      // refer: https://stackoverflow.com/questions/43262121/trying-to-use-fetch-and-pass-in-mode-no-cors
+      // mode: 'no-cors', 
+    })
       .then((response) => response.text())
       .then((html) => {
         const iconUrl = parseIconUrl(html);
@@ -90,15 +104,17 @@ const parseWebsite = (url: string): Promise<{ url: string, title: string }> => {
         const description = parseDescription(html);
 
         if (iconUrl === '') {
-          emit("error", new Error("no icon in website"));
+          emit("error", new Error("no icon in website: " + url));
         }
 
         if (title === '') {
-          emit("error", new Error("no title in website"));
+          emit("error", new Error("no title in website: " + url));
         }
 
         if (description === '') {
-          emit("error", new Error("no description in website"));
+          if (import.meta.env.mode === 'development') {
+            console.log("no description in website: ", url)
+          }
         }
         
         const urlObj = new URL(iconUrl, url);
@@ -136,7 +152,7 @@ previewInfo.value = info;
 // 立即执行 effect，更新 previewInfo
 watch(
     () => props.url,
-    async (newVal, oldVal) => {
+    async (newVal) => {
         const info = await parseWebsite(newVal);
         previewInfo.value = { ...info };
     },
@@ -163,7 +179,7 @@ watch(
     box-shadow: 0 0 2px 1px var(--vp-c-brand);
     transition: all 0.6s;
     border-radius: 10px;
-    overflow-x: hidden;
+    overflow: hidden;
 
     .icon {
         flex: none;
@@ -194,6 +210,7 @@ watch(
         .icon img {
             transform: scale(0.8);
         }
+
     }
 }
 
