@@ -191,22 +191,23 @@ export default defineConfig({
       ],
       "/frontend": [
         { text: "首页", link: "/frontend/index-page" },
-        {
-          text: "Docker",
-          items: [
-            { text: "docker常用指令", link: "/frontend/docker-cmd" },
-            { text: "Dockerfile", link: "/frontend/dockerfile" },
-            { text: "Docker Composite", link: "/frontend/docker-composite" },
-          ],
-        },
       ],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },
         { text: "homebrew tool", link: "/tool/brew-tool" },
         { text: "rust CLI tool", link: "/tool/rust-tool" },
+        {
+          text: "Docker",
+          items: [
+            { text: "docker常用指令", link: "/tool/docker-cmd" },
+            { text: "Dockerfile", link: "/tool/dockerfile" },
+            { text: "Docker Composite", link: "/tool/docker-composite" },
+          ],
+        },
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
+        { text: "技术热线", link: "/links/hotline" },
         { text: "社区", link: "/links/community" },
         { text: "开发者", link: "/links/personal" },
       ],
@@ -245,7 +246,7 @@ export default defineConfig({
        * 为此，舍弃127.0.0.1和localhost，通过 ifconfig | grep inet 查询电脑wifi
        * 环境下的ip地址，作为服务器域名
        */
-      host: "192.168.0.199",
+      host: "192.168.1.5",
       fs: {
         // 来自 vue3-docs项目
         allow: ["../.."],

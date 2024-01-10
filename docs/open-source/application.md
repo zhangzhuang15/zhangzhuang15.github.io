@@ -16,6 +16,8 @@ aside: true
 - 翻译的过程不需要跳转到 vscode 以外的应用
 - 使用简单，无配置，只需要选中被翻译的单词，鼠标停留在单词上，就可以在悬浮提示框中看到翻译结果
 
+[下载体验 v0.0.2](https://github.com/zhangzhuang15/JasonPackages/releases/tag/vscode-plugin-dictionary-v0.0.2)
+
 ## [line-noise](https://github.com/zhangzhuang15/JasonPackages/tree/dev/packages/line-noise)
 
 一个 nodejs 的 package，底层封装 redis-cli 的 line-noise c 库，编译为 node addon 文件，供命令行交互使用；

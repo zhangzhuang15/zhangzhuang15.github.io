@@ -40,8 +40,17 @@
   "include": [
     "docs/**/*.ts",
     "docs/**/*.d.ts",
+    /**
+     * 解决 vue 文件中，使用 import.meta.env 时，ts找不到 env 定义
+     */
+    "./env.d.ts",
     "docs/**/*.tsx",
-    ".vitepress/**/*.ts"
+    ".vitepress/**/*.ts",
+    /**
+     * 为了让 vue 文件中的 ts 代码接收到上述配置约束，
+     * 要加入这一行，否则 vue 中ts代码总是报错
+     */
+    ".vitepress/**/*.vue"
   ],
   "exclude": [".vitepress/cache/**/*.ts", ".vitepress/dist/**/*.ts"]
 }

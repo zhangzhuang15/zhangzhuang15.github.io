@@ -33,4 +33,30 @@ aside: true
 React 很形象的代言人，其网站有他的博文，记录其心路历程，还有很不错的技术记录，对 Dan
 或者 React 感兴趣的，可以逛逛。
 
+## Mark Erikson
+
+[前往](https://blog.isquaredsoftware.com/about)
+
+<LoadingPreviewCard url="https://blog.isquaredsoftware.com/about" />
+
+Redux 的维护者之一，redux 相关知识问答及博客分享
+
+## Fabrice Bellard
+
+[前往](https://bellard.org)
+
+<LoadingPreviewCard url="https://bellard.org" />
+
+这位可以算是**编程神兽**了，其代表作 **QEMU**，闲话不多说，赶紧进去膜拜吧，
+里面列举了作者的诸多项目
+
+## aka antirez
+
+[前往](http://invece.org)
+
+<LoadingPreviewCard url="http://invece.org" />
+
+**Redis 之父**，网页内容很简练，写了他个人的基本情况，值得留意的是他
+留下的 code 理解，参会记录。
+
 <Giscus />
