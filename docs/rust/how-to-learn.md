@@ -20,37 +20,37 @@ aside: true
 
 ## 在线读物
 
-[《Rust 编程语言》](https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#default-generic-type-parameters-and-operator-overloading)
+[<<Rust 编程语言\>\>](https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#default-generic-type-parameters-and-operator-overloading)
 
-[《Cargo Book》](https://doc.rust-lang.org/cargo/guide/dependencies.html)
+[<<Cargo Book\>\>](https://doc.rust-lang.org/cargo/guide/dependencies.html)
 
-[《rustc 手册》](https://doc.rust-lang.org/rustc/index.html)
+[<<rustc 手册\>\>](https://doc.rust-lang.org/rustc/index.html)
 
-[《Rust 命令行工具开发指南》](https://rust-cli.github.io/book/index.html)
+[<<Rust 命令行工具开发指南\>\>](https://rust-cli.github.io/book/index.html)
 
-[《rustdoc 手册》](https://doc.rust-lang.org/rustdoc/index.html)
+[<<rustdoc 手册\>\>](https://doc.rust-lang.org/rustdoc/index.html)
 
-[《rust 高级编程》](https://learnku.com/docs/nomicon/2018)
+[<<rust 高级编程\>\>](https://learnku.com/docs/nomicon/2018)
 
-[《通过例子学 Rust(中文版)》](https://rustwiki.org/zh-CN/rust-by-example/fn/closures/output_parameters.html)
+[<<通过例子学 Rust(中文版)\>\>](https://rustwiki.org/zh-CN/rust-by-example/fn/closures/output_parameters.html)
 
-[《Rust 中的 Unsafe》](https://doc.rust-lang.org/nightly/nomicon/)
+[<<Rust 中的 Unsafe\>\> ](https://doc.rust-lang.org/nightly/nomicon/)
 
-[《通过各种 list 学习 Rust》](https://rust-unofficial.github.io/too-many-lists/)
+[<<通过各种 list 学习 Rust\>\>](https://rust-unofficial.github.io/too-many-lists/)
 
-[《Rust 异步编程》](https://rust-lang.github.io/async-book/)
+[<<Rust 异步编程\>\>](https://rust-lang.github.io/async-book/)
 
-[《Rust Language Cheat Sheet》](https://cheats.rs/)
+[<<Rust Language Cheat Sheet\>\> ](https://cheats.rs/)
 
 [Web Development In Rust](https://www.arewewebyet.org/)
 
-[Rust 学习资源](https://github.com/rcore-os/rCore/wiki/study-resource-of-system-programming-in-RUST)
+[ Rust 学习资源](https://github.com/rcore-os/rCore/wiki/study-resource-of-system-programming-in-RUST)
 
-[rust 官网](https://www.rust-lang.org/zh-CN/learn)
+[ rust 官网](https://www.rust-lang.org/zh-CN/learn)
 
-[rust 官方 package 仓库](https://crates.io/)
+[ rust 官方 package 仓库](https://crates.io/)
 
-[rust 标准库](https://doc.rust-lang.org/std/index.html)
+[ rust 标准库](https://doc.rust-lang.org/std/index.html)
 
 ## 按需找链接
 
@@ -85,7 +85,9 @@ aside: true
 ### rust 基础语法记不清了？
 
 [the rust programming language](https://doc.rust-lang.org/book/title-page.html)
+
 [rust reference | Introduction](https://doc.rust-lang.org/reference/introduction.html)
+
 [rust by example | Introduction](https://doc.rust-lang.org/stable/rust-by-example/index.html)
 
 ### 看到语法表达记不起来啥意思，有些概念搞不清？
@@ -126,7 +128,7 @@ aside: true
 
 一个命令行参数解析器
 
-[crate](https://crates.io/crates/argh)
+[crate 地址](https://crates.io/crates/argh)
 
 ### serde
 
@@ -134,7 +136,7 @@ aside: true
 
 [website](https://serde.rs/field-attrs.html)
 
-[crate](https://crates.io/crates/serde)
+[crate 地址](https://crates.io/crates/serde)
 
 ### wasm-bindgen
 
@@ -146,6 +148,6 @@ aside: true
 
 [website](https://rustwasm.github.io/docs/wasm-bindgen/examples/closures.html)
 
-[crate](https://crates.io/crates/wasm-bindgen)
+[crate 地址](https://crates.io/crates/wasm-bindgen)
 
 <Giscus />
