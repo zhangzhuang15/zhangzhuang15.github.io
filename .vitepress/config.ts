@@ -105,7 +105,9 @@ export default defineConfig({
       },
       // index.md 将被特殊处理，其路由是 /blog/ 而不是 /blog/index，
       // 这会影响到sidebar的高亮问题，因此重命名为index-page;
-      //
+      // important 命名成 page-index 也影响到sidebar的高亮显示，
+      // 避免以 index 结尾吧！
+      // 
       // activeMatch必须存在，否则，阅读“首页”内容时，nav中的“博客”高亮，
       // 阅读“偷师tapable三个技术点”内容时，nav中的“博客”失去高亮
       { text: "博客", link: "/blog/index-page", activeMatch: "^/blog/" },
@@ -113,7 +115,14 @@ export default defineConfig({
         text: "工具",
         // link: '/tool/index-page',
         activeMatch: "^/tool/",
-        items: [{ text: "homebrew tool", link: "/tool/brew-tool" }],
+        items: [
+          { text: 'Oh-my-zsh', link: '/tool/ohMyZsh' },
+          { text: "homebrew tool", link: "/tool/brew-tool" },
+          { text: "rust CLI tool", link: "/tool/rust-tool" },
+          { text: 'vscode', link: '/tool/vscode-install' },
+          { text: 'NPM', link: '/tool/index-npm' }
+
+        ],
       },
       {
         text: "优质链接",
@@ -188,28 +197,77 @@ export default defineConfig({
       "/open-source": [
         { text: "首页", link: "/open-source/index-page" },
         { text: "个人学习项目", link: "/open-source/personnal-learn-project" },
+        { text: '个人开发的应用项目', link: '/open-source/application' }
       ],
       "/frontend": [
         { text: "首页", link: "/frontend/index-page" },
       ],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },
+        { text: 'Oh-my-zsh', link: '/tool/ohMyZsh' },
         { text: "homebrew tool", link: "/tool/brew-tool" },
         { text: "rust CLI tool", link: "/tool/rust-tool" },
-        {
-          text: "Docker",
+        { 
+          text: 'vscode',
           items: [
-            { text: "docker常用指令", link: "/tool/docker-cmd" },
-            { text: "Dockerfile", link: "/tool/dockerfile" },
-            { text: "Docker Composite", link: "/tool/docker-composite" },
-          ],
+            { text: '安装', link: '/tool/vscode-install' },
+            { text: '常用配置', link: '/tool/vscode-config' },
+            { text: '插件推荐', link: '/tool/vscode-plugin' },
+            { text: 'vscode variables', link: '/tool/vscode-variables' },
+            { text: 'tasks.json', link: '/tool/vscode-tasks' }
+          ] 
         },
+        {
+          text: 'NPM',
+          items: [
+            { text: '首页', link: '/tool/index-npm' },
+            { 
+              text: 'package推荐',
+              collapsed: true,
+              items: [
+                { text: '辅助研发', link: '/tool/npm-package-dev' },
+                { text: '开发cmd', link: '/tool/npm-package-cmd' },
+                { text: '文件系统', link: '/tool/npm-package-file-system' },
+                { text: 'function tool', link: '/tool/npm-package-function-tool' },
+                { text: '日志处理', link: '/tool/npm-package-log' },
+                { text: '时间处理', link: '/tool/npm-package-time' },
+                { text: '测试相关', link: '/tool/npm-package-test' },
+                { text: 'module/package相关', link: '/tool/npm-package-module' },
+                { text: 'http相关', link: '/tool/npm-package-http' },
+                { text: 'UI', link: '/tool/npm-package-ui' },
+                { text: 'web app framework', link: '/tool/npm-package-web-app-framework' },
+                { text: 'docs website', link: '/tool/npm-package-docs-web' },
+                { text: 'database', link: '/tool/npm-package-database' },
+                { text: 'specific file', link: '/tool/npm-package-specific-file' },
+                { text: 'data structure', link: '/tool/npm-package-data-structure' },
+                { text: '动画', link: '/tool/npm-package-animation' },
+                { text: '音视频', link: '/tool/npm-package-media' },
+                { text: '图像', link: '/tool/npm-package-image' }
+              ]
+            }
+          ]
+        },
+        {
+          text: 'Rollup',
+          items: [
+            { text: '插件推荐', link: '/tool/rollup/plugin' },
+          ]
+        }
+        // {
+        //   text: "Docker",
+        //   items: [
+        //     { text: "docker常用指令", link: "/tool/docker-cmd" },
+        //     { text: "Dockerfile", link: "/tool/dockerfile" },
+        //     { text: "Docker Composite", link: "/tool/docker-composite" },
+        //   ],
+        // },
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
         { text: "技术热线", link: "/links/hotline" },
         { text: "社区", link: "/links/community" },
         { text: "开发者", link: "/links/personal" },
+        { text: 'other source', link: '/links/other-source' }
       ],
     },
 
@@ -246,7 +304,7 @@ export default defineConfig({
        * 为此，舍弃127.0.0.1和localhost，通过 ifconfig | grep inet 查询电脑wifi
        * 环境下的ip地址，作为服务器域名
        */
-      host: "192.168.1.5",
+      host: "localhost",
       fs: {
         // 来自 vue3-docs项目
         allow: ["../.."],
