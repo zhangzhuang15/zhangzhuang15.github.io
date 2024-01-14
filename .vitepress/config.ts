@@ -235,7 +235,7 @@ export default defineConfig({
                 { text: 'module/package相关', link: '/tool/npm-package-module' },
                 { text: 'http相关', link: '/tool/npm-package-http' },
                 { text: 'UI', link: '/tool/npm-package-ui' },
-                { text: 'web app framework', link: '/tool/npm-package-web-app-framework' },
+                { text: 'web app framework', link: '/tool/npm-package-web-app' },
                 { text: 'docs website', link: '/tool/npm-package-docs-web' },
                 { text: 'database', link: '/tool/npm-package-database' },
                 { text: 'specific file', link: '/tool/npm-package-specific-file' },
