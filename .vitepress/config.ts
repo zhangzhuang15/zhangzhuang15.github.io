@@ -207,6 +207,7 @@ export default defineConfig({
         { text: 'Oh-my-zsh', link: '/tool/ohMyZsh' },
         { text: "homebrew tool", link: "/tool/brew-tool" },
         { text: "rust CLI tool", link: "/tool/rust-tool" },
+        { text: 'Github', link: '/tool/index-github'},
         { 
           text: 'vscode',
           items: [
