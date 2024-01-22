@@ -110,4 +110,83 @@ task 所在分组，一般设置 'none' 即可
 - 你执行 task 的时候，你的光标可能聚焦在编辑区的代码里，如果在 task 执行之后，光标聚焦位置不变，设置 `focus: false`
 - 设置 `reveal: always`, 在 task 执行完毕后，terminal 区域会自动切换到 task 所在的 terminal
 
+## 小功能 の task
+
+### 展示当前 git branch 的 description
+
+```json
+{
+  "label": "git branch: show description",
+  "type": "shell",
+  "command": [
+    "git branch --show-current",
+    "|",
+    "awk '{ print \"branch.\"$1\".description\"}'",
+    "|",
+    "xargs git config --get"
+  ]
+}
+```
+
+### 给当前 git branch 分子加入 description
+
+```json
+{
+  "tasks": [
+    {
+      "label": "git branch: add description",
+      "type": "shell",
+      "command": [
+        "git branch --show-current",
+        "|",
+        "awk '{print \"branch.\"$1\".description\"}'",
+        "|",
+        "xargs -J % git config --add % ${input: gitBranchDescription}"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "type": "promptString",
+      "description": "description of current git branch",
+      "id": "gitBranchDescription"
+    }
+  ]
+}
+```
+
+### 展示所有 git branch 本地分支的 description
+
+```json
+{
+  "label": "git branch: show all branch description",
+  "type": "shell",
+  "command": [
+    "git config --list",
+    "|",
+    "grep \"^branch.*description\"",
+    "|",
+    "awk -F '=' '{split($1,m,\".\"); print m[2]\"\\n\"$2\"\\n\"}'"
+  ]
+}
+```
+
+### 打开非安全模式下的 chrome
+
+```json
+{
+  "label": "open chrome: no-cors",
+  "type": "process",
+  "command": "open",
+  "args": [
+    "-n",
+    "-a",
+    "/Applications/GoogleChrome.app/Contents/MacOS/Google Chrome",
+    "--args",
+    "--user-data-dir=\"/tmp/chrome_dev_test\"",
+    "--disable-web-security"
+  ]
+}
+```
+
 <Giscus />
