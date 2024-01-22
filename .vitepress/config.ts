@@ -269,6 +269,7 @@ export default defineConfig({
         { text: "技术热线", link: "/links/hotline" },
         { text: "社区", link: "/links/community" },
         { text: "开发者", link: "/links/personal" },
+        { text: '在线技术文档', link: '/links/document' },
         { text: 'other source', link: '/links/other-source' }
       ],
     },
