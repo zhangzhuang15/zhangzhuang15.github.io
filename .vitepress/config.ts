@@ -90,6 +90,7 @@ export default defineConfig({
         activeMatch: "^/rust/",
         items: [
           { text: "how to learn", link: "/rust/how-to-learn" },
+          { text: "宏-备忘录", link: "/rust/macro" },
           { text: "question in Rust", link: "/rust/question" },
         ],
       },
@@ -146,6 +147,7 @@ export default defineConfig({
       "/go": [{ text: "how to learn", link: "/go/how-to-learn" }],
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
+        { text: "宏-备忘录", link: "/rust/macro" },
         { text: "question in rust", link: "/rust/question" },
       ],
       "/blog": [
