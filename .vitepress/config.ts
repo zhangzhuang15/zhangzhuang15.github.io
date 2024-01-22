@@ -90,6 +90,7 @@ export default defineConfig({
         activeMatch: "^/rust/",
         items: [
           { text: "how to learn", link: "/rust/how-to-learn" },
+          { text: "宏-备忘录", link: "/rust/macro" },
           { text: "question in Rust", link: "/rust/question" },
         ],
       },
@@ -146,6 +147,7 @@ export default defineConfig({
       "/go": [{ text: "how to learn", link: "/go/how-to-learn" }],
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
+        { text: "宏-备忘录", link: "/rust/macro" },
         { text: "question in rust", link: "/rust/question" },
       ],
       "/blog": [
@@ -268,6 +270,7 @@ export default defineConfig({
         { text: "技术热线", link: "/links/hotline" },
         { text: "社区", link: "/links/community" },
         { text: "开发者", link: "/links/personal" },
+        { text: '在线技术文档', link: '/links/document' },
         { text: 'other source', link: '/links/other-source' }
       ],
     },
