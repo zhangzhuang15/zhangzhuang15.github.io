@@ -255,6 +255,10 @@ export default defineConfig({
           items: [
             { text: '插件推荐', link: '/tool/rollup/plugin' },
           ]
+        },
+        {
+          text: 'ansi escape control',
+          link: '/tool/ansi-escape-control'
         }
         // {
         //   text: "Docker",
