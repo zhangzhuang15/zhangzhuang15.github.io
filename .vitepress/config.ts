@@ -203,6 +203,7 @@ export default defineConfig({
       ],
       "/frontend": [
         { text: "首页", link: "/frontend/index-page" },
+        { text: 'typescript类型系统', link: '/frontend/ts-type'}
       ],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },
