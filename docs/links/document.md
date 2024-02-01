@@ -22,3 +22,6 @@ feature:
 - Javascript 语言体系中，各个知识点讲解
 - 浏览器 DOM 相关内容讲解
 - 通俗易懂，好理解
+
+## Webpack Guidebook
+[Webpack Guidebook](https://tsejx.github.io/webpack-guidebook/)
