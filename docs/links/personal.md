@@ -4,6 +4,15 @@ page: true
 aside: true
 ---
 
+## Niko Matsakis
+
+[前往](https://smallcultfollowing.com/babysteps/categories/)
+
+<LoadingPreviewCard url="https://smallcultfollowing.com/babysteps/categories/" />
+
+**Niko Matsakis** 是 Rayon （一个Rust并行运算库）的作者。在他的个人网站上，分享了不少技术博客，
+记录了不少设计思路、问题思考，主要是 Rust 方面。如果你是Rust的爱好者，不容错过。
+
 ## antfu.me
 
 [前往](https://antfu.me)

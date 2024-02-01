@@ -44,6 +44,28 @@ type M = ['a', 'b'] | ['c', 'd', 'e']
 type N = [boolean, ...M]
 ```
 
+## 字符串
+### 获取长度
+字符串和常量数组都算是字面量，但是字符串无法利用'length'属性得到长度，需要将字符串转化为字符数组（常量数组），
+用字符数组的length属性解决
+```ts
+type ToArray<T extends string> = T extends `${infer M}${infer N}` ? [M, ...ToArray<N>] : []
+type StringLength<T extends string> = ToArray<T>['length']
+
+// C = 4
+type C = StringLength<"helo">
+```
+
+### 其他字面量转为字符串字面量参与推断
+'hello' 是字符串的字面量，-10 10 是 number 的字面量，其他类型数据的字面量可以转为字符串字面量，然后参与infer 
+```ts 
+// 用 `${T}` 将 number字面量、string字面量统一为 string字面量
+type Absolute<T extends number | string> = `${T}` extends `-${infer M}` ? M : T
+
+// C = 10
+type C = Absolute<-10>
+```
+
 ## 联合类型
 ### 联合类型过滤
 ```ts 
@@ -272,4 +294,33 @@ type ReturnValue<T extends Function> = T extends (...args: any[]) => infer M ? M
 
 // C = string
 type C = ReturnValue<() => string>
+```
+
+## 索引器
+```ts
+type A = {
+    [key: string]: any
+    hello(): void
+}
+
+```
+
+key 在 A 中的类型是 `string | number | symbol`， 利用这一点，可以将其过滤：
+```ts
+type A = {
+    [key: string]: any
+    hello(): void
+}
+
+type Filer<T, P = PropertyKey> = {
+    [k in keyof T as P extends k ? never: (k extends P ? k:never)]: T[k]
+}
+
+// 写成这样，可不行哦
+// type Filer<T> = {
+//  [k in keyof T as (string|number|symbol) extends k ? never: (k extends string|number|symbol ? k:never)]: T[k]
+// }
+
+// c = { hello(): void }
+type c = Filter<A>
 ```
