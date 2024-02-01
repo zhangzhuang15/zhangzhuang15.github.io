@@ -128,7 +128,7 @@ task 所在分组，一般设置 'none' 即可
 }
 ```
 
-### 给当前 git branch 分子加入 description
+### 给当前 git branch 分支加入 description
 
 ```json
 {
