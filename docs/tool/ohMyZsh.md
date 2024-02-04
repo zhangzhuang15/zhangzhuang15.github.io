@@ -38,17 +38,18 @@ plugins=(
 )
 ```
 
-## 改造jispwoso主题
-jispwoso主题下，你可以看到红颜色显示的当前git分支名，对我来说，这无法满足我。
+## 改造 jispwoso 主题
+
+jispwoso 主题下，你可以看到红颜色显示的当前 git 分支名，对我来说，这无法满足我。
 
 因为在开发的时候，分支名提供的信息不够，很快我就会忘记当前分支里面有哪些功能在开发。
 
-我的解决方式就是，给当前分支增加 description, 你可以在[vscode tasks](/tool/vscode-tasks#给当前\ git\ branch\ 分子加入\ description)找到
-实现方法。
+我的解决方式就是，给当前分支增加 description, 你可以在[vscode tasks](/tool/vscode-tasks#给当前-git-branch-分支加入-description)找到实现方法。
 
-接下来，就对jispwoso主题改造一下，就可以追加显示分支的description了。
+接下来，就对 jispwoso 主题改造一下，就可以追加显示分支的 description 了。
 
-我的电脑上，jispwoso主题配置文件位于`～/.oh-my-zsh/themes/jispwoso.zsh-theme`，只需将里边的内容更新为:
+我的电脑上，jispwoso 主题配置文件位于`～/.oh-my-zsh/themes/jispwoso.zsh-theme`，只需将里边的内容更新为:
+
 ```shell
 local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ %s)"
 
@@ -85,6 +86,6 @@ ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"
 
 🎉🎉🎉
 
-不得不吐槽shell语法，太不好理解了，我总是写错😭
+不得不吐槽 shell 语法，太不好理解了，我总是写错 😭
 
 <Giscus />
