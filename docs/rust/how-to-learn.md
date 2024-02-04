@@ -52,6 +52,9 @@ aside: true
 
 [ rust 标准库](https://doc.rust-lang.org/std/index.html)
 
+[Mini LSM By Rust](https://skyzh.github.io/mini-lsm/00-preface.html)
+> 用Rust实现LSM数据结构的指南
+
 ## 按需找链接
 
 ### 想找 crate?
@@ -121,6 +124,13 @@ aside: true
 
 > 本人 fork 的一个 github 仓库，原仓库可通过`awesome-rust`自行搜索。该项目介绍
 > 了非常多的 rust 学习资源。
+
+<br>
+
+[crossbeam](https://github.com/crossbeam-rs/crossbeam)
+
+> 用Rust实现的并发编程环境下的数据结构和工具库。可以学到无锁编程、unsafe编程，以及用 let 限制
+> 完成 mutation 方面的知识
 
 ## 推荐的库
 
