@@ -56,20 +56,24 @@ local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ %s)"
 function git_current_branch_description() {
   local description
   description=$(git branch --show-current | awk '{print "branch."$1".description"}' | xargs git config --get)
-
-  echo "$description"
+  
+  # 如果当前分支没有description, 上述git调用会发生错误，$? 会不等于 0，
+  # 随即进入 else 分支，此时直接展示为 ""，不去展示 “description”
+  
+  if [ $? -eq 0 ]
+  then
+    echo "\ndescription:%{$fg_bold[white]%}$description%{$fg_bold[blue]%}"
+  else 
+    echo ""
+  fi
 }
 
-local description=$(git_current_branch_description)
+# PROMPT 只会在开启一个终端页面的时候，仅加载一次，当切换分支的时候，是否要将description加入到
+# PROMPT 需要在 git_current_branch_description 里处理
 
-if [ -z $description ]
-then 
-  PROMPT=$'%{$fg[green]%}%n@%m: %{$reset_color%}%{$fg[blue]%}%/ %{$reset_color%}%{$fg_bold[blue]%}$(git_prompt_info) %{$fg_bold[blue]%} % %{$reset_color%}
+PROMPT=$'%{$fg[green]%}%n@%m: %{$reset_color%}%{$fg[blue]%}%/ %{$reset_color%}%{$fg_bold[blue]%}$(git_prompt_info) %{$fg_bold[blue]%}$(git_current_branch_description) %{$fg_bold[blue]%} % %{$reset_color%}
 ${ret_status} %{$reset_color%} '
-else 
-  PROMPT=$'%{$fg[green]%}%n@%m: %{$reset_color%}%{$fg[blue]%}%/ %{$reset_color%}%{$fg_bold[blue]%}$(git_prompt_info) %{$fg_bold[blue]%}\ndescription:%{$fg_bold[white]%}$description%{$fg_bold[blue]%} % %{$reset_color%}
-${ret_status} %{$reset_color%} '
-fi
+
 
 PROMPT2="%{$fg_blod[black]%}%_> %{$reset_color%}"
 
