@@ -56,7 +56,10 @@ local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ %s)"
 # Output the description of current branch
 function git_current_branch_description() {
   local description
-  description=$(git branch --show-current | awk '{print "branch."$1".description"}' | xargs git config --get)
+
+  # 当前可能不在git环境里，执行git branch --show-current的话，
+  # stderr会有信息输出，污染终端显示，因此加入 2> /dev/null隐藏
+  description=$(git branch --show-current 2> /dev/null | awk '{print "branch."$1".description"}' | xargs git config --get)
 
   # 如果当前分支没有description, 上述git调用会发生错误，$? 会不等于 0，
   # 随即进入 else 分支，此时直接展示为 ""，不去展示 “description”
