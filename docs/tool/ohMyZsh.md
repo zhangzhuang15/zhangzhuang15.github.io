@@ -57,14 +57,18 @@ local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ %s)"
 function git_current_branch_description() {
   local description
   description=$(git branch --show-current | awk '{print "branch."$1".description"}' | xargs git config --get)
-  
+
   # 如果当前分支没有description, 上述git调用会发生错误，$? 会不等于 0，
   # 随即进入 else 分支，此时直接展示为 ""，不去展示 “description”
-  
+
   if [ $? -eq 0 ]
   then
-    echo "\ndescription:%{$fg_bold[white]%}$description%{$fg_bold[blue]%}"
-  else 
+    if [ -n "$description" ]
+    then
+      echo "\ndescription:%{$fg_bold[white]%}$description%{$fg_bold[blue]%}"
+    else
+      echo ""
+  else
     echo ""
   fi
 }
