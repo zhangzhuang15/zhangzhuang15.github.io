@@ -113,6 +113,18 @@ type T<M> = M extends string ? [M] : never
 // ('a' extends string ? ['a'] : never) | 
 // ('b' extends string ? ['b'] : never)
 type K = T<'a' | 'b'>
+
+// 为了防止映射，可以将 extends 前后倒转
+type P<M> = string extends M ? [M] : never
+
+// Q = ['a' | 'b']
+type Q = P<'a' | 'b'>
+
+// 或者利用元组
+type H<M> = [M] extends [string] ? [M]: never
+
+// R = ['a' | 'b']
+type R = H<'a' | 'b'>
 ```
 
 ### 联合类型和联合类型的交集、差集
@@ -160,6 +172,30 @@ type D<T> = {[k in keyof T as k extends string ? k : never]: T[k] }
 //  b: number;
 // }
 type E = D<A>
+```
+
+## 交叉类型
+### 合并为一个interface
+```ts
+type A = {
+    name: string;
+}
+
+type B = {
+    age: number;
+}
+
+// C = { name: string } & { age: number }
+type C = A & B;
+
+// D = { name: string; age: number}
+type D = Omit<A & B, never>;
+
+
+type ToObj<T> = {[k in keyof T]: T[k]}
+
+// E =  { name: string; age: number}
+type E = ToObj<A & B>;
 ```
 
 ## 一些extends
@@ -229,6 +265,9 @@ type R6 = H<A>
 
 // R7 = ['1', 100]
 type R7 = I<A>
+
+// R8 = never
+type R8 = H<[]>
 ```
 ### 推断字符串
 ```ts
@@ -269,6 +308,10 @@ type R8 = H<'helloaworld'>
 
 // R9 = 'hello_a' | 'hello_b'
 type R9 = I<'helloaworld'>
+
+// R10 = never
+// 这个特别容易以为是 R10 = ''
+type R10 = A<''>
 ```
 
 ### 推断函数参数
@@ -323,4 +366,12 @@ type Filer<T, P = PropertyKey> = {
 
 // c = { hello(): void }
 type c = Filter<A>
+```
+
+## 实际参数少于范型定义的参数
+```ts
+// 方法很简单，给出一个默认类型值即可
+type T<P, Q extends string = ''> = P
+
+type C = T<string>
 ```

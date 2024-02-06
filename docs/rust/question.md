@@ -136,5 +136,145 @@ fn main() {
 总之，模式匹配会不会造成所有权变更取决于模式匹配的对象和结果。如果对象和结果都是值类型，那么就会发生移动语义；如果对象和结果都是引用类型，那么就会发生借用语义；如果对象和结果的类型不一致，那么就会根据具体情况进行隐式转换或报错。
 
 
+## mod的可见性规则？
+```rust
+// src/a.rs
+mod b;
+
+// 访问不了
+b::c::ok();
+
+// 访问不了
+b::c::no();
+
+// 可以访问
+b::d::hello();
+
+// 访问不了
+b::d::world();
+```
+
+```rust
+// src/a/b.rs
+mod c;
+pub mod d;
+
+// 可以访问
+c::ok();
+
+// 访问不了
+c::no();
+
+// 可以访问
+d::hello();
+
+// 访问不了
+d::world();
+```
+
+```rust
+// src/a/b/c.rs
+pub fn ok() {}
+fn no() {}
+```
+```rust
+// src/a/b/d.rs
+pub fn hello() {}
+fn world() {}
+```
+
+再来看看 struct 的可见性：
+```rust
+// src/a.rs
+mod b;
+
+// 出错
+// XiaoMing 不可见，无法访问
+b::XiaoMing {
+    name: "xiao_ming".to_string(),
+}
+
+// 出错
+// name 不可见，无法访问
+b::XiaoHong {
+    name: "xiao_hong".to_string(),
+}
+
+// 没有错误，正常运行
+b::XiaoHai {
+    name: "xiao_hai".to_string(),
+}
+
+// 出错
+// XiaoTong.0 不可见，无法访问
+b::XiaoTong(1);
+
+// 出错
+// init 不可见，无法访问
+b::XiaoHong::init();
+
+// 没有错误，正常运行
+b::XiaoHong::new();
+```
+
+```rust
+// src/a/b.rs
+struct XiaoMing {
+    name: String,
+}
+
+pub struct XiaoHong {
+    name: String,
+}
+
+pub struct XiaoHai {
+    pub name: String,
+}
+
+pub struct XiaoTong(i32);
+
+// 仅仅在当前crate范围可见，别的crate引用不了
+pub(crate) struct XiaoNao {}
+
+impl XiaoHong {
+    fn init() -> Self {
+        XiaoHong {
+            name: "xiao_hong".to_string(),
+        }
+    }
+
+    pub fn new() -> Self {
+        XiaoHong {
+            name: "xiao_hong".to_string(),
+        }
+    }
+}
+```
+
+再看看 struct 在定义处的可见性：
+```rust
+// src/a.rs
+
+struct XiaoMing(i32);
+pub struct XiaoHong(i32);
+
+fn hello() {
+    // 正常运行
+    let m = XiaoMing(1);
+
+    // 出错
+    // world可见，ok不可见
+    world::ok();
+}
+
+mod world {
+    use super::XiaoMing;
+    fn ok() {
+        // 正常运行
+        let m = XiaoMing(1);
+    }
+
+}
+```
 
 <Giscus />
