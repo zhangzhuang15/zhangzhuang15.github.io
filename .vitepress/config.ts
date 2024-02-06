@@ -58,10 +58,16 @@ export default defineConfig({
     ],
     ["link", { rel: "manifest", href: "/site.webmanifest" }],
   ],
+  // 删除light/dark模式切换按钮
+  appearance: false,
+  
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     logo: "/favicon.png",
     aside: false,
+
+    // 每一页右侧 on this page 列表，按照标题层级展开
+    outline: 'deep',
 
     // refer: https://vitepress.dev/reference/default-theme-search
     // 使用vitepress内置的minisearch文档搜索方案，不采用algolia
