@@ -4,6 +4,9 @@ page: true
 aside: true
 ---
 
+# Description
+向NB者学习，感觉自己也NB起来🫠
+
 ## Niko Matsakis
 
 [前往](https://smallcultfollowing.com/babysteps/categories/)
@@ -67,5 +70,15 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 
 **Redis 之父**，网页内容很简练，写了他个人的基本情况，值得留意的是他
 留下的 code 理解，参会记录。
+
+## Dmitry Vyukov
+[前往](https://www.1024cores.net/home/about-me)
+
+<LoadingPreviewCard url="https://www.1024cores.net/home/about-me" />
+
+在阅读crossbeam无锁queue代码实现时，在其注释里发现的这位老哥，是一个聚焦**多核并行无锁编程算法**
+的专家，你可以到他的个人网站上看看他给出的无锁编程算法实现，非常有价值。
+
+对了，这老哥是俄罗斯人，数学、算法方面的能力就不用多说了。
 
 <Giscus />
