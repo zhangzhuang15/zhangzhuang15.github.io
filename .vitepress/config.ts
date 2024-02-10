@@ -199,6 +199,10 @@ export default defineConfig({
               text: "进程——问题清单",
               link: "/blog/process_question",
             },
+            {
+              text: 'Promise Resolve 的秘密',
+              link: '/blog/promise-resolve'
+            }
           ],
         },
       ],
