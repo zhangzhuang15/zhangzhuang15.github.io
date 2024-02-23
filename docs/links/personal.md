@@ -81,4 +81,19 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 
 对了，这老哥是俄罗斯人，数学、算法方面的能力就不用多说了。
 
+
+##  Joel Spolsky
+[前往](https://www.joelonsoftware.com/category/reading-lists/rock-star-developer/)
+
+逛github的时候，无意间发现的一个软件工程师，他的博客写了很多软件方面的基础，
+简单易懂，读起来不干，偏调侃语气，很有意思，读完他的文章，真得很受启发。
+
+## Robert C. Martin
+[前往](https://blog.cleancoder.com/uncle-bob/2023/01/19/functional-classes-clojure.html)
+
+知名的 Uncle Bob.
+
+不知道这个网站是不是他的博客，反正很多文章都是他写的，关于函数式编程的文章占比很多，
+代码片段以java示例为主。
+
 <Giscus />
