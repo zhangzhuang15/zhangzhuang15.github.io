@@ -242,3 +242,12 @@ export default {
    ```
 
 5. 由于禁用了原生滚动，滚动条不会展示，你需要自己实现一个滚动条
+
+## 官网的组件示例卡片怎么搞出来的
+组件示例卡片：
+- 代码高亮（使用 prismjs实现）
+  > [source code](https://github.com/element-plus/element-plus/blob/dev/docs/.vitepress/utils/highlight.ts) 
+- 使用自定义组件Demo, 通过vitepress的theme.ts做的全局注册
+  > [source code](https://github.com/element-plus/element-plus/blob/dev/docs/.vitepress/vitepress/components/vp-demo.vue)
+- markdown转化为Demo组件, 基于 markdown-it 和 markdown-it-container
+  > [source code](https://github.com/element-plus/element-plus/blob/dev/docs/.vitepress/config/plugins.ts)

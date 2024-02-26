@@ -330,4 +330,10 @@ export default defineConfig({
       },
     },
   },
+  
+  vue: {
+    template: {
+      ssr: true,
+    }
+  }
 });
