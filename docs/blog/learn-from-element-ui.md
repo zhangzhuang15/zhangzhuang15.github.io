@@ -12,6 +12,18 @@ aside: true
 
 ## scss
 
+
+## popover
+像 popover tooltip dropdown 这些组件，它们的共性就是将一段展示内容定位到
+目标节点的附近；
+
+可以使用`@popoverjs/core`完成定位。
+
+```js
+function getWindow(node) { 
+  return node.ownerDocument.defaultV || window }
+```
+
 ## tabs 内容惰性加载
 
 tabs 使用形式大致就是这样：
@@ -184,6 +196,38 @@ export default {
   收起就是把这个`<tr>`删除
 - 多级表头本质就是求解树中每个节点的深度和分支数量问题，深度用来确定`<th>` 的`rowspan`, 分支数量用来确定`<th>`的 `colspan`
 
+## programable messagebox
+如何用js调用的方式，在页面上展示消息框？
+
+- 创建dom节点`const container = document.createElement("div")`
+- 创建组件对应的虚拟节点 `const vnode = createVnode()`
+- 挂载虚拟节点 `render(vnode, container)`
+  > 触发组件的 mount
+- 将承载组件的dom节点挂载到页面，比如 body 里， `document.body.appendChild(container.firstElementChild)`
+- 如果你想获取组件实例，`const vm = vnode.component.proxy`
+  > 为了便于管理资源，会将 vm 缓存起来
+
+当卸载消息框的时候
+- 卸载虚拟节点 `render(null, container)`
+  > render顺带手会从 document.body 删除 container.firstElementChild
+- 删除实例对象引用，释放资源
+
+## Transition组件触发 after-leave hook
+```vue
+<Transition @after-leave="a()">
+  <div v-show="visible" />
+</Transition>
+
+// visible 从 true 变成 false，会触发 a() 么 ？
+```
+```vue 
+<Transition @after-leave="a()">
+  <div v-if="visible" />
+</Transition>
+
+// visible 从 true 变成 false，会触发 a() 么 ？
+```
+
 ## 虚拟滚动
 
 ```html
@@ -251,3 +295,7 @@ export default {
   > [source code](https://github.com/element-plus/element-plus/blob/dev/docs/.vitepress/vitepress/components/vp-demo.vue)
 - markdown转化为Demo组件, 基于 markdown-it 和 markdown-it-container
   > [source code](https://github.com/element-plus/element-plus/blob/dev/docs/.vitepress/config/plugins.ts)
+- 编译时，向markdown注入demos变量
+  > [source code](https://github.com/element-plus/element-plus/blob/dev/docs/.vitepress/plugins/markdown-transform.ts)
+
+
