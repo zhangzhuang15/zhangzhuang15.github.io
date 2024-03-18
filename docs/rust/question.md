@@ -404,4 +404,109 @@ println!("{}", s);
 // right
 ```
 
+## crate 在 main.rs，lib.rs 以及其余rs文件中的语义
+在 main.rs 中，crate 就是指 main.rs 本身；
+
+```rust
+// main.rs
+
+mod a;
+// mod b;
+
+// 这个是可以的
+use crate::a::*;
+
+// 这个不行
+// use crate::b::*;
+```
+
+在 lib.rs 中， crate 就是指 lib.rs 本身；
+在 src 目录下的其余 rs 文件中，crate 就是指 lib.rs;
+
+```rust
+// src/lib.rs
+
+mod a;
+```
+
+```rust 
+// src/b/b.rs
+
+use crate::a::*;
+```
+
+## tests文件夹里的mod规则
+tests文件夹下放置的是集成测试文件，而单元测试的代码是写在src下的源代码里的。
+
+tests文件夹下的每一个rs文件都相当于main.rs的角色, 因此你可以这样引入mod:
+
+```rust
+// tests/c/mod.rs
+pub fn hello() {
+    "hello world"
+}
+```
+
+```rust
+// tests/a.rs
+mod c:
+use c::hello;
+
+fn m() {
+    let r = hello();
+    println!("{}", r);
+}
+```
+
+```rust
+// tests/b.rs
+mod c;
+use c::hello;
+
+fn n() {
+    let r = hello();
+    println!("{}", r);
+}
+```
+
+如果有若干个rs文件组成一次集成测试，你需要将这些文件放在一个文件夹里：
+
+```rust
+// tests/internal/a.rs
+mod b;
+use b::hello;
+
+fn s() {
+    hello();
+}
+```
+
+```rust 
+// tests/internal/b.rs
+
+// b.rs 作为一个独立的mod，不作为一个集成测试文件
+pub fn hello() {
+    println!("hello world");
+}
+```
+
+尽管 tests/internal/b.rs 可以被 a.rs 引入，但更推荐采用 tests/internal/b/mod.rs 这种形式
+
+
+如果存在：
+- tests/a.rs
+- tests/b/main.rs
+- tests/internal/mod.rs
+
+执行集成测试文件 a.rs：`cargo test --test a`
+
+执行集成测试文件 b/main.rs: `cargo test --test b`
+
+执行所有的集成测试文件： `cargo test --tests`
+
+执行 a.rs 里的测试函数 hello_is_ok: `cargo test --test a hello_is_ok`
+
+
+
+
 <Giscus />
