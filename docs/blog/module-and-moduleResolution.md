@@ -125,6 +125,8 @@ import { B } from "B";
 - `/demo/node_modules/B.d.ts`
 - `/demo/node_modules/B/package.json`(访问"types"字段)
 - `/demo/node_modules/@types/B.d.ts`
+- `/demo/node_modules/@types/B/package.json`(访问"types"字段)
+- `/demo/node_modules/@types/B/index.d.ts`
 - `/demo/node_modules/B/index.ts`
 - `/demo/node_modules/B/index.tsx`
 - `/demo/node_modules/B/index.d.ts`
@@ -133,6 +135,8 @@ import { B } from "B";
 - `/node_modules/B.d.ts`
 - `/node_modules/B/package.json`(访问"types"字段)
 - `/node_modules/@types/B.d.ts`
+- `/node_modules/@types/B/package.json`(访问“types”字段)
+- `/node_modules/@types/B/index.d.ts`
 - `/node_modules/B/index.ts`
 - `/node_modules/B/index.tsx`
 - `/node_modules/B/index.d.ts`
@@ -172,6 +176,8 @@ import { B } from "B";
 - `/demo/node_modules/B.d.ts`
 - `/demo/node_modules/B/package.json`(优先访问"exports"字段，后访问"types"字段)
 - `/demo/node_modules/@types/B.d.ts`
+- `/demo/node_modules/@types/B/package.json`(优先访问"exports"字段，后访问"types"字段)
+- `/demo/node_modules/@types/B/index.d.ts`
 - `/demo/node_modules/B/index.ts`
 - `/demo/node_modules/B/index.tsx`
 - `/demo/node_modules/B/index.d.ts`
@@ -180,6 +186,8 @@ import { B } from "B";
 - `/node_modules/B.d.ts`
 - `/node_modules/B/package.json`(优先访问"exports"字段，后访问"types"字段)
 - `/node_modules/@types/B.d.ts`
+- `/node_modules/@types/B/package.json`(优先访问"exports"字段，后访问"types"字段)
+- `/node_modules/@types/B/index.d.ts`
 - `/node_modules/B/index.ts`
 - `/node_modules/B/index.tsx`
 - `/node_modules/B/index.d.ts`
@@ -228,6 +236,8 @@ import { B } from "B";
 - `/demo/node_modules/B.d.ts`
 - `/demo/node_modules/B/package.json`(优先访问"exports"字段，后访问"types"字段)
 - `/demo/node_modules/@types/B.d.ts`
+- `/demo/node_modules/@types/B/package.json`(优先访问"exports"字段，后访问"types"字段)
+- `/demo/node_modules/@types/B/index.d.ts`
 - `/demo/node_modules/B/index.ts`
 - `/demo/node_modules/B/index.tsx`
 - `/demo/node_modules/B/index.d.ts`
@@ -236,6 +246,8 @@ import { B } from "B";
 - `/node_modules/B.d.ts`
 - `/node_modules/B/package.json`(优先访问"exports"字段，后访问"types"字段)
 - `/node_modules/@types/B.d.ts`
+- `/node_modules/@types/B/package.json`(优先访问"exports"字段，后访问"types"字段)
+- `/node_modules/@types/B/index.d.ts`
 - `/node_modules/B/index.ts`
 - `/node_modules/B/index.tsx`
 - `/node_modules/B/index.d.ts`
