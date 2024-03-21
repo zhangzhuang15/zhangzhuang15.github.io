@@ -141,6 +141,38 @@ import { B } from "B";
 - `/node_modules/B/index.tsx`
 - `/node_modules/B/index.d.ts`
 
+如果引入方式变为：
+
+```ts
+// /demo/A.ts
+import { C } from "B/C";
+```
+
+只需将上述路径中的B修改为 B/C， 即：
+
+
+- `/demo/node_modules/B/C.ts`
+- `/demo/node_modules/B/C.tsx`
+- `/demo/node_modules/B/C.d.ts`
+- `/demo/node_modules/B/C/package.json`(访问"types"字段)
+- `/demo/node_modules/@types/B/C.d.ts`
+- `/demo/node_modules/@types/B/C/package.json`(访问"types"字段)
+- `/demo/node_modules/@types/B/C/index.d.ts`
+- `/demo/node_modules/B/C/index.ts`
+- `/demo/node_modules/B/C/index.tsx`
+- `/demo/node_modules/B/C/index.d.ts`
+- `/node_modules/B/C.ts`
+- `/node_modules/B/C.tsx`
+- `/node_modules/B/C.d.ts`
+- `/node_modules/B/C/package.json`(访问"types"字段)
+- `/node_modules/@types/B/C.d.ts`
+- `/node_modules/@types/B/C/package.json`(访问“types”字段)
+- `/node_modules/@types/B/C/index.d.ts`
+- `/node_modules/B/C/index.ts`
+- `/node_modules/B/C/index.tsx`
+- `/node_modules/B/C/index.d.ts`
+
+
 #### Node16 or NodeNext
 
 `tsc`按照新版本 node 的方式寻找模块。
@@ -195,6 +227,15 @@ import { B } from "B";
 Node16 or NodeNext 下，tsc 会识别 package.json 中的 `exports` 字段。
 
 但仍要注意，如果这个包不在 node_modules 里，那么 `exports`字段不会被识别的。
+
+如果访问：
+
+```ts
+// /demo/A.ts
+import { C } from "B/C";
+```
+
+只要将上边每个遍历中的 B 替换为 B/C， 就得到本次的遍历搜寻路径；
 
 ##### module: ESNext
 
