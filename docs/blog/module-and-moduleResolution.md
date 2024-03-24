@@ -54,11 +54,9 @@ ES2020 这种，表示的是特定版本的 esModule；
 
 这个字段表示，ts 按照什么样的规则找到模块，将模块类型信息提供给你，让你在编写代码的时候，可以看到类型提示。
 
-你一定要注意，它所寻找的是模块类型信息。tsc 遇到`import`语句时，它不会导入js或者ts代码，这个是bundle工具要做的事情，它只负责将ts文件编译为js文件，而`import`语句会转化为`require`语句， tsc不会改变导入的路径，以前是import "./a", 现在就是 require("./a").
-
-针对编译后的js文件，bundle工具会识别 require，根据自己的搜索方式，加载被导入的module。
-
-比如：
+> 你一定要注意，它所寻找的是模块类型信息。tsc 遇到`import`语句时，它不会导入 js 或者 ts 代码，这个是 bundle 工具要做的事情，它只负责将 ts 文
+> 件编译为 js 文件，而`import`语句会转化为`require`语句， tsc 不会改变导入的路径，以前是 import "./a", 现在就是 require("./a").
+> 针对编译后的 js 文件，bundle 工具会识别 require，根据自己的搜索方式，加载被导入的 module。
 
 ```ts
 import { Jack } from "./util/name";
@@ -152,8 +150,7 @@ import { B } from "B";
 import { C } from "B/C";
 ```
 
-只需将上述路径中的B修改为 B/C， 即：
-
+只需将上述路径中的 B 修改为 B/C， 即：
 
 - `/demo/node_modules/B/C.ts`
 - `/demo/node_modules/B/C.tsx`
@@ -175,7 +172,6 @@ import { C } from "B/C";
 - `/node_modules/B/C/index.ts`
 - `/node_modules/B/C/index.tsx`
 - `/node_modules/B/C/index.d.ts`
-
 
 #### Node16 or NodeNext
 
@@ -297,6 +293,15 @@ import { B } from "B";
 - `/node_modules/B/index.tsx`
 - `/node_modules/B/index.d.ts`
 
+如果访问：
+
+```ts
+// /demo/A.ts
+import { C } from "B/C";
+```
+
+和上边 CommonJs 的情况一样，只要将上边每个遍历中的 B 替换为 B/C， 就得到本次的遍历搜寻路径；
+
 #### Bundler
 
 在 vscode 编写代码的时候，不会遇到什么错误，用 tsc 也可以编译代码，但是无法使用 node 运行。
@@ -331,28 +336,73 @@ Bundler 不都告诉你了嘛 ，你需要使用 bundler 处理，比如 `rollup
 直接用脚手架搞定的，可以直接跳过。
 
 如果打算编写 commonJS 风格的 nodejs 程序，不支持解析`exports`字段：
-module: "CommonJS"
-moduleResolution: "Node"
+
+```json
+{
+  "module": "CommonJS",
+  "moduleResolution": "Node"
+}
+```
+
+<br>
 
 如果打算编写 commonJS 风格的 nodejs 程序，支持`exports`字段：
-module: "CommonJS"
-moduleResolution: "NodeNext"
+
+```json
+{
+  "module": "CommonJS",
+  "moduleResolution": "NodeNext"
+}
+```
+
 或者
-module: "NodeNext"
-moduleResolution: "NodeNext"
+
+```json
+{
+  "module": "NodeNext",
+  "moduleResolution": "NodeNext"
+}
+```
+
+<br>
 
 如果打算编写 esModule 风格的 nodejs 程序：
-module: "ESNext"
-moduleResolution: "NodeNext"
+
+```json
+{
+  "module": "ESNext",
+  "moduleResolution": "NodeNext"
+}
+```
+
 或者
-module: "NodeNext"
-moduleResolution: "NodeNext"
+
+```json
+{
+  "module": "NodeNext",
+  "moduleResolution": "NodeNext"
+}
+```
 
 > 别忘了设置 package.json 的 type: "module"
 
+<br>
+
 如果打算编写浏览器端的代码：
-module: "ESNext"
-moduleResolution: "Bundler"
+
+```json
+{
+  "module": "ESNext",
+  "moduleResolution": "Bundler"
+}
+```
+
+<br>
+
+如果你打算编写一个库，这个库要在 Node 和浏览器都运行，针对浏览器的场景，
+module 要设置为 `ESNext` 或者预期的 ES 版本号（比如`ES2015`），如果
+你依旧采用`NodeNext`，你的库在打包的时候，tree shake 会出现问题，
+可能把依赖库整体都打包进去了，而不是按需打包！
 
 ### paths 陷阱
 
