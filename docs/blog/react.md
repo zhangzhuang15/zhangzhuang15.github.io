@@ -110,6 +110,20 @@ const fiber = {
     updateQueue,
     // 运行时中需要保存的值，
     memorizedState,
+    // {
+    //   // 优先级
+    //   lanes,
+    //   // contextItem 单向链表，记录当前fiber节点依赖的Context
+    //   // {
+    //   //   // React.createContext 返回的就是这个玩意儿
+    //   //   context,
+    //   //   // context._currentValue or context._currentValue2
+    //   //   memoizedValue,
+    //   //   // 下一个 contextItem
+    //   //   next,
+    //   // }
+    //   firstContext, 
+    // }
     dependencies,
     mode,
     // 标记要对fiber节点做怎样的mutation操作,
@@ -286,6 +300,129 @@ render 阶段的本质就是执行 `workLoopConcurrent` 函数或者`workLoopSyn
 如果没有，它就会设置一个变量，表示要中断执行下一个任务，并透过 shouldYield() 的执行结果告知上层应用；
 
 ### ReactNode 树如何转化成 fiber 树
+```js 
+import ReactDOM from "react-dom";
+
+const App = () => <div></div>;
+
+ReactDOM.render(<App />, document.getElementById("root"));
+```
+
+`<App />` 就是一个ReactNode，当 `render` 方法执行后，`<App />` 会作为一个
+新的 update 对象的 payload.element 属性，这个新的update会被添加到 fiberRoot.current.updateQueue.shared.pending，之后会调度执行 `performConcurrentWorkOnRoot` 或者
+`performSyncWorkOnRoot`；
+
+对一个fiber节点执行渲染工作，就是执行`beginWork`函数；
+
+整个渲染是从 `fiberRoot.current` 开始的，这个fiber节点非常特殊，
+是HostRootFiber，渲染最开始的时候，会调用`createWorkInProgree`函数
+创建出它的镜像节点，并用全局变量`workInProgress`指向它。镜像fiber的属性
+和原fiber保持一致，优先级相关的属性会设置为 NoLanes ：
+```js
+
+/**
+ *        fiberRoot
+ *           |
+ *           | 
+ *    fiberRoot.current  -------------->   workInProgress
+ *           |                                    |
+ *           | child                              |  child
+ *           v                                    |   
+ *    fiberRoot.current.child  <-------------------
+ * 
+ * 
+ *   workInProgress.child === fiberRoot.current.child
+ * 
+ *   current === fiberRoot.current
+ * /
+```
+显然，此时 `current.child === null`;
+
+怎么生成子fiber呢？
+
+很简单。将 `current.updateQueue.shared.pending` 上的update合并到
+`current.updateQueue.firstBaseUpdate` 代表的单向链表中，然后顺着
+这个链表，代入 `current.updateQueue.baseState`, 计算得到最终的state。
+
+还记得嘛，上边已经提到，`<App />` 这个ReactNode已经加入到 `current.updateQueue.shared.pending`中了，计算得到的state中，state.element 就是最终的ReactNode，
+workInProgress会根据它生成子fiber！
+
+一开始，`current.updateQueue.baseState.element === null`, 而新的 state.element 不是 null，于是就会执行 `reconcileChildren` 函数，得到下面的结果：
+```js
+/**
+ * 
+ *       fiberRoot
+ *           |
+ *           | 
+ *    fiberRoot.current  -------------->   workInProgress
+ *           |                                    |
+ *           | child                              |  child
+ *           v                                    v   
+ *          null                                 App   <-- workInProgress
+ *                             
+ * /
+```
+
+下一次执行 `beginWork`的时候，`current` 会被设置为 `workInProgress.alternate`,
+显然这将使`current = null`;
+
+`App` 是 `FunctionComponent` 类型的fiber，会执行组件函数，得到新的 ReactNode,
+`App` 的子 fiber 就会基于这个 ReactNode 生成；
+
+怎么将 ReactElement 转化为fiber呢？React有完成这件工作的函数，比如 `createFiberFromElement` 函数；
+
+最终就会得到：
+```js
+/**
+ * 
+ *       fiberRoot
+ *           |
+ *           | 
+ *    fiberRoot.current  -------------->   workInProgress
+ *           |                                    |
+ *           | child                              |  child
+ *           v                                    v   
+ *          null                                 App  
+ *                                                |
+ *                                                |
+ *                                                v
+ *                                               Div
+ *                                                |
+ *                                                |
+ *                                                v  
+ *                                               null  <-- workInProgress
+ * /
+ ```
+
+
+ 等到下一次渲染时：
+ ```js
+/**
+ * 
+ *                                           fiberRoot
+ *                                                |
+ *                                                | 
+ *    workInProgress   -------------->   fiberRoot.current
+ *           |                                    |
+ *           | child                              |  child
+ *           |                                    v   
+ *           ----------------------------------> App  
+ *                                                |
+ *                                                |
+ *                                                v
+ *                                               Div
+ *                                                |
+ *                                                |
+ *                                                v  
+ *                                               null
+ * /
+ ```
+
+注意，每次渲染的时候， `workInProgress.child = fiberRoot.current.child`,
+也就是说，新一次的渲染，会重新构建一遍fiber树，之前已经生成的会被丢弃。
+
+当然，以上介绍的只是一个大致的简化版经过。
+
 
 ### useEffect(fn, deps)
 
@@ -562,6 +699,58 @@ const component = () => {
 2. 每次调用的时候，如果安排调度，会使用`ensureRootIsScheduled`去调度，这个函数内部实现了调度
    排重，如果发现已经调度了，要么就不调度了，要么就取消已经调度的任务，生成一个新的调度任务。不论
    怎么处理吧，结果就是不会重复调度
+
+
+### `const v = useMemo(fn, deps)`
+#### 发生了什么
+
+
+### `React.createContext` and `useContext`
+#### `const context = React.createContext(defaultValue)`
+```js
+// 创建一个类型为REACT_CONTEXT_TYPE的ReactNode
+const context = {
+  $$typeof: REACT_CONTEXT_TYPE,
+  _currentValue: defaultValue,
+  _currentValue2: defaultValue,
+  _threadCount: 0,
+  Provider: null,
+  Consumer: null,
+  _defaultValue: null,
+  _globalName: null,
+}
+
+// 给context绑定一个Provider,Provider也是一个ReactNode,
+// 类型为 REACT_PROVIDER_TYPE
+context.Provider = {
+   $$typeof: REACT_PROVIDER_TYPE,
+    _context: context,
+}
+
+context.Consumer = context;
+
+return context
+```
+
+#### `const value = useContext(context)`
+```js
+// 读取value
+const value = context._currentValue or context._currentValue2;
+
+// 添加 context 依赖
+// 如果 context 不是第一个依赖，contextItem 会加入到 firstContext.next 的链表上
+const contextItem = {
+     context: context,
+     memoizedValue: value,
+     next: null,
+}
+currentlyRenderingFiber.dependencies = {
+  lanes: NoLanes,
+  firstContext:  contextItem,
+}
+
+return value
+```
 
 ### 函数组件什么时候会执行？
 
