@@ -83,3 +83,36 @@ pub mod a {
 ```
 
 这些入口文件也可以访问package的dependencies.
+
+
+## 怎么选择库类型
+如果你的库用于另一个Rust程序：
+```toml 
+[lib]
+crate-type = ["lib"]
+```
+
+如果你的库是操作系统动态库，给别的编程语言调用：
+```toml
+[lib]
+crate-type = ["cdylib"]
+```
+
+
+如果你的库是操作系统静态库，给别的编程语言调用：
+```toml
+[lib]
+crate-type = ["staticlib"]
+```
+
+如果你的库是用于Rust应用的动态库：
+```toml
+[lib]
+crate-type = ["dylib"]
+```
+
+如果你的库是用于Rust应用的静态库：
+```toml
+[lib]
+crate-type = ["rlib"]
+```
