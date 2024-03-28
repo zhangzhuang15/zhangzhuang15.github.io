@@ -21,8 +21,12 @@ const fiberRoot = {
   // 中的 <App /> 的 fiber节点并不是 current;
   // 每次 commit 完成之后， fiberRoot.current = fiberRoot.finishedWork
   current,
-  // 每次 render 完成之后， fiberRoot.finishedWork = fiberRoot.current.alternate
+  // 每次 render 完成之后， fiberRoot.finishedWork = fiberRoot.current.alternate,
+  // finishedWork 就是刚刚生成好的新fiber树根节点，commit阶段就会根据这个fiber树修改
+  // DOM树，最终 finishedWork会成为 fiberRoot.current
   finishedWork,
+  // 记录 fiberRoot 待执行的调度任务, 用于取消任务
+  // 调度任务就是 performConcurrentWorkOnRoot or performSyncWorkOnRoot
   callbackNode,
 };
 
@@ -487,13 +491,37 @@ hook.memoizedState = {
 
 由上一节可知，无论是 mount 阶段，还是 update 阶段，fn 都不会立即执行；
 
-fn 执行的时机，发生在 flushPassiveEffect 函数；
+fn 执行的时机，发生在 `flushPassiveEffects` 函数；
 
-flushPassiveEffect 函数会在以下时间点得到执行：
+在同步模式下，一次调度任务对应执行一次`performSyncWorkOnRoot`；
 
-- 每次开始一批 render 任务之前；
-- 结束 render 阶段（不管是并发 render 还是同步 render），开始 commit 阶段前；
-- 申请 requestPaint 之后；
+在并发模式下，一次调度任务对应执行一次`performConcurrentWorkOnRoot`;
+
+`flushPassiveEffects` 函数会在以下时间点得到执行：
+
+1. `performSyncWorkOnRoot` 或 `performConcurrentWorkOnRoot` 的开始部分，进入render工作之前；
+2. commit 阶段中的最开始部分；
+3. commit阶段中， `requestPaint` 之后；
+
+值得留意的是，在 `flushPassiveEffect` 函数内部有一个执行条件，仅仅当 
+`rootWithPendingPassiveEffects !== null` 时，才会执行各个useEffect的fn;
+
+`rootWithPendingPassiveEffects`在开始进入render的时候，是null，会在commit阶段的
+`requestPaint`之后，才会被设置为 fiberRoot;
+
+由此可以得到这样的结论：
+
+如果react应用是第一次完成render和commit，在commit结束环节，`rootWithPendingPassiveEffects`
+会被设置为fiberRoot，那么第一次挂上的effect，会在下一次调度任务中执行，也就是上边说的第一个执行时间点；
+
+`flushPassiveEffects` 执行之后，`rootWithPendingPassiveEffects`肯定会被设置为null，下次再执行，
+就要等到commit阶段即将结束时，重新将`rootWithPendingPassiveEffects`设置为fiberRoot. 在一些情况
+下，会在commit阶段即将结束时，同步执行`flushPassiveEffects`, 这种情况一般就是在 commit 阶段的工作
+中发生了些错误；
+
+综上所述，effect会在下一次调度任务时执行，换言之，就是在react页面DOM更新之后，才会被执行；而
+layoutEffect是在当前调度任务的commit阶段被执行，useEffect产生的effect是在下一次调度任务被执行，
+所以说，useEffect产生的effect要晚于layoutEffect才被执行。
 
 #### fn 在父、子组件执行的先后顺序
 
@@ -518,6 +546,7 @@ deps 不变时，useEffect 会将 effect 的 tag 更新为 HookPassive, 显然
 所以 fn 不会执行
 
 #### dev 模式下，fn 会执行两次？
+并不是 dev 模式，是在严格模式下才会执行两次。
 
 要想执行两次，必须在 render 的时候使用 StrictMode 组件：
 
