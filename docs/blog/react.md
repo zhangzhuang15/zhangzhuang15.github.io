@@ -126,7 +126,7 @@ const fiber = {
     //   //   // 下一个 contextItem
     //   //   next,
     //   // }
-    //   firstContext, 
+    //   firstContext,
     // }
     dependencies,
     mode,
@@ -304,7 +304,8 @@ render 阶段的本质就是执行 `workLoopConcurrent` 函数或者`workLoopSyn
 如果没有，它就会设置一个变量，表示要中断执行下一个任务，并透过 shouldYield() 的执行结果告知上层应用；
 
 ### ReactNode 树如何转化成 fiber 树
-```js 
+
+```js
 import ReactDOM from "react-dom";
 
 const App = () => <div></div>;
@@ -312,121 +313,124 @@ const App = () => <div></div>;
 ReactDOM.render(<App />, document.getElementById("root"));
 ```
 
-`<App />` 就是一个ReactNode，当 `render` 方法执行后，`<App />` 会作为一个
-新的 update 对象的 payload.element 属性，这个新的update会被添加到 fiberRoot.current.updateQueue.shared.pending，之后会调度执行 `performConcurrentWorkOnRoot` 或者
+`<App />` 就是一个 ReactNode，当 `render` 方法执行后，`<App />` 会作为一个
+新的 update 对象的 payload.element 属性，这个新的 update 会被添加到 fiberRoot.current.updateQueue.shared.pending，之后会调度执行 `performConcurrentWorkOnRoot` 或者
 `performSyncWorkOnRoot`；
 
-对一个fiber节点执行渲染工作，就是执行`beginWork`函数；
+对一个 fiber 节点执行渲染工作，就是执行`beginWork`函数；
 
-整个渲染是从 `fiberRoot.current` 开始的，这个fiber节点非常特殊，
-是HostRootFiber，渲染最开始的时候，会调用`createWorkInProgree`函数
-创建出它的镜像节点，并用全局变量`workInProgress`指向它。镜像fiber的属性
-和原fiber保持一致，优先级相关的属性会设置为 NoLanes ：
+整个渲染是从 `fiberRoot.current` 开始的，这个 fiber 节点非常特殊，
+是 HostRootFiber，渲染最开始的时候，会调用`createWorkInProgree`函数
+创建出它的镜像节点，并用全局变量`workInProgress`指向它。镜像 fiber 的属性
+和原 fiber 保持一致，优先级相关的属性会设置为 NoLanes ：
+
 ```js
 
 /**
  *        fiberRoot
  *           |
- *           | 
+ *           |
  *    fiberRoot.current  -------------->   workInProgress
  *           |                                    |
  *           | child                              |  child
- *           v                                    |   
+ *           v                                    |
  *    fiberRoot.current.child  <-------------------
- * 
- * 
+ *
+ *
  *   workInProgress.child === fiberRoot.current.child
- * 
+ *
  *   current === fiberRoot.current
  * /
 ```
+
 显然，此时 `current.child === null`;
 
-怎么生成子fiber呢？
+怎么生成子 fiber 呢？
 
-很简单。将 `current.updateQueue.shared.pending` 上的update合并到
+很简单。将 `current.updateQueue.shared.pending` 上的 update 合并到
 `current.updateQueue.firstBaseUpdate` 代表的单向链表中，然后顺着
-这个链表，代入 `current.updateQueue.baseState`, 计算得到最终的state。
+这个链表，代入 `current.updateQueue.baseState`, 计算得到最终的 state。
 
-还记得嘛，上边已经提到，`<App />` 这个ReactNode已经加入到 `current.updateQueue.shared.pending`中了，计算得到的state中，state.element 就是最终的ReactNode，
-workInProgress会根据它生成子fiber！
+还记得嘛，上边已经提到，`<App />` 这个 ReactNode 已经加入到 `current.updateQueue.shared.pending`中了，计算得到的 state 中，state.element 就是最终的 ReactNode，
+workInProgress 会根据它生成子 fiber！
 
 一开始，`current.updateQueue.baseState.element === null`, 而新的 state.element 不是 null，于是就会执行 `reconcileChildren` 函数，得到下面的结果：
+
 ```js
 /**
- * 
+ *
  *       fiberRoot
  *           |
- *           | 
+ *           |
  *    fiberRoot.current  -------------->   workInProgress
  *           |                                    |
  *           | child                              |  child
- *           v                                    v   
+ *           v                                    v
  *          null                                 App   <-- workInProgress
- *                             
+ *
  * /
 ```
 
 下一次执行 `beginWork`的时候，`current` 会被设置为 `workInProgress.alternate`,
 显然这将使`current = null`;
 
-`App` 是 `FunctionComponent` 类型的fiber，会执行组件函数，得到新的 ReactNode,
+`App` 是 `FunctionComponent` 类型的 fiber，会执行组件函数，得到新的 ReactNode,
 `App` 的子 fiber 就会基于这个 ReactNode 生成；
 
-怎么将 ReactElement 转化为fiber呢？React有完成这件工作的函数，比如 `createFiberFromElement` 函数；
+怎么将 ReactElement 转化为 fiber 呢？React 有完成这件工作的函数，比如 `createFiberFromElement` 函数；
 
 最终就会得到：
+
 ```js
 /**
- * 
+ *
  *       fiberRoot
  *           |
- *           | 
+ *           |
  *    fiberRoot.current  -------------->   workInProgress
  *           |                                    |
  *           | child                              |  child
- *           v                                    v   
- *          null                                 App  
+ *           v                                    v
+ *          null                                 App
  *                                                |
  *                                                |
  *                                                v
  *                                               Div
  *                                                |
  *                                                |
- *                                                v  
+ *                                                v
  *                                               null  <-- workInProgress
  * /
- ```
+```
 
+等到下一次渲染时：
 
- 等到下一次渲染时：
- ```js
+```js
 /**
- * 
- *                                           fiberRoot
- *                                                |
- *                                                | 
- *    workInProgress   -------------->   fiberRoot.current
- *           |                                    |
- *           | child                              |  child
- *           |                                    v   
- *           ----------------------------------> App  
- *                                                |
- *                                                |
- *                                                v
- *                                               Div
- *                                                |
- *                                                |
- *                                                v  
- *                                               null
- * /
- ```
+*
+*                                           fiberRoot
+*                                                |
+*                                                |
+*    workInProgress   -------------->   fiberRoot.current
+*           |                                    |
+*           | child                              |  child
+*           |                                    v
+*           ----------------------------------> App
+*                                                |
+*                                                |
+*                                                v
+*                                               Div
+*                                                |
+*                                                |
+*                                                v
+*                                               null
+* /
+```
 
 注意，每次渲染的时候， `workInProgress.child = fiberRoot.current.child`,
-也就是说，新一次的渲染，会重新构建一遍fiber树，之前已经生成的会被丢弃。
+也就是说，新一次的渲染，会重新构建一遍 fiber 树，之前已经生成的会被丢弃。
 
 当然，以上介绍的只是一个大致的简化版经过。
-
 
 ### useEffect(fn, deps)
 
@@ -499,29 +503,29 @@ fn 执行的时机，发生在 `flushPassiveEffects` 函数；
 
 `flushPassiveEffects` 函数会在以下时间点得到执行：
 
-1. `performSyncWorkOnRoot` 或 `performConcurrentWorkOnRoot` 的开始部分，进入render工作之前；
+1. `performSyncWorkOnRoot` 或 `performConcurrentWorkOnRoot` 的开始部分，进入 render 工作之前；
 2. commit 阶段中的最开始部分；
-3. commit阶段中， `requestPaint` 之后；
+3. commit 阶段中， `requestPaint` 之后；
 
-值得留意的是，在 `flushPassiveEffect` 函数内部有一个执行条件，仅仅当 
-`rootWithPendingPassiveEffects !== null` 时，才会执行各个useEffect的fn;
+值得留意的是，在 `flushPassiveEffect` 函数内部有一个执行条件，仅仅当
+`rootWithPendingPassiveEffects !== null` 时，才会执行各个 useEffect 的 fn;
 
-`rootWithPendingPassiveEffects`在开始进入render的时候，是null，会在commit阶段的
+`rootWithPendingPassiveEffects`在开始进入 render 的时候，是 null，会在 commit 阶段的
 `requestPaint`之后，才会被设置为 fiberRoot;
 
 由此可以得到这样的结论：
 
-如果react应用是第一次完成render和commit，在commit结束环节，`rootWithPendingPassiveEffects`
-会被设置为fiberRoot，那么第一次挂上的effect，会在下一次调度任务中执行，也就是上边说的第一个执行时间点；
+如果 react 应用是第一次完成 render 和 commit，在 commit 结束环节，`rootWithPendingPassiveEffects`
+会被设置为 fiberRoot，那么第一次挂上的 effect，会在下一次调度任务中执行，也就是上边说的第一个执行时间点；
 
-`flushPassiveEffects` 执行之后，`rootWithPendingPassiveEffects`肯定会被设置为null，下次再执行，
-就要等到commit阶段即将结束时，重新将`rootWithPendingPassiveEffects`设置为fiberRoot. 在一些情况
-下，会在commit阶段即将结束时，同步执行`flushPassiveEffects`, 这种情况一般就是在 commit 阶段的工作
+`flushPassiveEffects` 执行之后，`rootWithPendingPassiveEffects`肯定会被设置为 null，下次再执行，
+就要等到 commit 阶段即将结束时，重新将`rootWithPendingPassiveEffects`设置为 fiberRoot. 在一些情况
+下，会在 commit 阶段即将结束时，同步执行`flushPassiveEffects`, 这种情况一般就是在 commit 阶段的工作
 中发生了些错误；
 
-综上所述，effect会在下一次调度任务时执行，换言之，就是在react页面DOM更新之后，才会被执行；而
-layoutEffect是在当前调度任务的commit阶段被执行，useEffect产生的effect是在下一次调度任务被执行，
-所以说，useEffect产生的effect要晚于layoutEffect才被执行。
+综上所述，effect 会在下一次调度任务时执行，换言之，就是在 react 页面 DOM 更新之后，才会被执行；而
+layoutEffect 是在当前调度任务的 commit 阶段被执行，useEffect 产生的 effect 是在下一次调度任务被执行，
+所以说，useEffect 产生的 effect 要晚于 layoutEffect 才被执行。
 
 #### fn 在父、子组件执行的先后顺序
 
@@ -546,6 +550,7 @@ deps 不变时，useEffect 会将 effect 的 tag 更新为 HookPassive, 显然
 所以 fn 不会执行
 
 #### dev 模式下，fn 会执行两次？
+
 并不是 dev 模式，是在严格模式下才会执行两次。
 
 要想执行两次，必须在 render 的时候使用 StrictMode 组件：
@@ -729,13 +734,14 @@ const component = () => {
    排重，如果发现已经调度了，要么就不调度了，要么就取消已经调度的任务，生成一个新的调度任务。不论
    怎么处理吧，结果就是不会重复调度
 
-
 ### `const v = useMemo(fn, deps)`
+
 #### 发生了什么
 
-
 ### `React.createContext` and `useContext`
+
 #### `const context = React.createContext(defaultValue)`
+
 ```js
 // 创建一个类型为REACT_CONTEXT_TYPE的ReactNode
 const context = {
@@ -747,21 +753,22 @@ const context = {
   Consumer: null,
   _defaultValue: null,
   _globalName: null,
-}
+};
 
 // 给context绑定一个Provider,Provider也是一个ReactNode,
 // 类型为 REACT_PROVIDER_TYPE
 context.Provider = {
-   $$typeof: REACT_PROVIDER_TYPE,
-    _context: context,
-}
+  $$typeof: REACT_PROVIDER_TYPE,
+  _context: context,
+};
 
 context.Consumer = context;
 
-return context
+return context;
 ```
 
 #### `const value = useContext(context)`
+
 ```js
 // 读取value
 const value = context._currentValue or context._currentValue2;
