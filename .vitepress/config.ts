@@ -100,6 +100,7 @@ export default defineConfig({
         items: [
           { text: "how to learn", link: "/rust/how-to-learn" },
           { text: "宏-备忘录", link: "/rust/macro" },
+          { text: "Cargo Toml", link: "/rust/cargo-toml" },
           { text: "FAQ", link: "/rust/question" },
         ],
       },
@@ -130,6 +131,7 @@ export default defineConfig({
           { text: "homebrew tool", link: "/tool/brew-tool" },
           { text: "rust CLI tool", link: "/tool/rust-tool" },
           { text: 'vscode', link: '/tool/vscode-install' },
+          { text: 'front dev', link: '/tool/front-dev/config' },
           { text: 'NPM', link: '/tool/index-npm' }
 
         ],
@@ -160,6 +162,7 @@ export default defineConfig({
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
         { text: "宏-备忘录", link: "/rust/macro" },
+        { text: "Cargo Toml", link: "/rust/cargo-toml" },
         { text: "FAQ", link: "/rust/question" },
       ],
       "/blog": [
