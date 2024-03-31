@@ -54,4 +54,13 @@ css html 方面的技能，可以从中学习，获得灵感
 
 聚焦前端技术的一个网站，在上面可以读到很多技术实施、技术教程、技术分享的文章
 
+
+## WebKit
+[WebKit | Blog](https://webkit.org/blog/)
+
+<LoadingPreviewCard url="https://webkit.org/blog/" />
+
+webkit官网不单单是用来下载webkit的，它还有blog，里面分享了不少技术干货，找不到
+问题解决思路时，可以在里面翻翻博客，获得启发
+
 <Giscus />

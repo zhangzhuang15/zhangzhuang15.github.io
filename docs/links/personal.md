@@ -4,6 +4,9 @@ page: true
 aside: true
 ---
 
+# Description
+向NB者学习，感觉自己也NB起来🫠
+
 ## Niko Matsakis
 
 [前往](https://smallcultfollowing.com/babysteps/categories/)
@@ -67,5 +70,30 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 
 **Redis 之父**，网页内容很简练，写了他个人的基本情况，值得留意的是他
 留下的 code 理解，参会记录。
+
+## Dmitry Vyukov
+[前往](https://www.1024cores.net/home/about-me)
+
+<LoadingPreviewCard url="https://www.1024cores.net/home/about-me" />
+
+在阅读crossbeam无锁queue代码实现时，在其注释里发现的这位老哥，是一个聚焦**多核并行无锁编程算法**
+的专家，你可以到他的个人网站上看看他给出的无锁编程算法实现，非常有价值。
+
+对了，这老哥是俄罗斯人，数学、算法方面的能力就不用多说了。
+
+
+##  Joel Spolsky
+[前往](https://www.joelonsoftware.com/category/reading-lists/rock-star-developer/)
+
+逛github的时候，无意间发现的一个软件工程师，他的博客写了很多软件方面的基础，
+简单易懂，读起来不干，偏调侃语气，很有意思，读完他的文章，真得很受启发。
+
+## Robert C. Martin
+[前往](https://blog.cleancoder.com/uncle-bob/2023/01/19/functional-classes-clojure.html)
+
+知名的 Uncle Bob.
+
+不知道这个网站是不是他的博客，反正很多文章都是他写的，关于函数式编程的文章占比很多，
+代码片段以java示例为主。
 
 <Giscus />

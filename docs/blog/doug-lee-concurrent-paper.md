@@ -95,7 +95,7 @@ aside: true
 `AbstractQueuedSynchronizer`的核心功能就是维护**同步状态（synchronizer state）**, 控制线程阻塞和唤醒。如果学习过React，就对state有着很深刻的概念。同步状态是一个**32bit的int类型数据**（论文中的说法）。根据场景不同，同步状态这个数据表达的内容也不同。比如：
   - ReentrantLock中，表示的是重入锁计数
   - ReentrantReadWriteLock中，用16bit表示写入锁的计数，另外1bit表示读取锁的计数
-  - Semphore中，表示当前的计数，计数非正数的话，会引发线层阻塞
+  - Semphore中，表示当前的计数，计数非正数的话，会引发线程阻塞
 
 #### 一. 维护同步状态
 怎么维护呢？

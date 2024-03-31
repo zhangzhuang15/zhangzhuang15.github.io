@@ -89,7 +89,10 @@ export default defineConfig({
       {
         text: "Go",
         activeMatch: "^/go/",
-        items: [{ text: "how to learn", link: "/go/how-to-learn" }],
+        items: [
+          { text: "how to learn", link: "/go/how-to-learn" },
+          { text: 'FAQ', link: '/go/FAQ' }
+        ],
       },
       {
         text: "Rust",
@@ -97,7 +100,8 @@ export default defineConfig({
         items: [
           { text: "how to learn", link: "/rust/how-to-learn" },
           { text: "宏-备忘录", link: "/rust/macro" },
-          { text: "question in Rust", link: "/rust/question" },
+          { text: "Cargo Toml", link: "/rust/cargo-toml" },
+          { text: "FAQ", link: "/rust/question" },
         ],
       },
       {
@@ -127,6 +131,7 @@ export default defineConfig({
           { text: "homebrew tool", link: "/tool/brew-tool" },
           { text: "rust CLI tool", link: "/tool/rust-tool" },
           { text: 'vscode', link: '/tool/vscode-install' },
+          { text: 'front dev', link: '/tool/front-dev/config' },
           { text: 'NPM', link: '/tool/index-npm' }
 
         ],
@@ -150,11 +155,15 @@ export default defineConfig({
           ],
         },
       ],
-      "/go": [{ text: "how to learn", link: "/go/how-to-learn" }],
+      "/go": [
+        { text: "how to learn", link: "/go/how-to-learn" },
+        { text: "FAQ", link: '/go/FAQ'}
+      ],
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
         { text: "宏-备忘录", link: "/rust/macro" },
-        { text: "question in rust", link: "/rust/question" },
+        { text: "Cargo Toml", link: "/rust/cargo-toml" },
+        { text: "FAQ", link: "/rust/question" },
       ],
       "/blog": [
         {
@@ -199,6 +208,14 @@ export default defineConfig({
               text: "进程——问题清单",
               link: "/blog/process_question",
             },
+            {
+              text: 'Promise Resolve 的秘密',
+              link: '/blog/promise-resolve'
+            },
+            {
+              text: 'React梳理',
+              link: '/blog/react'
+            }
           ],
         },
       ],
@@ -209,7 +226,8 @@ export default defineConfig({
       ],
       "/frontend": [
         { text: "首页", link: "/frontend/index-page" },
-        { text: 'typescript类型系统', link: '/frontend/ts-type'}
+        { text: 'typescript类型系统', link: '/frontend/ts-type'},
+        { text: 'jsdoc常用的语法', link: '/frontend/js-doc'}
       ],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },
@@ -226,6 +244,12 @@ export default defineConfig({
             { text: 'vscode variables', link: '/tool/vscode-variables' },
             { text: 'tasks.json', link: '/tool/vscode-tasks' }
           ] 
+        },
+        {
+          text: 'front dev',
+          items: [
+            { text: '常用开发配置', link: '/tool/front-dev/config' },
+          ]
         },
         {
           text: 'NPM',
@@ -326,4 +350,12 @@ export default defineConfig({
       },
     },
   },
+  
+  vue: {
+    template: {
+      compilerOptions: {
+        // ssr: true,
+      }
+    }
+  }
 });

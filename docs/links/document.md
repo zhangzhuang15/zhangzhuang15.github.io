@@ -12,8 +12,8 @@ aside: true
 
 [github address](https://github.com/basarat/typescript-book/)
 
-
 ## The Modern JavaScript Tutorial
+
 [The Modern JavaScript Tutorial | JavaScript.info](https://javascript.info/)
 
 feature:
@@ -24,4 +24,11 @@ feature:
 - 通俗易懂，好理解
 
 ## Webpack Guidebook
+
 [Webpack Guidebook](https://tsejx.github.io/webpack-guidebook/)
+
+## Tech Interview Handbook
+
+适用于准备外国公司的面试
+
+[Tech Interview Handbook](https://www.techinterviewhandbook.org/software-engineering-interview-guide/)
