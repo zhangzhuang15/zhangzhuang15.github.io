@@ -459,6 +459,8 @@ type LastFunctionReturnType<T extends AnyFunc[]> = T extends [
   ? B
   : never;
 
+// refer: https://dev.to/ecyrbe/how-to-use-advanced-typescript-to-define-a-pipe-function-381h
+
 type PipeArgs<F extends AnyFunc[], Acc extends AnyFunc[] = []> = F extends [
   (...args: infer A) => infer B
 ]
