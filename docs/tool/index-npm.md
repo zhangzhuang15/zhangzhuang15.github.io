@@ -39,12 +39,21 @@ nvm alias default v16.15.0
 sudo rm -rf /usr/local/{bin/{node,npm},lib/node_modules/npm,lib/node,share/man/*/node.*}
 ```
 
-## 国内镜像源
+## npm国内镜像源
 
 | name |                       url                       |
 | :--: | :---------------------------------------------: |
 | 腾讯 |      http://mirrors.cloud.tencent.com/npm/      |
 | 淘宝 |         https://registry.npmmirror.com          |
 | 华为 | https://mirrors.huaweicloud.com/repository/npm/ |
+
+
+## nrm 
+帮助你管理npm镜像源的工具
+
+安装方式：
+```shell
+npm install -g nrm
+```
 
 <Giscus />

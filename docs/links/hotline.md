@@ -63,4 +63,10 @@ css html 方面的技能，可以从中学习，获得灵感
 webkit官网不单单是用来下载webkit的，它还有blog，里面分享了不少技术干货，找不到
 问题解决思路时，可以在里面翻翻博客，获得启发
 
+
+## w3schools
+[w3schools | Learn to code](https://www.w3schools.com/)
+
+<LoadingPreviewCard url="https://www.w3schools.com/" />
+
 <Giscus />

@@ -20,8 +20,4 @@ aside: true
 
 生成 hash 值的轻量级库
 
-## estree-walker
-
-遍历符合 [ESTree Spec](https://github.com/estree/estree) 的 AST
-
 <Giscus />

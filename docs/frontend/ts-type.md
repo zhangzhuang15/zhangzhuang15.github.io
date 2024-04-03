@@ -487,3 +487,22 @@ function createChainFn<T extends AnyFunc[]>(
   ...fns: PipeArgs<T> extends T ? T : PipeArgs<T>
 ): LastFunctionReturnType<T>;
 ```
+
+### 拓展原有类型
+有一些自定义的数据，我们想挂载到 `window`对象上，可`Window`类型本身没有声明这些数据，此时
+typescript会报告类型错误，我们可以这样解决：
+```ts 
+// 随便的一个 .d.ts 文件
+declare global {
+  interface Window {
+    customData: { code: number, message: string }; 
+  }
+}
+```
+
+在 `/A/util.ts` 你定义了一个函数 `createFn`, 但是你觉得类型定义不够好，想要做一下拓展：
+```ts 
+module '/A/util.ts' {
+  declare function createFn(): void;
+}
+```
