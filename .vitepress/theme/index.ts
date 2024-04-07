@@ -5,6 +5,7 @@ import "./custom.css";
 import Giscus from "./components/Giscus.vue";
 import LoadingPreviewCard from "./components/LoadingPreviewCard.vue";
 import MemoryBoard from "./components/MemoryBoard.vue";
+import Figure from "./components/Figure.vue";
 
 export default {
   extends: DefaultTheme,
@@ -20,5 +21,6 @@ export default {
     app.component("Giscus", Giscus);
     app.component("LoadingPreviewCard", LoadingPreviewCard);
     app.component("MemoryBoard", MemoryBoard);    
+    app.component("Figure", Figure);
   },
 };

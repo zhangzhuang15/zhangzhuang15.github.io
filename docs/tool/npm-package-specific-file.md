@@ -8,7 +8,6 @@ aside: true
 
 具体类型文件的处理：
 
-- sourcemap 文件
 - .env 文件
 - Excel 文件
 - css 文件
@@ -22,38 +21,6 @@ aside: true
 
 解析、编写 excel
 
-## source-map-js
-
-sourcemap 文件解析器和生成器
-
-## merge-source-map
-
-合并 sourcemap
-
-比如有一段代码 A，经过 AST 转化后，变成代码 B，
-那么 A 到 B 之间就会有一个 sourcemap-A；
-
-如果将代码 B 再经过 AST 转化后，变成代码 C，
-那么 B 到 C 之间就会有一个 sourcemap-B；
-
-那代码 A 到代码 C 之间的 sourcemap 你就可以利用
-merge-source-map 这个库，基于 sourcemap-A
-和 sourcemap-B 得到。
-
-## postcss
-
-处理 css 代码的工具
-
-## postcss-selector-parser
-
-postcss 生态中，处理 css selector 的工具；
-
-你可以用这个工具，给 css selector 加入属性修饰：
-`.hello {}` => `.hello[data-s="2"] {}`
-
-## postcss-modules
-
-postcss 的一个插件，实现 css module；
 
 ## remarkable
 
