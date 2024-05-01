@@ -106,8 +106,11 @@ export default defineConfig({
       },
       {
         text: "Frontend",
-        link: "/frontend/index-page",
+        // link: "/frontend/index-page",
         activeMatch: "^/frontend/",
+        items: [
+         { text: 'code snippet', link: '/frontend/code-snippet'}
+        ]
       },
       {
         text: "开源项目",
@@ -215,6 +218,10 @@ export default defineConfig({
             {
               text: 'React梳理',
               link: '/blog/react'
+            },
+            {
+              text: "vue2梳理",
+              link: "/blog/vue2"
             }
           ],
         },
@@ -227,7 +234,8 @@ export default defineConfig({
       "/frontend": [
         { text: "首页", link: "/frontend/index-page" },
         { text: 'typescript类型系统', link: '/frontend/ts-type'},
-        { text: 'jsdoc常用的语法', link: '/frontend/js-doc'}
+        { text: 'jsdoc常用的语法', link: '/frontend/js-doc'},
+        { text: 'code snippet', link: '/frontend/code-snippet'}
       ],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },
@@ -330,6 +338,7 @@ export default defineConfig({
     ],
   },
   base: "/",
+  lastUpdated: true,
 
   vite: {
     // resolve the problem described in this issue: https://github.com/antfu/vite-ssg/issues/324

@@ -7,7 +7,7 @@ aside: true
 ## Description
 例举一些常用的jsdoc语法，以供查找，防遗忘
 
-### 定义一个类型
+## 定义一个类型
 ```js
 /**
  * 
@@ -28,7 +28,7 @@ interface Param {
 }
 ```
 
-### 声明变量的类型
+## 声明变量的类型
 ```js 
 /**
  * @type {Param}
@@ -36,7 +36,7 @@ interface Param {
 const param = {};
 ```
 
-### 导入类型
+## 导入类型
 ```js
 /** @typedef {import("../types/index").Cat } Cat */
 
@@ -46,7 +46,7 @@ const param = {};
 const myCat = {};
 ```
 
-### 类型链接以及重命名
+## 类型链接以及重命名
 ```js
 /**
  * 
