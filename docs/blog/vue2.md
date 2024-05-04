@@ -132,15 +132,709 @@ vue2源码使用的是 2.7.14 版本
 
 
 ## new Vue() 到底发生了什么？
-待补充
+`Vue`定义的位置：`src/core/instance/index.ts` 
 
-## data props 的数据怎么变成响应式，又怎么挂载到Vue实例上的？
-待补充
+这个方法调用了`this._init(options)`
 
-## Observer Watcher DepTarget到底是什么关系？
-待补充
+而`_init`方法定义在 `src/core/instance/init.ts`
+
+最主要的逻辑是：
+```js 
+Vue.prototype._init = function (options) {
+  const vm = this;
+
+  // 初始化一堆实例属性值，
+  // 比如:
+  // vm.$parent
+  // vm.$children
+  // vm.$refs
+  // vm._provided
+  // vm._watcher 
+  // vm._inactive
+  // vm._isMounted
+  // vm._isDestroyed
+  // vm._isBeingDestroyed
+  initLifecycle(vm);
+
+  // 调用 vm.$on 注册事件，
+  // 注册的事件和回调函数都会被挂载到 vm._events
+  // vm._events[eventName] = [listener1, listener2, ..., listenerN]
+  initEvents(vm);
+
+  // 初始化一些和vnode相关的变量；
+  // 比如：
+  // vm.$slots
+  // vm.$scopedSlots
+  // vm._c 
+  // vm.$createElement
+  // vm.$attrs [响应式的]
+  // vm.$listeners [响应式的]
+  initRender(vm);
+
+  // 执行 beforeCreate hook 
+  // 在此hook中，你是访问不到响应式变量的哦
+  callHook(vm, 'beforeCreate', undefined, false);
+
+  // 将 vm.$options.inject 定义的众多变量注入为 vm 的直接属性，
+  // 这些属性都是响应式的
+  //
+  // 一个 injectName 会对应 provideName，尽管 vm[injectName]是响应式的,
+  // 但是当 vm._provided[provideName]变化时，vm[injectName]不一定会变化，
+  // vm[injectName]更新后，vm._provided[provideName]不会变化
+  initInjections(vm);
+
+  // 细分为几部分：
+  // 1. initProps
+  // 1-1. initSetup
+  // 2. initMethods
+  // 3. initData
+  // 4. initComputed
+  // 5. initWatch
+  //
+  // 1. initProps
+  //  vm.$options.propsData 响应式化，挂载到 vm._props,
+  //  为了可以用vm直接访问prop，利用 Object.defineProperty,
+  //  将 vm[propName] 的读写代理为 vm._props[propName]的读写;
+  //
+  // 1-1. initSetup 
+  //  支持 composition API 后加入的此方法；
+  //  根据 vm.$options.setup 计算值，如果结果是函数，就会作为 vm.$options.render;
+  //  如果是一个对象，就会赋值到 vm._setupState 上，为了让vm直接访问到这些属性，使用
+  //  Object.defineProperty 将 vm[setupStateName] 代理为 vm._setupState[setupStateName]
+  // 
+  // 2. initMethods
+  //  将 vm.$options.methods 定义的方法，直接挂载到 vm 上 
+  //  vm[methodName] = methods[methodName].bind(vm)
+  //  在这个过程中，在研发环境中，会检查 mehodName 是否和 propName 重复了，
+  //  重复的话，会打印一些提示信息，但 methodName 会覆盖掉 propName 
+  //
+  // 3. initData
+  //  将 vm.$options.data 定义的数据响应式化，然后挂载到 vm._data 上，
+  //  为了 vm 可以直接访问 dataName，利用 Object.defineProperty 将 
+  //  vm[dataName] 代理为 vm._data[dataName]
+  //
+  // 4. initComputed
+  //  为 vm.$options.computed 的每一个属性定义一个 watcher，这些watcher存储到
+  //  vm._computedWatchers，注意哈，watcher.lazy = true, 这意味着 new Watcher 
+  //  的时候不会调用 vm.$options.computed[computeName]()；
+  //
+  //  为了让 vm 可以直接访问 computeName, 利用 Object.defineProperty, 将 vm[computeName] 
+  //  代理为 vm._computedWatchers[computeName].value;
+  //
+  //  如果 computeName 和 propName、dataName、methodName 重复了，computedName不会覆盖它们，
+  //  反之，不会做 vm[computeName]的代理工作
+  //
+  // 4. initWatch
+  //  vm.$watch定义的位置： src/core/instance/state.ts
+  // 
+  //  为 vm.$options.watch 定义的每一个属性，使用 vm.$watch 处理它，这会给它绑定上一个 watcher， 
+  //  注意， watcher.lazy = false, 这意味着在 new Watcher 的时候，会执行 watcher.get()，立即
+  //  访问 vm[watchName]，将 watcher 收集为 vm[watchName]的依赖（要是watchName只是methodName就
+  //  糟糕了，因为 methodName 不具备响应式）；
+  //
+  //  如果 vm.$options.watch[watchName].immediate = true, 那么会立即执行
+  //  vm.$options.watch[watchName].handler(watcher.value);
+  //
+  //  还有一点要注意的是， watchName 必须在 vm 上已经存在，因此，watchName可以是 propName 或者 dataName 或者 
+  //  computeName
+  initState(vm);
+
+  // 根据 vm.$options.provide 计算出要提供给后代Vue实例的属性、值，然后
+  // 将这些属性、值注册到 vm._provided 上；
+  //
+  // 注意，vm._provided 最开始是和 parentVm._provided 一样的，当 vm 要
+  // 提供自己的一些属性、值时，vm._provided 才会变成一个新的Object，但是
+  // vm._provided.__proto__ === parentVm._provided，这种做法类似于
+  // copy on write 的做法；
+  //
+  // vm.$options.provide 计算出要提供给后代Vue实例的属性、值，并没有对这些
+  // 属性、值做响应式处理，就会遇到这样的问题：
+  // 
+  // data: function() {
+  //  return { count: 1 };
+  // }
+  // provide: function() {
+  //  return {
+  //     parentCount: this.count;
+  //  }
+  // }
+  //
+  // count 发生变化后，parentCount 不会发生变化！后代组件 inject “parentCount” 后，
+  // vm.parentCount 不会感知到组件的 count 属性变化！
+  // 
+  // 你应该这样：
+  // provide: function() {
+  //  const vm = this;
+  //  return {
+  //     parentCount: {
+  //         get() {
+  //            return vm.count;
+  //         }
+  //     }
+  //  }
+  // }
+  initProvide(vm);
+
+  // 执行 created hook 
+  callHook(vm, 'created');
+
+  if (vm.$options.el) {
+    // beforeMount hook 
+    // mounted hook
+    // 都在 $mount 里执行
+    vm.$mount(vm.$options.el);
+  }
+}
+```
+
+`vm.$mount`发生的事情，比较复杂，需要单独一个章节去介绍，大体上它做的事情是：
+- 建立一个 Watcher，检测 vm 的响应式变量发生变化，然后触发组件更新
+- 生成组件的vnode( vm._render() )
+- 根据新、旧vnode，更新DOM节点( vm.\__patch__() )
+
+## 响应式系统中的概念
+### Dep 和 DepTarget
+定义的位置：`src/core/observer/dep.ts`
+
+**Dep** 表示的是<u>**依赖收集器**</u>，而不是依赖;
+
+**DepTarget** 才表示<u>依赖</u>；
+
+
+```js 
+let count = 1;
+
+function hello() {
+  console.log('hello');
+}
+
+function world() {
+  console.log('world');
+}
+```
+
+`count`表示响应式变量，我们希望`count`发生变化的时候，可以自动执行`hello`和`world`;
+
+`hello`和`world`就是依赖, DepTarget；
+
+`count`需要有个东西，帮它管理这些依赖，这个东西就是 Dep;
+
+作为 DepTarget, `hello` 和 `world` 太过简单了，我们不如想想，DepTarget 需要
+具备什么样的特点？
+
+第一，像`hello`和`world`那样，DepTarget 必须是可以执行的；
+
+第二，DepTarget 要能够被 Dep 管理；
+
+针对第一点，DepTarget 拥有`update`方法：
+```ts 
+interface DepTarget {
+  update(): void;
+}
+```
+`count`一旦更新，就执行`DepTarget.update()`；
+
+
+针对第二点，DepTarget 拥有`addDep`方法：
+```ts 
+interface DepTarget {
+  addDep(dep: Dep): void
+}
+```
+
+你一定奇怪，Dep 定义一个方法收集 DepTarget 就可以了，为什么 DepTarget 还要定义`addDep` ？
+
+原因一：DepTarget并不只属于一个Dep，DepTarget 要知道哪些 Dep 管理它。Dep可以通过遍历，
+删除某个DepTarget，如果 DepTarget 被好多Dep管理，你想删除 DepTarget 的话，对于所有的
+Dep，你都要遍历一次。如果 DepTarget 知道哪些 Dep 在管理它，就不需要把所有的Dep遍历一遍。
+
+原因二：依赖倒转。
+```ts 
+class A {
+  collections = [];
+
+  collect(b: B) {
+    this.collections.push(b);
+  }
+
+  constructor() {};
+}
+
+class B {
+  value = 10;
+
+  constructor() {};
+}
+
+
+const a = new A();
+const b = new B();
+a.collect(b);
+```
+a 收集 b, 非常简单是吧。
+
+如果 a 只想收集 value > 100 的 b,  怎么办呢 ？
+
+```ts 
+class A {
+  collections = [];
+
+  collect(b: B) {
+    if (b.value > 100)
+      this.collections.push(b);
+  }
+
+  constructor() {};
+}
+
+class B {
+  value = 10;
+  constructor() {};
+}
+
+const a = new A();
+const b = new B();
+a.collect(b);
+```
+这种写法可以满足条件，但是缺点非常明显：
+
+1. 访问了 b.value, 破坏了 B 的数据封装；
+2. 随着对B收集的苛刻程度加深，A的collect方法越来越臃肿；
+
+A如果不仅仅想收集B，还想收集C，收集D，你肯定会想到将 C 和 D 的共性
+抽象为一个interface，这样A的collect方法不再依赖具体的类，而是抽象 
+的interface，这种依赖反转的方式很容易想到，但是这种处理依旧无法解决
+上面的两个问题！
+
+我们应该问，为什么会出现上面的问题呢？
+
+因为A的collect方法，关心收集B的条件了！
+
+解决的方法就是collect不关心要不要收集B，它只需要关心一件事，把 B 放进
+collections。
+
+那么谁来关心收集的条件呢？自然是B、C、D 喽！
+
+但是呢，B、C、D光能判断出条件还不行，它们必须知道怎么把自己放进A的collections，
+因此 A 的 collect 方法必须是 public 方法；
+
+同时呢，B、C、D也要提供一个共同的方法，完成上边的事情，所以就会有下面的版本：
+```ts 
+class A {
+  collections = [];
+
+  push(item: Item) {
+    this.collections.push(item);
+  }
+  
+  collect(item: Item) {
+    item.addToA(this);
+  }
+}
+
+interface Item {
+  addToA(a: A): void;
+}
+
+class B implements Item {
+  value = 10;
+
+  addToA(a: A) {
+    if (this.value > 100) {
+      a.push(this);
+    }
+  }
+}
+
+class C implements Item {
+  value = 100;
+
+  addToA(a: A) {
+    if (this.value < 50) {
+      a.push(this);
+    }
+  }
+}
+```
+
+回过头来，我们想想一切的导火索是什么？
+
+没错，破坏了A的单一职责，破坏了A的稳定性。
+
+这种设计技巧的出发点非常简单，区分出哪个数据是最稳定的，将修改都甩给不稳定的数据去实现。
+
+我们不用将依赖倒转当作奇技淫巧，因为只要遵从上述逻辑实现代码，自然而然就会出现倒转的现象。
+
+到此为止，可以理清响应式变量、Dep、DepTarget 的关系了：
+- 每个响应式变量都拥有一个 Dep;
+- 每个Dep都管理若干个DepTarget;
+- 响应式变量一经改变，就依次取出Dep里的DepTarget, 执行 DepTarget.update()
+
+
+### Watcher 
+#### 1. 基本情况
+定义的位置：`src/core/observer/watcher.ts`
+
+Watcher 就是 `DepTarget` 的一种具体实现。
+
+在 vue 的响应式体系中，它非常重要，组件的 `computed` 和 `watch` 都是基于 Watcher 实现。
+
+上一节中，忘记说 Dep 是如何收集 DepTarget 的了，现在就用 Watcher 做个介绍。
+
+```ts 
+class Watcher implements DepTarget {
+  constructor() {
+    this.value = this.lazy ? undefined : this.get();
+  }
+
+  get() {
+    pushTarget(this);
+    value = this.getter();
+    if (this.deep) {
+      traverse(value);
+    }
+    popTarget();
+    this.cleanupDeps();
+    return value;
+  }
+
+  addDep(dep: Dep) {
+    dep.addSub(this);
+  }
+
+  update() {
+    if (this.lazy) {
+      this.dirty = true
+    } else if (this.sync) {
+      this.run()
+    } else {
+      queueWatcher(this)
+    }
+  }
+
+  run() {
+    if (this.active) {
+      const value = this.get();
+      const oldValue = this.value;
+      this.value = value;
+      this.cb.call(this.vm, value, oldValue);
+    }
+  }
+}
+```
+
+收集依赖这个行为，是 Dep 定义的，即 Dep.depend 方法；
+
+激活依赖的update，也是 Dep 定义的，即 Dep.notify 方法；
+
+而上述两种行为的触发，是响应式变量做的。
+
+在访问响应式变量的值时，触发 Dep.depend 方法；
+
+在修改响应式变量的值时，触发 Dep.notify 方法；
+
+如果 Dep 想把 Watcher 收集起来，在读取响应式变量的时候，必须知道 Watcher：
+```ts 
+const dep = createDep();
+Object.defineProperty(obj, 'count', {
+  get: function() {
+    dep.depend(watcher);
+  }
+});
+```
+很遗憾，响应式变量在定义的时候，根本不知道什么Watcher，它就没办法让 dep.depend 去收集，
+更何况，Watcher是变化的：
+```ts 
+export default {
+  data: {
+    name: '',
+    age: 10,
+    count: 0,
+  },
+  watch: {
+    name() {
+      this.count;
+    },
+    age() {
+      this.count;
+    }
+  }
+}
+
+// 响应式变量 count 在定义的时候，没办法提前知道 name 和 age 这两个 watcher，
+// 因为有两个watcher, 在 count 的视角看，watcher 是个变量，是动态变化的
+```
+
+怎么解决这个事儿呢？
+
+既然 watcher 是变化的，那就用一个变量存储 watcher 呗。
+
+所有的响应式变量在定义的时候，都有收集watcher的需求，那么这个存储 watcher 的变量不能是局部变量。
+
+vue选择了 Dep.target 这个 static variable 来存储 watcher。
+
+```ts 
+const dep = createDep();
+Object.defineProperty(obj, 'count', {
+  get: function() {
+    // 因为用 Dep.target 存储了，就不需要通过参数告知
+    // dep.depend 了，dep.depend 内部直接从 Dep.target 
+    // 拿就可以了
+    if (Dep.target)
+      dep.depend();
+  }
+});
+```
+
+接下来，你一定会问，在什么时候赋值 Dep.target 呢？
+
+答案就在 Watcher 里：
+```ts 
+class Watcher implements DepTarget {
+  get() {
+    pushTarget(this);
+    value = this.getter();
+    if (this.deep) {
+      traverse(value);
+    }
+    popTarget();
+    this.cleanupDeps();
+    return value;
+  }
+}
+```
+
+在执行 `pushTarget(this)` 的时候，Dep.target 就被设置为 Watcher 了；
+
+而在  `this.getter()` 中，访问了响应式变量，那么这些响应式变量自然就可以把Watcher收集起来；
+
+没错，这里有一个固定的规矩：**响应式变量的读取操作，必须在 DepTarget 中完成**！
+
+为什么会有 `this.cleanupDeps()` ？
+
+```ts 
+export default {
+  data: {
+    age: 11,
+    value: 9,
+    count: 0,
+  },
+  watch: {
+    age(value) {
+      if (value > 10) {
+        this.value;
+      } else {
+        this.count;
+      }
+    }
+  }
+}
+```
+
+`this.value`的读取操作，是依赖动态变化的 `this.age`，这也意味着，在某一次，watcher被加入到 `this.value`的 Dep 中，
+在另外一次执行的时候，watcher被加入到 `this.count`的Dep中。因此，watcher每次执行`this.getter()`更新后，它所归属的
+Dep都要更新一下。`this.cleanupDeps`就是删除旧的Dep，改为新的Dep.
+
+#### 2. 谁来删除watcher 
+在 vue 中，创建好的 Watcher，大多数情况下，都不会绑定到 Vue 实例上；
+
+唯一的例外是 `vm.$mount`，在该方法里，创建的 Watcher 实例会被绑定到 `vm._watcher` 上，
+因为这个 watcher 非常特别，是 `render watcher`, 它的`this.getter`方法用于vnode渲染和DOM节点更新；
+
+你一定会问了，这些 watcher 会不会造成内存泄露呢？
+
+答案是不会的。这些 watcher 虽然没有挂载到vm上，但是它们挂载到 Dep 上。当响应式变量不再需要，
+被垃圾回收，那么Dep也会被释放掉，进而Dep中的watcher的引用计数就会减少，达到0的时候，watcher 
+也就被释放掉了。
+
+#### 3. $watch 
+
+#### 4. 渲染
+
+#### 5. watchEffect 
+
+### Observer 
+定义位置：`src/core/observer/index.ts`
+
+有了响应式变量，Dep，DepTarget，感觉响应式系统已经完备了，为什么还有个 Observer ?
+
+```ts 
+const reactiveObj = {
+  count: 10,
+  score: {
+    math: 50,
+    physics: 60,
+  }
+}
+
+// 对于响应式变量 reactiveObj 来说，
+//  reactiveObj.count ->  Dep 
+//  reactiveObj.score.math -> Dep 
+//  reactiveObj.score.physics -> Dep 
+
+const effect1 = () => {
+  // 引发 Dep.notify
+  reactiveObj.count += 1;
+}
+
+const effect2 = () => {
+  // 引发 Dep.notify
+  reactiveObj.score.math += 10;
+}
+
+const effect3 = () => {
+  // 尴尬了，没办法引发 Dep.notify,
+  // 因为 score 没有绑定 Dep
+  reactiveObj.score = {
+    math: 17
+  };
+};
+```
+
+为了解决 `effect3`的问题，就出现了 `Observer`；
+
+```ts 
+const plainObj = {
+  count: 1,
+  score: {
+    math: 100
+  }
+}
+
+const observer = new Observer(plainObj);
+
+// plainObj.__ob__ === observer 
+// observer.value === plainObj
+//
+// plainObj.score.__ob__ === observer2
+// observer2.value === plainObj.score
+//
+// 当 plainObj.score = {} 发生时，
+// plainObj.score.__ob__.dep 里的 DepTarget 就会执行
+```
+
+### EffectScope
+定义位置：`src/v3/reactivity/effectScope.ts`
+
+`EffectScope` 是一个作用域概念，它管理着组件内所有的 `Watcher`；
+
+Watcher 位于 Dep 中，而 Dep 是在定义响应式变量的时候，利用闭包技术创建的，
+只有`observe`将一个对象obj整体做响应式处理后，才能利用`obj.__ob__.dep`找到
+一个Dep，但是对于obj内部的属性，它们的 Dep 没办法找到，它们是闭包变量。
+
+而当组件unmount的时候，所有响应式变量对应的Watcher都应该失效，所以必须想一个方法，
+统一管理这些Watcher。于是 `EffectScope` 就出现了。
+
+所有的Watcher除了加入到Dep中，还要加入到vm._scope中。
+
+vm._scope.stop() 一执行，每个Watcher就会从Dep中删除；
+
+> `EffectScope` 在 vue2 中是个过渡概念，在 vue3 中，它管理的是 `Effect`，
+> 而 vue2 的 `DepTarget`，`Watcher` 概念都被替换为 `Effect` 概念。
+
+## 如何将一个对象响应式化
+### observe 
+定义位置：`src/core/observer/index.ts`
+
+vue2中最主要的方式。
+
+`observe(obj)` 将一个对象上的所有属性响应式化；
+
+vue2中开发的composition API——`reactive`也是基于 `observe`实现的；
+
+### defineReactive
+定义位置：`src/core/observer/index.ts`
+
+将`obj`的一个指定属性响应式化，`observe`是将所有属性响应式化；
+
+`observe`基于`defineReactive`实现；
+
+vue2中开发的composition API——`ref`也是基于`defineReactive`实现的；
+
+注意一点，`defineReactive`返回的是 Dep 
+
+```ts 
+
+const plainObj = {
+  count: 10,
+}
+
+const dep = defineReactive(plainObj, 'count');
+
+// plainObj.count -> dep
+```
+
+### set
+定义位置：`src/core/observer/index.ts`
+
+见[Vue.prototype.$set 为什么会存在，又实现了什么功能？](#vueprototypeset-为什么会存在又实现了什么功能)
 
 ## Vue.prototype.$set 为什么会存在，又实现了什么功能？
+定义的位置：`src/core/observer/index.ts`
+
+```ts 
+const obj = {
+  name: 'jack',
+  count: 10
+};
+
+const reactiveObj = reactive(obj);
+```
+
+响应式变量`reactiveObj`定义的时候，只是利用`Object.defineProperty`给出了`name` 和 `count`的响应式处理，
+但是，`Object`找不到一个API，可以监测到`reactiveObj.age`访问新属性`age`的行为，所以访问一个新属性，不能自动
+定义这个属性，并将其响应式处理。
+
+为了解决这个问题，就出现了 `Vue.prototype.$set` 方法。
+
+## unref的原理 
+定义位置：`src/v3/reactivity/ref.ts`
+
+```ts 
+function unref(ref) {
+  return isRef(ref) ? (ref.value as any) : ref
+}
+```
+
+将 `ref.value` 直接返回，就是 unref 了 ？ What ！
+
+解释这个问题，要看一下ref是怎么定义的：
+```ts 
+function createRef(rawValue: unknown, shallow: boolean) {
+  if (isRef(rawValue)) {
+    return rawValue
+  }
+  const ref: any = {}
+  def(ref, RefFlag, true)
+  def(ref, ReactiveFlags.IS_SHALLOW, shallow)
+  def(
+    ref,
+    'dep',
+    defineReactive(ref, 'value', rawValue, null, shallow, isServerRendering())
+  )
+  return ref
+}
+
+// 从  defineReactive(ref, 'value', rawValue, null, shallow, isServerRendering())
+// 可以知道，ref.value 是一个响应式变量，它的初始值是 rawValue;
+```
+
+下面会发生什么呢？
+
+```ts 
+const value = ref.value;
+```
+
+很简单，执行 ref.value 的 getter 方法，执行结果交给 value.
+
+value 会不会失去响应式，要看 getter 方法返回的结果是否经过响应式化。
+
+如果是`ref()`，采用的是深层次响应式化，那么上边的 value 就没有失去响应式化，你可以用`value.[propertyName]`
+触发响应式变化；
+
+如果是`shallowRef()`，采用的是浅层次响应式化，那就失去响应式了；
+
+## composition API 
 待补充
 
 ## 响应式变量更新后，怎么就自动重新渲染了？
@@ -325,6 +1019,8 @@ Vue的更新像是这样的：
 render()             __patch__()
 ```
 
+## vue的虚拟节点如何映射到DOM节点
+待补充
 
 ## onMounted函数和mounted函数怎么做到兼容的？
 待补充
