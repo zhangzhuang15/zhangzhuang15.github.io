@@ -509,3 +509,81 @@ pub fn hello() {
 执行 a.rs 里的测试函数 hello_is_ok: `cargo test --test a hello_is_ok`
 
 <Giscus />
+
+## 如何理解 `*x` 和 `Deref` 
+```rust 
+use std::ops::Deref;
+
+struct DerefExample<T> {
+    value: T,
+}
+
+impl<T> Deref for DerefExample<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+let m = DerefExample { value: 'a' };
+
+let n = &m;
+
+// *m 相当于 *(m.deref())
+// 最终结果就是 *(&m.value) -> m.value -> 'a'
+let s = *m;
+
+// n 的类型是 &DerefExample<char>
+// *n 就是 DerefExample<char>,
+// 这里没有执行 n.deref()
+let t = *n;
+```
+
+
+## 写操作一定要有 `mut` 么 
+不一定哦。
+
+一般来说：
+
+```rust 
+// 想改变m的值，要声明为 let mut m
+let m = 2;
+
+struct Data {
+    value: i32,
+}
+
+impl Data {
+    fn change(&mut self, new_value: i32) {
+        self.value = new_value;
+    }
+}
+
+let n = Data { value: 2 };
+
+// 想改变value，必须声明 let mut n
+n.value = 3;
+
+// 没办法执行，n 没有声明为 let mut n 
+n.change(10);
+```
+
+但是，使用 unsafe Rust，可以在没有声明`mut`的时候，修改值；
+
+典型的一个例子就是标准库里的 `AtomicUsize`, 它的 `compare_exchange_weak`方法
+并不要求 `self` 是 `&mut`，因为它内部使用unsafe Rust直接修改内存里的值，跳过了
+safe Rust 系统的那套约束；
+
+## `Pin`解决什么问题
+具体可以看这篇文章：[知乎| 005 Rust 异步编程，Pin 介绍](https://zhuanlan.zhihu.com/p/157348723)
+
+简言之就是，Rust拥有移动语义，当 `let m = n`，n 的内存和内容会复制一份新的给m，然后 n 无法
+访问旧有内存，就是我们说的n移动到了m.如果内存中存在自引用，内存地址改变了，但自引用地址是按bit
+拷贝的，依旧是旧内存地址，一旦使用这个自引用访问内存，就会发生内存错误。
+
+为了解决这个问题，才出现了 `Pin`。`Pin`会把引用包装起来，在编译的时候，保证该引用对应的内存
+不会移动。
+
+最典型的场景就是`Future`异步编程。
+

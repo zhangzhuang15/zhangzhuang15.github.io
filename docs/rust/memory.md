@@ -17,3 +17,85 @@ aside: true
 
 如果想释放内存，可以使用`Box::from_raw`，这块内存从新交给
 `Box`，然后Rust所有权系统就能管理内存，负责自动释放了。
+
+
+## ManuallyDrop
+
+```rust 
+fn main() {
+    struct Data;
+    impl Drop for Data {
+        fn drop(&mut self) {
+            println!("dropping");
+        }
+    }
+
+    {
+        let m = Data;
+        // 会输出 “dropping”
+    }
+
+    {
+        let n = ManuallyDrop::new(Data);
+        // 不会输出 “dropping”
+    }
+}
+```
+
+## ptr
+### ptr::read
+```rust 
+fn main() {
+    unsafe {
+        let m = String::from("right");
+
+        // n 也是 String 类型，而且 n 底层的内存
+        // 地址和m一样；
+        // 换句话讲，m 和 n 共享一块儿内存，m 和 n 
+        // 对这块儿内存都有所有权；
+        // 离开作用域后，n 会对内存做一次 drop，m 
+        // 又会对内存做一次drop
+        let mut n = ptr::read(&m);
+
+        // 重新赋值n，也会触发 drop
+        n = String::from("wrong");
+    }
+}
+```
+### ptr::write 
+```rust 
+fn main() {
+    let mut m = String::from("right");
+
+    unsafe {
+        // 相当于将 "left" 移动到了 m 中，不会触发
+        // m 执行 drop
+        ptr::write(&mut m, String::from("left"));
+    }
+}
+```
+
+## mem 
+### mem:replace
+### mem::swap
+### mem::forget
+
+
+
+## cell 
+### Cell 
+
+
+### RefCell
+
+### OnceCell
+
+## Unique
+
+
+## NonNull
+
+## MaybeUninit
+
+## `*const` 和 `*mut` 
+不像`&T` 和 `&mut T`，`*const T` 和 `*mut T` 可以利用 `as`强制相互转化；
