@@ -575,6 +575,34 @@ n.change(10);
 并不要求 `self` 是 `&mut`，因为它内部使用unsafe Rust直接修改内存里的值，跳过了
 safe Rust 系统的那套约束；
 
+## `*x` 会改变所有权么
+```rust 
+fn main() {
+    let m = String::from("world");
+    let n = &m;
+
+    // 不会改变所有权，所有权还在 m 手里
+    let t = &*n;
+
+    // 会改变所有权！
+    let k = *n;
+}
+```
+
+```rust 
+fn main() {
+    let m = String::from("world");
+    let n = &m as *const String;
+
+    // 不会改变所有权，所有权还在 m 手里
+    let t = unsafe { &*n };
+
+    // 改变所有权了！
+    let k = unsafe { *n };
+}
+
+```
+
 ## `Pin`解决什么问题
 具体可以看这篇文章：[知乎| 005 Rust 异步编程，Pin 介绍](https://zhuanlan.zhihu.com/p/157348723)
 
