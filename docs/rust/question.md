@@ -508,7 +508,7 @@ pub fn hello() {
 
 执行 a.rs 里的测试函数 hello_is_ok: `cargo test --test a hello_is_ok`
 
-<Giscus />
+
 
 ## 如何理解 `*x` 和 `Deref` 
 ```rust 
@@ -600,8 +600,36 @@ fn main() {
     // 改变所有权了！
     let k = unsafe { *n };
 }
-
 ```
+
+## `ref` 是干什么用的
+`ref`关键字用于模式匹配
+
+```rust 
+fn main() {
+    let m = Some(String::from("hello"));
+
+    match m {
+        Some(s) -> println!("{}", s),
+        None -> _,
+    }
+}
+```
+这个例子中，String会移动到 s;
+
+```rust 
+fn main() {
+    let m = Some(String::from("hello"));
+
+    match m {
+        // s 是 &String 类型
+        Some(ref s) -> println!("{}", s),
+        None -> _
+    }
+}
+```
+这个例子中，依旧可以匹配成功，只不过在 `ref` 的修饰下，
+s 不再是直接获取String，而是获取String的reference;
 
 ## `Pin`解决什么问题
 具体可以看这篇文章：[知乎| 005 Rust 异步编程，Pin 介绍](https://zhuanlan.zhihu.com/p/157348723)
@@ -615,3 +643,4 @@ fn main() {
 
 最典型的场景就是`Future`异步编程。
 
+<Giscus />

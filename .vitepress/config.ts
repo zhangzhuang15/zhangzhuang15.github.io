@@ -101,6 +101,7 @@ export default defineConfig({
           { text: "how to learn", link: "/rust/how-to-learn" },
           { text: "宏-备忘录", link: "/rust/macro" },
           { text: "Cargo Toml", link: "/rust/cargo-toml" },
+          { text: 'Rust内存操作', link: '/rust/memory'},
           { text: "FAQ", link: "/rust/question" },
         ],
       },
@@ -135,7 +136,8 @@ export default defineConfig({
           { text: "rust CLI tool", link: "/tool/rust-tool" },
           { text: 'vscode', link: '/tool/vscode-install' },
           { text: 'front dev', link: '/tool/front-dev/config' },
-          { text: 'NPM', link: '/tool/index-npm' }
+          { text: 'NPM', link: '/tool/index-npm' },
+          { text: 'software', link: '/tool/software' }
 
         ],
       },
@@ -166,6 +168,7 @@ export default defineConfig({
         { text: "how to learn", link: "/rust/how-to-learn" },
         { text: "宏-备忘录", link: "/rust/macro" },
         { text: "Cargo Toml", link: "/rust/cargo-toml" },
+        { text: 'Rust内存操作', link: '/rust/memory'},
         { text: "FAQ", link: "/rust/question" },
       ],
       "/blog": [
@@ -298,7 +301,8 @@ export default defineConfig({
         {
           text: 'ansi escape control',
           link: '/tool/ansi-escape-control'
-        }
+        },
+        { text: 'software', link: '/tool/software' }
         // {
         //   text: "Docker",
         //   items: [
