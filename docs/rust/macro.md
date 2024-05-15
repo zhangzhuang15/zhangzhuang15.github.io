@@ -208,3 +208,12 @@ rustfmt提供的工具宏，影响rustfmt的行为，这里的例子是说rustfm
 如果要报错误，用`deny` 或者  `forbid`;
 
 除了 unused-mut ，还有哪些 lint 规则，可以使用 `rustc -W help` 查看
+
+
+## `#![warn(missing_docs, unsafe_op_in_unsafe_fn)]`
+
+
+## `#![doc(test(no_crate_inject, attr(deny(warnings, rust_2018_idioms, single_use_lifetimes))))]`
+
+
+## `#[doc(inline)]`

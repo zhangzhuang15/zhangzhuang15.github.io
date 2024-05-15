@@ -113,6 +113,7 @@ vue2源码使用的是 2.7.14 版本
           <li><code>Vue.delete</code></li>
           <li><code>Vue.nextTick</code></li>
           <li><code>Vue.observable</code></li>
+          <li><code>Vue.component</code></li>
         </ul>
       </td>
     </tr>
@@ -835,6 +836,22 @@ value 会不会失去响应式，要看 getter 方法返回的结果是否经过
 如果是`shallowRef()`，采用的是浅层次响应式化，那就失去响应式了；
 
 ## composition API 
+### reactive 
+待补充
+
+### ref
+待补充
+
+### watch 
+待补充
+
+### watchEffect 
+待补充
+
+### watchPostEffect 
+待补充
+
+### onMounted
 待补充
 
 ## 响应式变量更新后，怎么就自动重新渲染了？
@@ -886,7 +903,7 @@ _update(render());
 function $mount() {
 
   const updateComponent = () => {
-    _update(render());
+    _update(_render());
   }
 
   new Watcher(updateComponent)
@@ -937,9 +954,13 @@ class Watcher {
 //
 // 现在串起来了吧
 ```
+> `_render`是 vue 对 `render` 的一层封装，这层封装不改变功能；
+> `render`是有组件的编写人员定义的，比如你直接定义了这个方法，或者你编写了`<template>`，
+> vue编译器将它转为`render`方法；
+
 **组件更新的本质**: `vm._watcher.update()`
 
-\$mount方法定义位置：src/platforms/web/runtime/index.ts
+\$mount方法定义位置：`src/platforms/web/runtime/index.ts`
 
 额外提一句，别被`.vue`文件迷惑了，vue编译器最重要的工作就是将 `<template>` 编译为
 Vue实例的`render`方法。像 `data` `computed` 什么的，不需要编译器做什么，都是你

@@ -4,7 +4,7 @@ page: true
 aside: true
 ---
 
-# Description
+## Description
 记录踩过的坑
 
 ## 为什么 lodash 的 tree-shaking 会失败？
@@ -65,4 +65,35 @@ function pushQueue(queue, task) {
 }
 ```
 
+## 使用 javascript API 遇到的坑
+### 数组 empty slot 被跳过
+❌
+```ts 
+const arr = new Array(3).map((_, index) => index + 1)
 
+// expect: [1,2,3]
+// actual: [<3 empty items>]
+// arr[0] === undefined
+```
+
+✅
+```ts
+const arr = new Array(3).fill(1).map((_, index) => index + 1)
+```
+
+### Date设置日期
+```ts 
+const date = new Date("2024-02-07")
+
+date.setDate(0);
+
+// date: "2024-01-31"
+```
+
+```ts 
+const date = new Date("2024-02-07")
+
+date.setDate(-1);
+
+// date: "2024-01-30"
+```
