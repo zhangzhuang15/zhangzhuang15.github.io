@@ -4,6 +4,19 @@ page: true
 aside: true
 ---
 
+## datatracker.ietf.org
+[datatracker.ietf.org](https://datatracker.ietf.org/doc/html/draft-ietf-webpush-protocol)
+
+在这个网站，你可以查阅到各种协议的**RFC**文档，比如 http protocol, web push protocol 等等
+
+## w3c.github.io
+[w3c.github.io](https://w3c.github.io/ServiceWorker/#client-id)
+
+浏览器API的草案Draft
+
+从中你可以知道调用某个API的时候，浏览器具体分步骤做了什么，比如`postMessage`发生了什么
+
+
 ## Typescript Deep Dive
 
 [Typescript Deep Dive | README](https://basarat.gitbook.io/typescript/)
