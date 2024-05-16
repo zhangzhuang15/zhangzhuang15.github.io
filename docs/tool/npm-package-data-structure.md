@@ -20,4 +20,14 @@ aside: true
 
 生成 hash 值的轻量级库
 
+## [FzF](https://www.npmjs.com/package/fzf)
+FZF算法实现模糊匹配，原版使用Go语言实现；
+
+## [leven](https://www.npmjs.com/package/leven)
+[Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)算法的实现，
+计算两个字符串的距离差，可用作实现模糊匹配算法。
+
+还有个性能更好的实现[js-levenshtein](https://www.npmjs.com/package/js-levenshtein)
+
+
 <Giscus />
