@@ -115,8 +115,11 @@ export default defineConfig({
       },
       {
         text: "开源项目",
-        link: "/open-source/index-page",
         activeMatch: "^/open-source/",
+        items: [
+          { text: "首页", link: "/open-source/index-page" },
+          { text: "开源项目学习清单", link: "/open-source/learning-route" },
+        ]
       },
       // index.md 将被特殊处理，其路由是 /blog/ 而不是 /blog/index，
       // 这会影响到sidebar的高亮问题，因此重命名为index-page;
@@ -232,7 +235,8 @@ export default defineConfig({
       "/open-source": [
         { text: "首页", link: "/open-source/index-page" },
         { text: "个人学习项目", link: "/open-source/personnal-learn-project" },
-        { text: '个人开发的应用项目', link: '/open-source/application' }
+        { text: '个人开发的应用项目', link: '/open-source/application' },
+        { text: "开源项目学习清单", link: "/open-source/learning-route" },
       ],
       "/frontend": [
         { text: "首页", link: "/frontend/index-page" },
