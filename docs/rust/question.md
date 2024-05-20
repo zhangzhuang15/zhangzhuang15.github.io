@@ -602,6 +602,23 @@ fn main() {
 }
 ```
 
+```rust 
+fn main() {
+    struct M {
+        value: i16,
+    }
+
+    let mut n = M { value: 1 };
+    let mut t = &mut n;
+
+    // 不会move
+    *t.value = 10;
+
+    // 会move
+    let t = *t;
+}
+```
+
 ## `ref` 是干什么用的
 `ref`关键字用于模式匹配
 
@@ -638,9 +655,37 @@ s 不再是直接获取String，而是获取String的reference;
 访问旧有内存，就是我们说的n移动到了m.如果内存中存在自引用，内存地址改变了，但自引用地址是按bit
 拷贝的，依旧是旧内存地址，一旦使用这个自引用访问内存，就会发生内存错误。
 
-为了解决这个问题，才出现了 `Pin`。`Pin`会把引用包装起来，在编译的时候，保证该引用对应的内存
-不会移动。
+为了解决这个问题，才出现了 `Pin`。`Pin`会把引用或者数据包装起来，只开放无法触发移动语义的API。
 
 最典型的场景就是`Future`异步编程。
+
+## 结构体怎么直接就能访问属性的属性？
+因为实现了`Deref` trait
+
+```rust
+fn main() {
+    struct M {
+        value: i32,
+    }
+
+    struct N {
+        m: M,
+    }
+
+    impl Deref for N {
+        type Target = M;
+        fn deref(&self) -> &Self::Target {
+            &self.m
+        }
+    }
+
+    let n = N { m: M { value: 10 } };
+
+    // 编译器会检查 n 是否有 value，
+    // 如果没有的话，检查 *n 是否有value，
+    // 发现确实有，于是将代码优化为 *n.value
+    println!("{}", n.value);
+}
+```
 
 <Giscus />
