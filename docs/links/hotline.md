@@ -69,4 +69,13 @@ webkit官网不单单是用来下载webkit的，它还有blog，里面分享了�
 
 <LoadingPreviewCard url="https://www.w3schools.com/" />
 
+
+## web.dev
+[web.dev](https://web.dev/)
+
+<LoadingPreviewCard url="https://web.dev/" />
+
+google旗下的一个网站，提供web开发者技术上的帮助，上面有很多技术文章，也有系统
+的 web 开发指引；
+
 <Giscus />

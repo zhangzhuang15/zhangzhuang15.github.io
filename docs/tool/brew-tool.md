@@ -80,4 +80,29 @@ brew install imagemagick
    > 如果缺少依赖，可能会有这样的错误`error: ImageMagick not installed? Executable 'convert' not found`
    > 你就要检查是否安装 `gifsicle` 和 `imagemagick` 了
 
+
+## ffmpeg
+无比强大的音视频处理工具，众多音视频软件的基石；
+
+自身安装：
+
+```shell
+brew install ffmpeg
+```
+
+### 将 mpeg 格式转换为 mp4 格式
+mp4文件拥有很多的编码格式，有一些格式无法被iMovie，macOS自带播放器等识别，比如mpeg-4格式，需要对它们做格式转化处理。
+
+这个时候，就可以如此处理：
+
+```shell
+ffmpeg -i source.mp4 -c:v copy -c:a copy -vcodec h264 output.mp4
+```
+
+`source.mp4`就是有编码格式问题的文件；
+
+`h264`指定新的编码格式为h264;
+
+`output.mp4`是输出的文件路径，相对路径和绝对路径都可以；
+
 <Giscus />
