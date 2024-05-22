@@ -238,7 +238,16 @@ m 一旦启用，就会启用依赖包a的all特性
 
 ### 关联依赖
 ```toml
+[dependencies]
+a = { version = "1.0.0", optional = true }
+
 [features]
-m = ["dev:a"]
+## 指定a是 optional 后, 隐式定义了这样的 feature
+## a = ["dep:a"]
+
+m = ["dep:a"]
+
+## 上述也可以写为
+## m = ["a"]
 ```
-m 一旦启用，就会下载依赖包a
+m 一旦启用，就会把依赖包a也编译到项目中
