@@ -30,3 +30,12 @@ aside: true
 也有一些不舒服的地方：
 - 纯英文
 - 部分语言\库的示例代码太少，或者可读性不好
+
+
+
+## macOS 虚拟机
+[前往](https://mac.getutm.app/)
+
+<LoadingPreviewCard url="https://mac.getutm.app/" />
+
+可以在 macOS 上安装免费的虚拟机，令你同时拥有 linux windows macOS

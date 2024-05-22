@@ -16,6 +16,24 @@ nvm install --lts
 
 [homebrew 安装方法](/tool/brew-tool#安装homebrew)
 
+
+如果你是apple M系列芯片的机子，在使用 nvm 安装 v14 版本
+的时候，会遭遇这样的问题：
+
+```shell
+../deps/v8/src/base/bit-field.h:43:29: error: integer value 31 is outside the valid range of values [0, 15] for this enumeration type [-Wenum-constexpr-conversion]
+```
+
+可以这样解决：
+```shell
+/usr/sbin/softwareupdate --install-rosetta --agree-to-license
+
+arch -x86_64 zsh
+nvm install 14
+```
+
+详情见[github | nodejs issues #52306](https://github.com/nodejs/node/issues/52306)
+
 ## 指定使用默认版本的 node
 
 假设你用 nvm 安装了 node16.15.0, 并且希望每次打开 terminal 后，用到的

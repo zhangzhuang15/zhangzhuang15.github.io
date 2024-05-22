@@ -97,3 +97,27 @@ date.setDate(-1);
 
 // date: "2024-01-30"
 ```
+
+
+## localStorage 和 sessionStorage 的存储容量限制
+每个 origin，最多允许存储 10MB 的数据（5MB localStorage, 5MB sessionStorage）
+
+[MDN | Storage容量限制](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage)
+
+## web worker 最多开多少个
+没有找到具体的官方文档，但是可以参考[stackoverflow | Number of Web Workers Limit](https://stackoverflow.com/questions/13574158/number-of-web-workers-limit)
+
+FireFox浏览器最多允许创建20个；
+> FireFox的限制数量可以改变配置；
+
+Chrome浏览器最多允许创建60+个；
+
+Opera浏览器最多允许创建16个；
+
+
+值得关注的是，web worker占据一个系统线程，因此不要过多创建web worker，web worker的数量和主机的CPU核数保持一致即可，数量多了未必能提升性能。
+
+## `Failed to execute 'postMessage' on 'Window': 2 arguments required, but only 1 present.`
+浏览器差异，在 chrome v123没有问题，在 chrome v69 会有问题。
+
+MDN上说：`window.postMessage(data, targetOrigin)` ，第二个参数是optional，这不准确，像 chrome v69 环境下，第二个参数就必须填写。

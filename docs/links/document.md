@@ -9,13 +9,32 @@ aside: true
 
 在这个网站，你可以查阅到各种协议的**RFC**文档，比如 http protocol, web push protocol 等等
 
-## w3c.github.io
-[w3c.github.io](https://w3c.github.io/ServiceWorker/#client-id)
+## www.w3.org
+[www.w3.org](https://www.w3.org/)
 
-浏览器API的草案Draft
+浏览器API的标准文档、草案文档；
 
-从中你可以知道调用某个API的时候，浏览器具体分步骤做了什么，比如`postMessage`发生了什么
+从中你可以知道调用某个API的时候，浏览器具体做了什么；
 
+比如你不太懂 `Service Worker` 到底是怎么定义的，它的API实现中，浏览器具体要做哪些事情，就可以在这里搜索、查阅。
+
+## whatwg.org
+[whatwg.org](https://whatwg.org/)
+
+MDN可以查询到各个 Web API 的定义，但是这些定义有时候并不准确，这时候就可以访问该文档，它是标准！只不过，它的可读性
+不太强，不容易像MDN那么好理解。
+
+## ECMAScript 标准
+[ECMAScript 标准](https://tc39.es/ecma262/#sec-hostcalljobcallback)
+
+javascript 语言的标准定义，当你不知道javascript某个语法或者API到底干了什么时，就可以阅读这个标准文档。
+
+
+## chromium
+[chromium | developers](https://www.chromium.org/developers/design-documents/multi-process-architecture/)
+
+如果你想知道 chromium 内核是如何设计的，学习google工程师是如何构建 chromium 的，可以阅读其官方文档。当然，如果
+对其它模块，比如渲染层面的实现，你比较好奇，也可以从这个网站中找到相关介绍的文档。这些文档读起来很干，但绝对是智慧所在。
 
 ## Typescript Deep Dive
 
