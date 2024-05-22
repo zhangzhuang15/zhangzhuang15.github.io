@@ -508,6 +508,54 @@ pub fn hello() {
 
 执行 a.rs 里的测试函数 hello_is_ok: `cargo test --test a hello_is_ok`
 
+## 如何理解 tests examples benches 文件夹
+1. 功能不同
+tests： 集成测试
+
+examples: 运行示例代码
+
+benches: 压力测试
+
+2. 都是二进制程序
+无论你使用 cargo 运行哪一个，都是生成一个二进制程序，然后运行。
+
+```txt
+examples
+  ---  a.rs
+  ---  b.rs
+  ---  c
+        --- d.rs
+        --- e.rs
+        --- main.rs
+
+src
+  --- main.rs
+```
+
+`examples/a.rs` 和  `examples/b.rs` 都相当于  `src/main.rs` 的角色，因此它们之间不能作为对方的模块；
+
+而 `examples/c/main.rs` 相当于 `src/main.rs` 的角色，因此它可以引入 `examples/c/d.rs` 和 `examples/c/e.rs`;
+
+`tests` 文件夹和 `benches`文件夹也是同样的文件结构和道理。
+
+`tests` `examples` `benches` 和 `src` 文件夹是平级关系，也就是说，在这些文件夹下的 rs 文件可以访问当前package，以及当前package所依赖的package.
+
+
+## --test --example --bin --bench 
+
+`cargo test m`: 执行 src, tests, examples, benches 下所有rs文件中的单元测试函数，这些测试函数的名字要包含 m
+
+`cargo test --test a`: 执行 tests/a.rs 或者 tests/a/*.rs 中的单元测试函数
+
+`cargo test --example a`: 执行 examples/a.rs 或者 examples/a/*.rs 中的单元测试函数
+
+`cargo test --bin a`: 执行 src/bin/a.rs 或者 src/bin/a/*.rs 中的单元测试函数
+
+`cargo test --bench a`: 执行 benches/a.rs 或者 benches/a/*.rs 中的单元测试函数
+
+单元测试函数都会被`#[test]`修饰；
+
+上述的参数，在 `cargo bench` 也支持，只不过执行的是压力测试函数，这些函数被`#[bench]`修饰；
 
 
 ## 如何理解 `*x` 和 `Deref` 
