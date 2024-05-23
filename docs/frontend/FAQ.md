@@ -121,3 +121,22 @@ Opera浏览器最多允许创建16个；
 浏览器差异，在 chrome v123没有问题，在 chrome v69 会有问题。
 
 MDN上说：`window.postMessage(data, targetOrigin)` ，第二个参数是optional，这不准确，像 chrome v69 环境下，第二个参数就必须填写。
+
+## Performance 中的术语
+- `Schedule Style Recalculation`
+- `Finish Loading`
+- `Receive Response`
+- `Layout`
+- `Pre-Paint`
+- `Paint`
+- `Layerize`
+- `Commit`
+- `Timer Fired`
+- `Task`
+- `Run Microtasks`
+- `Evaluate Script`
+- `Compile Script`
+- `Compile Code`
+- `Parse HTML`
+
+待完善
