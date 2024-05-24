@@ -93,6 +93,9 @@ aside: true
 
 [rust by example | Introduction](https://doc.rust-lang.org/stable/rust-by-example/index.html)
 
+### rust documentation 不会搞？
+[The rustdoc book](https://doc.rust-lang.org/rustdoc/what-is-rustdoc.html)
+
 ### 看到语法表达记不起来啥意思，有些概念搞不清？
 
 [cheats of rust](https://cheats.rs)

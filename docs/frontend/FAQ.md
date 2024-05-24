@@ -65,6 +65,13 @@ function pushQueue(queue, task) {
 }
 ```
 
+### footgun
+footgun通常指的是那些容易导致程序员犯错的语言特性、API设计或配置选项。例如，一个功能强大但使用不当会导致严重后果的API.
+
+
+### boilerplate
+样板代码，模板
+
 ## 使用 javascript API 遇到的坑
 ### 数组 empty slot 被跳过
 ❌
@@ -140,3 +147,8 @@ MDN上说：`window.postMessage(data, targetOrigin)` ，第二个参数是option
 - `Parse HTML`
 
 待完善
+
+## 为什么修改了/etc/hosts文件，还是没有效果
+- /etc/hosts内容的格式不对，通常发生在直接往里面粘贴一些内容的时候
+- 浏览器的DNS缓存没有清除
+- 操作系统的DNS缓存没有清除
