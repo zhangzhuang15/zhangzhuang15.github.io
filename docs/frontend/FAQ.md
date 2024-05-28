@@ -111,6 +111,38 @@ date.setDate(-1);
 // date: "2024-01-30"
 ```
 
+### `Reflect.contruct` VS `Object.create`
+```js
+let thisA = null;
+
+class A {
+    constructor() {
+        thisA = new.target;
+    }
+}
+
+class B {}
+
+// 相当于 new A()
+const m = Reflect.construct(A, []);
+thisA === A; // true
+
+// 相当于 new A(), 但是把 prototype 重置为 B.prototype
+const n = Reflect.construct(A, [], B);
+thisA === B; // true
+
+// 创建一个对象，prototype 指向 A.prototype
+const p = Object.create(A.prototype);
+A.call(p);
+// 这个是最大的区别！上行代码并没有调用 new,
+// new.target 就是 undefined
+thisA === undefined; // true
+
+
+m instanceOf A; // true
+n instanceOf B; // true
+p instanceOf A; // true
+```
 
 ## localStorage 和 sessionStorage 的存储容量限制
 每个 origin，最多允许存储 10MB 的数据（5MB localStorage, 5MB sessionStorage）
@@ -129,6 +161,33 @@ Opera浏览器最多允许创建16个；
 
 
 值得关注的是，web worker占据一个系统线程，因此不要过多创建web worker，web worker的数量和主机的CPU核数保持一致即可，数量多了未必能提升性能。
+
+
+## 前端工程中，如何处理 web worker
+使用 webpack 打包的前端应用中，可以使用 `worker-loader` 处理
+
+```js 
+module.exports = {
+    module: {
+        rules: [
+            {
+                test: /\.web-worker\.js/,
+                use: [{ loader: 'worker-loader' }],
+            }
+        ]
+    }
+}
+```
+```js 
+import Worker from "./demo.web-worker.js"
+const worker = new Worker();
+worker.postMessage('');
+worker.addEventListener("message", (event) => {})
+```
+
+- 支持 `Worker` 和 `SharedWorker`
+- 支持设置worker文件打包后的名称和路径
+
 
 ## `Failed to execute 'postMessage' on 'Window': 2 arguments required, but only 1 present.`
 浏览器差异，在 chrome v123没有问题，在 chrome v69 会有问题。
@@ -264,3 +323,37 @@ class MyCustomView: UIView {
 - 渲染引擎如何渲染
 
 渲染引擎可以参考 `React Native`、 `Weex`、 `Flutter`、 `uni-app`的实现；
+
+## webpack提供了哪些访问模块的辅助能力
+### require.context
+```js 
+// 访问文件夹 assets 下所有的 png 文件资源
+const requireModule = require.context("./assets/", false, /\.png/);
+
+requireModule.keys().forEach(path => {
+    // 打印资源路径，注意，这不是资源最终输出的路径，而是源码中的路径
+    console.log(path)
+
+    // 引入资源，如果资源是一个js文件，返回值就是js的导出模块；
+    // 如果资源是非js文件，返回值取决于处理这个文件的loader，
+    // 例如资源是图片，图片的loader就会将图片最终输出的路径作为结果返回；
+    const url = requireModule(path)
+})
+```
+
+### require.ensure
+```js
+require.ensure(['a', 'b'], () => {
+    // 当 ‘a’ 和 'b' 都被确认存在，执行此函数
+
+    const a = require('a');
+    const b = require('b');
+})
+```
+
+### require.resolve
+```js
+// 返回 module-A 的引入路径，但不会真的引入该依赖
+const modulePath = require.resolve('module-A');
+
+```
