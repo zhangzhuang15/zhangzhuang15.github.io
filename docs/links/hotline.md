@@ -78,4 +78,22 @@ webkit官网不单单是用来下载webkit的，它还有blog，里面分享了�
 google旗下的一个网站，提供web开发者技术上的帮助，上面有很多技术文章，也有系统
 的 web 开发指引；
 
+
+## LogRocket
+[LogRocket Blog](https://blog.logrocket.com/dev/)
+
+<LoadingPreviewCard url="https://blog.logrocket.com/dev/" />
+
+LogRocket 是一个前端分析产品的网站，上面有不少前端开发方面的博文，值得看看；
+
+
+## aerotwist.com
+[aerotwist.com](https://aerotwist.com/)
+
+<LoadingPreviewCard url="https://aerotwist.com/" />
+
+浏览器图形渲染方面的硬核文章，如果你想更好理解浏览器的渲染，非常推荐去看看
+
+
+
 <Giscus />

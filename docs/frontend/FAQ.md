@@ -144,6 +144,55 @@ n instanceOf B; // true
 p instanceOf A; // true
 ```
 
+
+## typescript 的 class 编译结果
+```ts
+class M {
+    static n = ""
+    static {
+        console.log(M.n)
+    }
+
+    name = "jack"
+    hello = () => {
+        console.log(this.name)
+    }
+
+    static tryIt() {}
+
+    ok() {
+        console.log(this.name)
+    }
+
+    constructor() {
+        this.name = "black"
+    }
+}
+```
+after compiled:
+
+```js
+class M {
+    constructor() {
+        this.name = "jack"
+        this.hello = () => {
+            console.log(this.name)
+        }
+        this.name = "black"
+    }
+    static tryIt() {}
+
+    ok() {
+        console.log(this.name)
+    }
+}
+
+M.n = ""
+(function(){
+    console.log(M.n)
+})()
+```
+
 ## localStorage 和 sessionStorage 的存储容量限制
 每个 origin，最多允许存储 10MB 的数据（5MB localStorage, 5MB sessionStorage）
 
