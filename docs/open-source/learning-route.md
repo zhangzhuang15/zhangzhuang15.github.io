@@ -134,3 +134,19 @@ aside: true
 `Javascript`
 
 [core-js](https://github.com/zhangzhuang15/core-js)
+
+
+## virtual dom
+[snabbdom](https://github.com/snabbdom/snabbdom)
+
+[million](https://github.com/aidenybai/million)
+
+[virtual-dom](https://github.com/Matt-Esch/virtual-dom)
+
+[blockdom](https://github.com/ged-odoo/blockdom)
+
+[maquette](https://github.com/AFASSoftware/maquette)
+
+[simple virtual dom](https://github.com/livoras/simple-virtual-dom)
+
+[petit-dom](https://github.com/yelouafi/petit-dom)

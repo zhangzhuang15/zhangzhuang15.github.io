@@ -11,14 +11,17 @@
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
+    "@algolia/client-search": "^4.9.1",
     "@giscus/vue": "^2.3.0",
     "ky": "^0.33.3",
+    "search-insights": "^1.0.0",
     "vue": "^3.2.47",
     "vue-router": "^4.2.2"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
+    "@vicons/fluent": "^0.12.0",
     "@vitejs/plugin-vue": "^4.1.0",
     "eslint": "^8.14.0",
     "eslint-config-airbnb-base": "^15.0.0",

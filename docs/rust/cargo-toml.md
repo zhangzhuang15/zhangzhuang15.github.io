@@ -251,3 +251,80 @@ m = ["dep:a"]
 ## m = ["a"]
 ```
 m 一旦启用，就会把依赖包a也编译到项目中
+
+
+## `[package.metadata.docs.rs]`
+设置 docs.rs；
+
+```toml
+[package.metadata.docs.rs]
+## 开启一些feature
+features = ["f"]
+
+## 设置额外的 `RUSTDOCFLAGS`
+rustdoc-args = ["--cfg","docsrs",]
+```
+
+[more details](https://docs.rs/about/metadata)
+
+## `[target]`
+### `[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]`
+指定编译为目标对象时，哪些依赖包需要编译
+
+
+## `[profile]`
+修改编译器优化和调试信息
+
+### fields
+#### opt-level
+优化二进制产物
+
+- 0 无优化
+- 1 基本优化
+- 2 更多一点的优化
+- 3 全部优化
+- "s" 优化二进制产物大小
+- "z" optimize for binary size, but also turn off loop vectorization.
+
+#### debug 
+二进制产物中包含多少调试信息
+
+- 0, false, "none" 不包含任何调试信息
+- "line-directives-only"
+- "line-tables-only"
+- 1, "limited"
+- 2, "full" 所有调试信息
+
+#### strip
+从二进制产物中删除哪些信息
+
+- "none" 不删除
+- "debuginfo" 删除调试信息
+- "symbols" 删除符号信息
+
+#### lto
+link time optimization
+
+- false
+- true, "fat"
+- "thin"
+- "off"
+
+#### codegen-units
+number >= 0
+
+值越大，编译时间越短，但是生成的代码执行起来可能越慢
+
+#### incremental 
+是否开启增量编译
+
+- true 
+- false
+
+
+#### panic
+- "unwind" 程序在遇到panic!时会尝试清理堆栈并终止
+- "abort" 程序会立即终止，不进行任何堆栈清理
+
+### `[profile.release]`
+配置 release 模式下的 profile

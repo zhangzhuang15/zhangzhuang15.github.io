@@ -65,6 +65,19 @@ function pushQueue(queue, task) {
 }
 ```
 
+### footgun
+footgun通常指的是那些容易导致程序员犯错的语言特性、API设计或配置选项。例如，一个功能强大但使用不当会导致严重后果的API.
+
+
+### boilerplate
+样板代码，模板
+
+### shims
+意思和 polyfill 相似，都是垫片儿的意思。垫片儿的作用是让旧版本的东西可以使用新版本的特性。
+
+### helpers 
+在设计一个库时，想通过一套API隐藏底层实现，让用户更轻松、更简单地使用库，这套API函数就是 helper.
+
 ## 使用 javascript API 遇到的坑
 ### 数组 empty slot 被跳过
 ❌
@@ -98,6 +111,87 @@ date.setDate(-1);
 // date: "2024-01-30"
 ```
 
+### `Reflect.contruct` VS `Object.create`
+```js
+let thisA = null;
+
+class A {
+    constructor() {
+        thisA = new.target;
+    }
+}
+
+class B {}
+
+// 相当于 new A()
+const m = Reflect.construct(A, []);
+thisA === A; // true
+
+// 相当于 new A(), 但是把 prototype 重置为 B.prototype
+const n = Reflect.construct(A, [], B);
+thisA === B; // true
+
+// 创建一个对象，prototype 指向 A.prototype
+const p = Object.create(A.prototype);
+A.call(p);
+// 这个是最大的区别！上行代码并没有调用 new,
+// new.target 就是 undefined
+thisA === undefined; // true
+
+
+m instanceOf A; // true
+n instanceOf B; // true
+p instanceOf A; // true
+```
+
+
+## typescript 的 class 编译结果
+```ts
+class M {
+    static n = ""
+    static {
+        console.log(M.n)
+    }
+
+    name = "jack"
+    hello = () => {
+        console.log(this.name)
+    }
+
+    static tryIt() {}
+
+    ok() {
+        console.log(this.name)
+    }
+
+    constructor() {
+        this.name = "black"
+    }
+}
+```
+after compiled:
+
+```js
+class M {
+    constructor() {
+        this.name = "jack"
+        this.hello = () => {
+            console.log(this.name)
+        }
+        this.name = "black"
+    }
+    static tryIt() {}
+
+    ok() {
+        console.log(this.name)
+    }
+}
+
+M.n = ""
+(function(){
+    console.log(M.n)
+})()
+```
 
 ## localStorage 和 sessionStorage 的存储容量限制
 每个 origin，最多允许存储 10MB 的数据（5MB localStorage, 5MB sessionStorage）
@@ -117,7 +211,198 @@ Opera浏览器最多允许创建16个；
 
 值得关注的是，web worker占据一个系统线程，因此不要过多创建web worker，web worker的数量和主机的CPU核数保持一致即可，数量多了未必能提升性能。
 
+
+## 前端工程中，如何处理 web worker
+使用 webpack 打包的前端应用中，可以使用 `worker-loader` 处理
+
+```js 
+module.exports = {
+    module: {
+        rules: [
+            {
+                test: /\.web-worker\.js/,
+                use: [{ loader: 'worker-loader' }],
+            }
+        ]
+    }
+}
+```
+```js 
+import Worker from "./demo.web-worker.js"
+const worker = new Worker();
+worker.postMessage('');
+worker.addEventListener("message", (event) => {})
+```
+
+- 支持 `Worker` 和 `SharedWorker`
+- 支持设置worker文件打包后的名称和路径
+
+
 ## `Failed to execute 'postMessage' on 'Window': 2 arguments required, but only 1 present.`
 浏览器差异，在 chrome v123没有问题，在 chrome v69 会有问题。
 
 MDN上说：`window.postMessage(data, targetOrigin)` ，第二个参数是optional，这不准确，像 chrome v69 环境下，第二个参数就必须填写。
+
+## Performance 中的术语
+- `Schedule Style Recalculation`
+- `Finish Loading`
+- `Receive Response`
+- `Layout`
+- `Pre-Paint`
+- `Paint`
+- `Layerize`
+- `Commit`
+- `Timer Fired`
+- `Task`
+- `Run Microtasks`
+- `Evaluate Script`
+- `Compile Script`
+- `Compile Code`
+- `Parse HTML`
+
+待完善
+
+## 为什么修改了/etc/hosts文件，还是没有效果
+- /etc/hosts内容的格式不对，通常发生在直接往里面粘贴一些内容的时候
+- 浏览器的DNS缓存没有清除
+- 操作系统的DNS缓存没有清除
+
+## 小程序如何实现h5跳转
+h5一般指的是适配移动端屏幕的网页；
+
+第一步，正常开发h5页面，部署到nginx上，假设链接地址为 “http://mock.cc/helloworld.html”
+
+第二步，在小程序页面组件的wxml中，使用 `<web-view>` 组件，该组件有如下props：
+- url, 用于渲染指定的网页
+- bindmessage, 用于处理内嵌网页发送给web-view的数据
+- bindload, 内嵌网页在 web-view 中加载时触发的事件
+> webview域名没有在后台配置的话，打开网页，会触发此事件，并跳转到网页：https://mp.weixin.qq.com/mp/waerrpage
+- binderror, 内嵌网页加载失败时触发的事件
+
+url可以从小程序页面组件的 onLoad 入参中获取到；
+
+第三步，在其它页面，使用 `wx.navigateTo` 跳转到包含`<web-view>`的组件内，内嵌网页的url作为query参数
+传递过去，`wx.navigateTo({ url: "/pages/webview/main?url='http://mock.cc.helloworld.html'"})`
+> 注意 url 的限制长度，内嵌网页的url不要太长
+
+## 如何实现客户端灰度控制
+第一步，建立一个配置文件，在上面配置灰度进度（比如60，表示60%）和白名单（userID）;
+
+第二步，开发一个服务接口，供客户端获取这个配置文件；
+
+第三步，客户端发送请求，拉取配置文件，检测用户是否命中灰度
+- userID没有在白名单中，灰度为60，如果userID末尾两位是'00'到'59'，那么用户命中灰度了；
+- userID在白名单中，命中灰度了；
+
+第四步，将用户命中灰度的情况，写入到客户端缓存（可以是内存，也可以是磁盘，看你怎么设计），下次
+用户再登录的时候，就可以直接命中灰度了
+
+
+## 如何实现 js bridge
+
+### js 调用 native
+
+方法一：native端使用原生 webview 组件提供的接口函数，将native端定义的函数注册到 webview 里面，
+挂载到内嵌网页的 window 对象上。内嵌网页执行 window 上的方法时，就会触发 native 中的方法。
+
+方法二：内嵌网页通过某种方式，发送请求，native 端可以借助 webview 组件提供的能力，注册一个函数，
+拦截下所有内嵌网页的请求，对请求进行分析，拿到数据，然后调用 native 函数做处理。
+
+### native 调用 js
+native端使用原生 webview 组件提供的接口函数，可以直接执行一段js代码，比如`nativeCall("doPost({code: '0', value: 10, id: 1324324 })")`, 执行的环境就是内嵌网页的window。
+
+
+## 小程序大致原理
+小程序自身的DSL（wxml and wxss）会在编译阶段转为原生组件（UIView in ios）；
+
+小程序的渲染引擎会将数据的改变，落实到原生组件的更新上；
+
+小程序中的js代码会在一个独立的环境执行，比如ios上，有相应的API创建一个javascript core执行环境，
+小程序中的js代码就会执行在这里边，native可以使用API拿到执行结果；
+```swift
+import JavascriptCore
+
+let context = JSContext()
+// 主动调用js侧数据
+context.evaluateScript("var a = 3; var b = 4; var d = a + b; d;") { result in
+    print("\(result)")
+}
+
+func hello() {
+    print("hello world")
+}
+
+// 将 hello 挂载到 globalThis.sayHelloWorld，供js侧使用
+context.setObject(hello, forKeyedSubscript: "sayHelloWorld" as NSString)
+```
+
+native侧可以使用Core Graphics自定义原生的组件：
+```swift
+import UIKit
+
+class MyCustomView: UIView {
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        
+        // 设置矩形的填充颜色
+        context.setFillColor(UIColor.blue.cgColor)
+        
+        // 绘制矩形
+        context.fill(CGRect(x: 20, y: 20, width: 100, height: 100))
+    }
+}
+```
+
+小程序在js侧会有虚拟DOM，每个虚拟DOM都会有一个唯一标识符，通过这个唯一标识符，native端可以知道
+该虚拟DOM对应的是哪一个原生组件；
+
+整体的运行流程就是：
+
+1. 和原生UI发生交互，交互绑定的处理代码，主动调用javascript core中的代码，进入js侧；
+2. 在js侧，完成计算，更新虚拟DOM节点，触发虚拟DOM的patch;
+3. 虚拟DOM patch完成，拿到要更新的组件的唯一标识符以及对应的状态数据；
+4. js侧将数据返回，回到native侧；
+5. native侧将数据交给渲染引擎；
+6. 渲染引擎将数据更新到原生组件上；
+
+整套逻辑最难的地方就在于：
+- 编译的过程
+- 渲染引擎如何渲染
+
+渲染引擎可以参考 `React Native`、 `Weex`、 `Flutter`、 `uni-app`的实现；
+
+## webpack提供了哪些访问模块的辅助能力
+### require.context
+```js 
+// 访问文件夹 assets 下所有的 png 文件资源
+const requireModule = require.context("./assets/", false, /\.png/);
+
+requireModule.keys().forEach(path => {
+    // 打印资源路径，注意，这不是资源最终输出的路径，而是源码中的路径
+    console.log(path)
+
+    // 引入资源，如果资源是一个js文件，返回值就是js的导出模块；
+    // 如果资源是非js文件，返回值取决于处理这个文件的loader，
+    // 例如资源是图片，图片的loader就会将图片最终输出的路径作为结果返回；
+    const url = requireModule(path)
+})
+```
+
+### require.ensure
+```js
+require.ensure(['a', 'b'], () => {
+    // 当 ‘a’ 和 'b' 都被确认存在，执行此函数
+
+    const a = require('a');
+    const b = require('b');
+})
+```
+
+### require.resolve
+```js
+// 返回 module-A 的引入路径，但不会真的引入该依赖
+const modulePath = require.resolve('module-A');
+
+```

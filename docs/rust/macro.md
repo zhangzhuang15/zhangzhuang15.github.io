@@ -21,6 +21,10 @@ aside: true
 ## `#![no_mangle]`
 编译的过程中，不要对命名做修改
 
+## `#![warn(missing_docs)]`
+在你的 `main.rs` 或者 `lib.rs` 开头加上这句，你所有的函数、结构体都必须要有
+documentation comment，否则vscode或者编译项目时，会有warn提示
+
 ## `#[link(name = "std", kind = "dylib")]`
 当在 extern 中，使用来自于一个外部库定义的内容时，用该
 宏标记 extern
@@ -215,5 +219,27 @@ rustfmt提供的工具宏，影响rustfmt的行为，这里的例子是说rustfm
 
 ## `#![doc(test(no_crate_inject, attr(deny(warnings, rust_2018_idioms, single_use_lifetimes))))]`
 
+
+## `#[doc = include_str!("../readme.md")]`
+假设 readme.md 的内容是
+```txt 
+hello **world**
+
+# chapter 3
+```
+
+```rust
+#[doc = include_str!("../readme.md")]
+fn hello() {}
+```
+
+等效于：
+
+```rust 
+/// hello **world**
+///
+/// # chapter 3
+fn hello() {}
+```
 
 ## `#[doc(inline)]`

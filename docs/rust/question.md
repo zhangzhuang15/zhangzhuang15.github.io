@@ -287,7 +287,9 @@ mod world {
 
 ## 多行字符串
 
-```rust
+:::code-group
+
+```rust [demo1.rs]
 let s = "hello
 world
 right";
@@ -297,9 +299,9 @@ println!("{}", s);
 // hello
 // world
 // right
+```
 
-
-
+```rust [demo2.rs]
 let s = "hello
   world
 right";
@@ -309,8 +311,9 @@ println!("{}", s);
 // hello
 //   world
 // right
+```
 
-
+```rust [demo3.rs]
 let s = "
 hello
 world
@@ -322,8 +325,9 @@ println!("{}", s);
 // hello
 // world
 // right
+```
 
-
+```rust [demo4.rs]
 let s = "
 hello
 world
@@ -337,8 +341,9 @@ println!("{}", s);
 // world
 // right
 //
+```
 
-
+```rust [demo5.rs]
 let s = "\
 hello
 world
@@ -349,9 +354,9 @@ println!("{}", s);
 // hello
 // world
 // right
+```
 
-
-
+```rust [demo6.rs]
 let s = "\
   hello
 world
@@ -362,8 +367,9 @@ println!("{}", s);
 //  hello
 // world
 // right
+```
 
-
+```rust [demo7.rs]
 let s = r"
 hello \n
 world
@@ -375,8 +381,8 @@ println!("{}", s);
 // hello \n
 // world
 // right
-
-
+```
+```rust [demo8.rs]
 let s = r#"
 hello \n
 world
@@ -388,8 +394,9 @@ println!("{}", s);
 // hello \n
 // world
 // right
+```
 
-
+```rust [demo9.rs]
 let s = "
 hello \n
 world
@@ -403,6 +410,7 @@ println!("{}", s);
 // world
 // right
 ```
+:::
 
 ## crate 在 main.rs，lib.rs 以及其余 rs 文件中的语义
 
@@ -424,17 +432,16 @@ use crate::a::*;
 在 lib.rs 中， crate 就是指 lib.rs 本身；
 在 src 目录下的其余 rs 文件中，crate 就是指 lib.rs;
 
-```rust
-// src/lib.rs
+:::code-group
+```rust [src/lib.rs]
 
 mod a;
 ```
 
-```rust
-// src/b/b.rs
-
+```rust [src/b/b.rs]
 use crate::a::*;
 ```
+:::
 
 ## tests 文件夹里的 mod 规则
 
