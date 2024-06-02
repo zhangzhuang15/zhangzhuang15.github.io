@@ -322,6 +322,7 @@ export default defineConfig({
         { text: "社区", link: "/links/community" },
         { text: "开发者", link: "/links/personal" },
         { text: '在线技术文档', link: '/links/document' },
+        { text: '好文共赏', link: "/links/great-articles"},
         { text: 'other source', link: '/links/other-source' }
       ],
     },
@@ -374,5 +375,5 @@ export default defineConfig({
         // ssr: true,
       }
     }
-  }
+  },
 });

@@ -6,6 +6,7 @@ import Giscus from "./components/Giscus.vue";
 import LoadingPreviewCard from "./components/LoadingPreviewCard.vue";
 import MemoryBoard from "./components/MemoryBoard.vue";
 import Figure from "./components/Figure.vue";
+import TipIcon from "./components/TipIcon.vue";
 
 export default {
   extends: DefaultTheme,
@@ -22,5 +23,7 @@ export default {
     app.component("LoadingPreviewCard", LoadingPreviewCard);
     app.component("MemoryBoard", MemoryBoard);    
     app.component("Figure", Figure);
+    app.component("TipIcon", TipIcon);
+
   },
 };

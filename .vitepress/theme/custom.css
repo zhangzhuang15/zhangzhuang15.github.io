@@ -1,3 +1,12 @@
+@font-face {
+  font-family: jetbrains-mono;
+  src: url("/JetBrainsMonoNL-Bold.ttf");
+}
+
+:root .custom-block-title {
+  color: rgb(136, 145, 236);
+}
+
 :root:is(.dark) .VPNavBar,
 :root:is(.dark) .VPNavBar.fill {
   border-bottom-color: rgba(84, 84, 84, 0.5);
@@ -44,6 +53,13 @@
   --vp-c-brand: rgb(135, 85, 244);
   --vp-c-brand-bold: rgb(101, 34, 245);
   --vp-c-brand-dark: rgb(161, 124, 243);
+  --vp-c-mute: royalblue;
+  --vp-font-family-mono: jetbrains-mono;
+  --vp-code-font-size: 0.94em;
+  --vp-custom-block-tip-border: rgba(229, 231, 235, 0.05);
+  --vp-custom-block-tip-text: rgb(246, 247, 249);
+  --vp-custom-block-tip-bg: rgba(43, 52, 145, 0.2);
+  --vp-code-tab-active-text-color: rgb(154, 112, 243);
 
   --home-circle-size: 3rem;
   --home-circle-size-half: 1.5rem;
