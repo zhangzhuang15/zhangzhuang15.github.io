@@ -105,4 +105,22 @@ ffmpeg -i source.mp4 -c:v copy -c:a copy -vcodec h264 output.mp4
 
 `output.mp4`是输出的文件路径，相对路径和绝对路径都可以；
 
+
+## python2
+采用`brew install python@2` 无法安装 python2, 可以使用如下方法：
+
+```shell
+brew install pyenv
+pyenv install 2.7.18
+echo 'PATH=$(pyenv root)/shims:$PATH' >> ~/.zshrc
+pyenv init
+pyenv shell 2.7.18
+pyenv global 2.7.18
+```
+
+[参考](https://dev.to/jordicuevas/how-to-install-python2-in-a-macbook-m1-with-brew-bhi)
+
+
+[直接从python官网安装](https://www.python.org/downloads/release/python-2718/)
+
 <Giscus />

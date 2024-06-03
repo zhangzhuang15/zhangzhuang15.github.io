@@ -73,6 +73,11 @@ aside: true
 
 [cheats of rust | Tooling Directives](https://cheats.rs/#tooling-directives)
 
+### 宏的语法记不清了
+[The little Book of Rust Macros](https://veykril.github.io/tlborm/decl-macros/minutiae/scoping.html)
+
+[The Rust Reference | Procedural Macros](https://doc.rust-lang.org/reference/procedural-macros.html)
+
 ### Cargo.toml 怎么写 ？
 
 [cargo book | Reference](https://doc.rust-lang.org/cargo/reference/index.html)

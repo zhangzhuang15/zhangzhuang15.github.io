@@ -743,4 +743,10 @@ fn main() {
 }
 ```
 
+## 如何查看宏展开后的代码
+```shell
+cargo install cargo-expand
+cargo expand
+```
+
 <Giscus />
