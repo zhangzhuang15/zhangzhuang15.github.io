@@ -743,4 +743,145 @@ fn main() {
 }
 ```
 
+## 如何查看宏展开后的代码
+```shell
+cargo install cargo-expand
+cargo expand
+```
+
+
+## 如何使用宏给struct内添加成员属性
+:::code-group
+```toml [Cargo.toml]
+[package]
+name = "macro-demo"
+
+[lib]
+proc-macro = true
+path = "./src/lib.rs"
+
+[[bin]]
+name = "demo"
+path = "./src/bin/demo.rs"
+
+[dependencies]
+quote = "1.0.36"
+syn = "2.0.66"
+```
+```rust [src/lib.rs]
+use proc_macro::{TokenStream};
+use quote::{quote};
+use syn::{parse::Parser, parse_macro_input, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
+
+#[proc_macro_attribute]
+pub fn add_field(args: TokenStream, input: TokenStream) -> TokenStream {
+    let mut ast = parse_macro_input!(input as DeriveInput);
+
+    match &mut ast.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(n),
+            ..
+        }) => {
+            // 找到属性名是 hello 的属性索引号
+            let mut index = 0;
+            for item in n.named.iter() {
+                let ident = item.ident.as_ref().unwrap();
+                if ident.to_string() == "hello".to_string() {
+                    break;
+                }
+                index += 1;
+            }
+
+            // 在hello属性前边插入一个 real 属性
+            n.named.insert(index, Field::parse_named.parse2(
+                quote! { pub real: String }
+            ).unwrap());
+            
+            quote! {
+                #ast
+            }.into()
+        },
+        _ => { quote!(#ast).into() }
+    }
+}
+```
+
+```rust [src/bin/demo.rs]
+use macro_demo::add_field;
+
+#[add_field]
+struct M {
+    name: String,
+    hello: String,
+    value: u32,
+}
+
+fn main() {
+    let m = M {
+        name: "jack".into(),
+        real: "".into(),
+        hello: "hello".into(),
+        value: 10,
+    };
+}
+```
+:::
+
+
+## 如何使用宏给struct增加impl定义
+:::code-group
+```toml [Cargo.toml]
+[package]
+name = "macro-demo"
+
+[lib]
+proc-macro = true
+path = "./src/lib.rs"
+
+[[bin]]
+name = "demo"
+path = "./src/bin/demo.rs"
+
+[dependencies]
+quote = "1.0.36"
+syn = "2.0.66"
+```
+```rust [src/lib.rs]
+use proc_macro::{TokenStream};
+use quote::{quote};
+use syn::{parse::Parser, parse_macro_input, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed};
+
+#[proc_macro_derive(HelloWorld)]
+pub fn hello_world(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as DeriveInput);
+    let ident = &ast.indent;
+    quote! {
+        impl HelloWorld for #ident {}
+    }
+}
+```
+
+```rust [src/bin/demo.rs]
+use macro_demo::HelloWorld;
+
+#[derive(HelloWorld)]
+struct H {}
+
+//
+// 宏展开后变成：
+// 
+// #[derive(HelloWorld)]
+// struct H {}
+//
+// impl HelloWorld for H {}
+// 
+
+fn main() {}
+```
+:::
+
+:::tip <TipIcon />
+derive宏只会在 struct 后边追加代码，如果要修改 struct ，请使用`proc_macro_attribute`
+:::
+
 <Giscus />

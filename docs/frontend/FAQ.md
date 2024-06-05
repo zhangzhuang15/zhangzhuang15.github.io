@@ -406,3 +406,30 @@ require.ensure(['a', 'b'], () => {
 const modulePath = require.resolve('module-A');
 
 ```
+
+## 10位时间戳
+工作期间，遇到后端要求传递10位时间戳的问题。为什么要传递10位，不传递11位、9位呢？
+
+在前端，完整的时间戳是这样生成的：
+
+```js
+const stamp = new Date().getTime().toString();
+```
+
+打印出来，你会发现是 13 位；
+
+后三位有什么秘密呢？
+
+```js 
+console.log(new Date(1717492218502).toISOString())
+// '2024-06-04T09:10:18.502Z'
+
+console.log(new Date(1717492218000).toISOString())
+// '2024-06-04T09:10:18.000Z'
+
+console.log(new Date(1717492218120).toISOString())
+// '2024-06-04T09:10:18.120Z'
+```
+
+你应该知道答案了。事实上，最后三位并不会带来巨大的时间偏差，可以省略。但是后端在
+接收到时间戳之后，需要在末尾添加3个0才能使用。
