@@ -433,3 +433,7 @@ console.log(new Date(1717492218120).toISOString())
 
 你应该知道答案了。事实上，最后三位并不会带来巨大的时间偏差，可以省略。但是后端在
 接收到时间戳之后，需要在末尾添加3个0才能使用。
+
+
+## http2协议
+[阅读http2协议标准文档](https://datatracker.ietf.org/doc/html/rfc7540)
