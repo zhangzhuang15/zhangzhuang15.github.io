@@ -18,4 +18,11 @@ database ORM framework
 
 postgresql client, help you connect to postgresql server, do CRUD, but doesn't provide you ORM tool
 
+
+## dexie
+indexDB的友好封装
+
+## localforage
+存储数据，基于 localStorage/indexDB/webSQL
+
 <Giscus />

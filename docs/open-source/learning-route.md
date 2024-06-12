@@ -150,3 +150,9 @@ aside: true
 [simple virtual dom](https://github.com/livoras/simple-virtual-dom)
 
 [petit-dom](https://github.com/yelouafi/petit-dom)
+
+
+## build your own x
+[build-your-own-x](https://github.com/codecrafters-io/build-your-own-x?tab=readme-ov-file#build-your-own-git)
+
+一个github仓库，上面总结了很多项目，告诉你如何自己实现耳熟能详的工具，比如 git database docker 3d-render
