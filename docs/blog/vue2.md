@@ -954,9 +954,13 @@ class Watcher {
 //
 // 现在串起来了吧
 ```
-> `_render`是 vue 对 `render` 的一层封装，这层封装不改变功能；
-> `render`是有组件的编写人员定义的，比如你直接定义了这个方法，或者你编写了`<template>`，
-> vue编译器将它转为`render`方法；
+
+:::tip <TipIcon />
+`_render`是 vue 对 `render` 的一层封装，这层封装不改变功能；
+
+`render`是有组件的编写人员定义的，比如你直接定义了这个方法，或者你编写了`<template>`，
+vue编译器将它转为`render`方法；
+:::
 
 **组件更新的本质**: `vm._watcher.update()`
 
