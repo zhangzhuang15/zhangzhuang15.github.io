@@ -56,3 +56,9 @@ javascript没有执行呢；
 
 
 [阅读作者更多文章](https://mthli.xyz)
+
+
+## Rust Runtime 设计与实现
+[阅读原文](https://www.ihcblog.com/page/2/)
+
+介绍如何实现一个异步io runtime

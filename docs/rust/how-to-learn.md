@@ -48,6 +48,10 @@ aside: true
 
 [ rust 官网](https://www.rust-lang.org/zh-CN/learn)
 
+[rust 中文社区](https://rustcc.cn/)
+
+[rust 知乎社区](https://zhuanlan.zhihu.com/rust-lang)
+
 [ rust 官方 package 仓库](https://crates.io/)
 
 [ rust 标准库](https://doc.rust-lang.org/std/index.html)
