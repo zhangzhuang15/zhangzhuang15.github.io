@@ -228,6 +228,10 @@ export default defineConfig({
             {
               text: "vue2梳理",
               link: "/blog/vue2"
+            },
+            {
+              text: "浩叔语录",
+              link: "/blog/learning-experience-chen-hao"
             }
           ],
         },
