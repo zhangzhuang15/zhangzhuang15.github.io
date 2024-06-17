@@ -7,6 +7,7 @@ import LoadingPreviewCard from "./components/LoadingPreviewCard.vue";
 import MemoryBoard from "./components/MemoryBoard.vue";
 import Figure from "./components/Figure.vue";
 import TipIcon from "./components/TipIcon.vue";
+import ColorFulCard from "./components/ColorFulCard.vue";
 
 export default {
   extends: DefaultTheme,
@@ -24,6 +25,6 @@ export default {
     app.component("MemoryBoard", MemoryBoard);    
     app.component("Figure", Figure);
     app.component("TipIcon", TipIcon);
-
+    app.component("AvatarCard", ColorFulCard);
   },
 };
