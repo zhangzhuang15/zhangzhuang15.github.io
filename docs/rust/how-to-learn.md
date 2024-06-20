@@ -152,6 +152,12 @@ aside: true
 
 [crate 地址](https://crates.io/crates/argh)
 
+### clap
+
+一个命令行参数解析器, 很多rust命令行项目都依赖这个库，比如 `coreutils-rs`, `procs`
+
+[crate 地址](https://crates.io/crates/clap)
+
 ### serde
 
 `struct` `enum`的序列化和反序列化工具。
@@ -171,5 +177,25 @@ aside: true
 [website](https://rustwasm.github.io/docs/wasm-bindgen/examples/closures.html)
 
 [crate 地址](https://crates.io/crates/wasm-bindgen)
+
+### crossterm
+
+终端IO工具。如果你要编写一款终端应用，类似于 `top`, `more` , `vim`, 这个工具必不可少。
+
+[crate 地址](https://crates.io/crates/crossterm)
+
+
+### unicode-width
+
+计算字符串、emoji宽度的工具。如果你开发一个终端应用，想知道字符串或者emoji要占据终端
+界面多少列，这个工具可以帮到你。
+
+[crate 地址](https://crates.io/crates/unicode-width)
+
+### unicode-segmentation
+
+将字符串分割成一个个语法单词。
+
+[crate 地址](https://crates.io/crates/unicode-segmentation)
 
 <Giscus />

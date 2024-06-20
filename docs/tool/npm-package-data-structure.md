@@ -30,4 +30,7 @@ FZF算法实现模糊匹配，原版使用Go语言实现；
 还有个性能更好的实现[js-levenshtein](https://www.npmjs.com/package/js-levenshtein)
 
 
+## sha1
+sha1算法，计算hash值
+
 <Giscus />
