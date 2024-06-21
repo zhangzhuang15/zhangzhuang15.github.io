@@ -232,6 +232,10 @@ export default defineConfig({
             {
               text: "浩叔语录",
               link: "/blog/learning-experience-chen-hao"
+            },
+            {
+              text: "第一次去法院",
+              link: "/blog/first-law"
             }
           ],
         },
