@@ -437,3 +437,58 @@ console.log(new Date(1717492218120).toISOString())
 
 ## http2协议
 [阅读http2协议标准文档](https://datatracker.ietf.org/doc/html/rfc7540)
+
+## vue-loader v14.2.0不能识别处理`<script lang='jsx'>` ？
+你在webpack配置文件里边，已经使用 `babel-loader` 处理 js 和 jsx, 使用 `vue-loader` 处理vue 文件，你在一个vue文件中，使用了 `<script lang='jsx'>` 的标签，可你已运行项目，就得到了这样的错误：`cannot resolve 'jsx-loader'`。
+
+嗯？
+
+我明明有 `babel-loader`，为什么不好使呢？
+
+你一定是这样想的：`vue-loader`在解析到script标签的时候，发现lang是`jsx`，然后就会把代码提取出来，等着后边的 `babel-loader`处理。
+
+事实并非如此，`vue-loader`发现lang是`jsx`的时候，会看看vue-loader有没有内置的处理jsx的loader, 如果没有，它就会简单粗暴地按照`{lang}-loader`的形式，寻找loader去处理，其核心代码逻辑如下：
+```js
+// lib/helpers.js
+
+// sass => sass-loader
+// sass-loader => sass-loader
+// sass?indentedSyntax!css => sass-loader?indentedSyntax!css-loader
+function ensureLoader (lang) {
+  return lang
+    .split('!')
+    .map(loader =>
+      loader.replace(
+        /^([\w-]+)(\?.*)?/,
+        (_, name, query) =>
+          (/-loader$/.test(name) ? name : name + '-loader') + (query || '')
+      )
+    )
+    .join('!')
+}
+```
+
+解决方式，就是显式指定 babel-loader 去处理 jsx:
+```js
+module.exports = {
+    module: {
+        rules: [
+            {
+                test: /vue$/,
+                loader: "vue-loader",
+                options: {
+                    loaders: {
+                        jsx: "babel-loader"
+                    }
+                }
+            },
+            {
+                test: /js(x)?$/,
+                exclude: /node_modules/,
+                loader: "babel-loader"
+            }
+        ]
+    }
+}
+
+```
