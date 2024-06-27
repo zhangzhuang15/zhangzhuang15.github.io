@@ -412,6 +412,38 @@ println!("{}", s);
 ```
 :::
 
+
+## 千奇百怪的字符格式
+```rust
+fn main() {
+    // &[u8; 5]
+    let t = b"hello";
+
+    // u8
+    let t = b'a';
+
+    // 打印出来：
+    // h    h
+    let t = "h\th";
+
+    // 打印出来：
+    // h\th
+    let t = r"h\th";
+
+    // 打印出来：
+    // h"   h
+    let t = "h\"\th";
+
+    // 错误！
+    // let t = r"h\"\th";
+
+    // 打印出来：
+    // h\"\th
+    let t = r#"h\"\th"#;
+}
+
+```
+
 ## crate 在 main.rs，lib.rs 以及其余 rs 文件中的语义
 
 在 main.rs 中，crate 就是指 main.rs 本身；
@@ -932,5 +964,11 @@ fn main() {
 }
 ```
 :::
+
+
+## Path 和 PathBuf 的区别
+`std::path::Path` 不会拥有路径字符串的所有权，相当于持有 `&str`, 对路径采取只读操作；
+
+`std::path::PathBuf` 拥有路径字符串的所有权，相当于持有 `String`, 对路径可以进行写操作；
 
 <Giscus />

@@ -173,6 +173,7 @@ export default defineConfig({
         { text: "Cargo Toml", link: "/rust/cargo-toml" },
         { text: 'Rust内存操作', link: '/rust/memory'},
         { text: "FAQ", link: "/rust/question" },
+        { text: "code-snippet", link: "/rust/code-snippet"}
       ],
       "/blog": [
         {
