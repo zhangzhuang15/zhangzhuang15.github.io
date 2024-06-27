@@ -38,6 +38,44 @@ unified 库提供了语法树概念上的抽象，搭建了一套接口，其他
 unified 库所说的语法树，不仅限于某种语言，解析语法树也是插件，因此可以解析 markdown
 javascript html yml 等等内容的语法树
 
+## markdown-it
+将markdown渲染为html的工具
+
+## markdown-it-container
+markdown-it的一个插件，可以让你将：
+
+```txt
+::: a
+hello
+:::
+```
+
+转化为:
+
+```txt
+<div class="a">
+hello
+</div>
+```
+
+你当然也可以渲染成别的html要素，这个插件开放了这种能力，你可以根据喜好，自己决定到底要渲染成什么
+
+## shiki
+编程语言语法高亮工具，兼容vscode theme生态
+
+vitepress对markdown中代码的高亮渲染，就是使用这个工具
+
+
+## hast-util-to-html
+将 hast 转化为 html 的工具
+
+html是一种DSL，它没有提供AST的工具，因此只能通过DOM数遍历各个节点，
+而hast给出了html的AST定义，也就是说，给出一个html的字符串，hast就可以
+将它转化为AST，不再依赖浏览器，这样你就可以基于AST，来随心所欲的修改
+html的内容
+
+shiki内部就依赖 hast-util-to-html
+
 ## @codemirror
 
 @codemirror 是 scope package 的 scope，代表了一套 package 合集；

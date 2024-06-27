@@ -412,6 +412,38 @@ println!("{}", s);
 ```
 :::
 
+
+## 千奇百怪的字符格式
+```rust
+fn main() {
+    // &[u8; 5]
+    let t = b"hello";
+
+    // u8
+    let t = b'a';
+
+    // 打印出来：
+    // h    h
+    let t = "h\th";
+
+    // 打印出来：
+    // h\th
+    let t = r"h\th";
+
+    // 打印出来：
+    // h"   h
+    let t = "h\"\th";
+
+    // 错误！
+    // let t = r"h\"\th";
+
+    // 打印出来：
+    // h\"\th
+    let t = r#"h\"\th"#;
+}
+
+```
+
 ## crate 在 main.rs，lib.rs 以及其余 rs 文件中的语义
 
 在 main.rs 中，crate 就是指 main.rs 本身；
@@ -749,6 +781,19 @@ cargo install cargo-expand
 cargo expand
 ```
 
+## 定义rust过程宏的流程
+1. 使用 `syn` 包提供的能力，将 `proc_macro::TokenStream` 转化为 `syn::DeriveInput`
+2. 基于 `syn::DeriveInput` 进行一些操作
+3. 使用 `quote` 包提供的能力，将 `syn::DeriveInput`转为 `proc_macro::TokenStream` 
+
+:::tip <TipIcon />
+`syn` 和 `quote` 都使用 `proc_macro2`，在宏定义的开始，应该将 `proc_macro::TokenStream` 转为
+`proc_macro2::TokenStream`，在宏定义的结束位置，将 `proc_macro2::TokenStream` 转为
+`proc_macro::TokenStream`
+
+如果在 `quote` 提供的宏中，你使用了`proc_macro::TokenStream`，会报错，请使用`proc_macro2::TokenStream`
+:::
+
 
 ## 如何使用宏给struct内添加成员属性
 :::code-group
@@ -883,5 +928,47 @@ fn main() {}
 :::tip <TipIcon />
 derive宏只会在 struct 后边追加代码，如果要修改 struct ，请使用`proc_macro_attribute`
 :::
+
+
+## 如何给str增加新的方法
+
+Rust标准库已经给 `str` 定义了一些方法，我们如何给它增加新的方法呢？
+
+方法就是使用 trait，比如:
+
+:::code-group
+```rust [src/m.rs]
+trait M {
+    fn hello(&self, val: i32) -> i32
+}
+
+impl M for str {
+    fn hello(&self, val: i32) {
+        println!("{}", val);
+    }
+}
+```
+
+```rust [src/main.rs]
+mod m;
+use m::M;
+
+fn main() {
+    let m = "jack";
+
+    m.hello(10);
+
+    // or
+
+    M::hello(m, 10);
+}
+```
+:::
+
+
+## Path 和 PathBuf 的区别
+`std::path::Path` 不会拥有路径字符串的所有权，相当于持有 `&str`, 对路径采取只读操作；
+
+`std::path::PathBuf` 拥有路径字符串的所有权，相当于持有 `String`, 对路径可以进行写操作；
 
 <Giscus />

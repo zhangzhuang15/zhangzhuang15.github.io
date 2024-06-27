@@ -173,6 +173,7 @@ export default defineConfig({
         { text: "Cargo Toml", link: "/rust/cargo-toml" },
         { text: 'Rust内存操作', link: '/rust/memory'},
         { text: "FAQ", link: "/rust/question" },
+        { text: "code-snippet", link: "/rust/code-snippet"}
       ],
       "/blog": [
         {
@@ -232,6 +233,10 @@ export default defineConfig({
             {
               text: "浩叔语录",
               link: "/blog/learning-experience-chen-hao"
+            },
+            {
+              text: "第一次去法院",
+              link: "/blog/first-law"
             }
           ],
         },

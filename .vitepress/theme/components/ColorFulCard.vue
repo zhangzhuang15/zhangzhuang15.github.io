@@ -9,6 +9,11 @@ const props = defineProps<{
   fontColor?: string;
 }>();
 
+
+// background: 
+// option 1: #edfaf4
+// option 2: #f0f6ff
+
 const headerPosition = computed(() => {
     if (props.icon === undefined) {
         return {};
