@@ -1,4 +1,5 @@
 import { defineConfig } from "vitepress";
+import MarkdownItContainer from "markdown-it-container";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -385,4 +386,92 @@ export default defineConfig({
       }
     }
   },
+
+  markdown: {
+    config(md) {
+      // 添加自定义的container容器
+      md.use(MarkdownItContainer, "card", {
+        // for example,
+        // :::card [title: 提示] [style: { font-size: 10px }]
+        //  hello world
+        // :::
+        //
+        //  params: "card [title: 提示] [style: { font-size: 10px }]"
+        validate(params: string) {
+          return params.trim().startsWith("card")
+        },
+        // idx 只会返回open标签和close标签在 tokens 里的索引号，
+        // <a></a>, <a> 就是open标签，</a>就是close标签，
+        // token结构的关键字段如下：
+        //   type: "container_card_open"
+        //   tag: "div"        (这个token在编译之后会变成div标签)
+        //   nesting: 1        (1表示是open标签，-1表示close标签)
+        //   markup: ":::"     (markdown中对应的标记，比如 **， ##)
+        //   info："card [title: 提示] [style: { font-size: 10px }]"
+        //   content: ""       (如果 token 表示的是 **great one**, 这里就是 "great one")
+        //
+        // 更具体的有：
+        // **what do you want from me**
+        // 它会被解析为3个token：
+        // [
+        //   {
+        //     type: "strong_open",
+        //     tag: "strong",
+        //     nesting: 1,
+        //     content: "",
+        //     info: "",
+        //     markup: "**"
+        //   },
+        //   {
+        //     type: "text",
+        //     tag: "",
+        //     nesting: 0,
+        //     content: "what do you want from me",
+        //     info: "",
+        //     markup: ""
+        //   },
+        //   {
+        //     type: "strong_close",
+        //     tag: "strong",
+        //     nesting: -1,
+        //     content: "",
+        //     info: "",
+        //     markup: "**"
+        //   }
+        // ] 
+        render(
+          tokens: Array<{nesting: number, info: string}>, 
+          idx: number) {
+          const token = tokens[idx]
+          
+          if (token.nesting === 1) {
+            let title: string | undefined
+            const titleReg = /\[\s*title:(.*?)\]/
+            const result = titleReg.exec(token.info)
+            if (result !== null) {
+              title = result[1]
+            }
+            const headerPart = title === undefined ? "" : `<div slot="header">${title.trim()}</div>`
+
+            let style: string | undefined
+            const styleReg = /\[\s*style:(.*?)\]/
+            const styleResult = styleReg.exec(token.info)
+            if (styleResult !== null) {
+              style = styleResult[1]
+              style = style.trim()
+              style = style.replace(/^"*/, '')
+              style = style.replace(/"*$/, '')
+              style = style.replace(/"/, "'")
+            }
+            const stylePart = style === undefined ? "" : `style="${style}"`
+
+            return `<Card ${stylePart}>${headerPart}`
+          } else {
+            // end tag
+            return "</Card>"
+          }
+        },
+      })
+    },
+  }
 });
