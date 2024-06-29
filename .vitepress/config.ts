@@ -238,6 +238,10 @@ export default defineConfig({
             {
               text: "第一次去法院",
               link: "/blog/first-law"
+            },
+            {
+              text: "十年后再看高考，大彻大悟",
+              link: "/blog/exam"
             }
           ],
         },
