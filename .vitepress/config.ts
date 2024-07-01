@@ -212,10 +212,6 @@ export default defineConfig({
               link: "/blog/module-and-moduleResolution",
             },
             {
-              text: "可参考借用的代码片段",
-              link: "/blog/pretty-snippets",
-            },
-            {
               text: "进程——问题清单",
               link: "/blog/process_question",
             },
@@ -246,6 +242,10 @@ export default defineConfig({
             { 
               text: "vitepress如何支持markdown使用vue组件", 
               link: "/blog/vitepress"
+            },
+            {
+              text: "react官网如何实现用markdown编写页面",
+              link: "/blog/react-dev"
             }
           ],
         },
