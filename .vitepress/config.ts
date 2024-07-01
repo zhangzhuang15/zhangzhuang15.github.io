@@ -242,6 +242,10 @@ export default defineConfig({
             {
               text: "十年后再看高考，大彻大悟",
               link: "/blog/exam"
+            },
+            { 
+              text: "vitepress如何支持markdown使用vue组件", 
+              link: "/blog/vitepress"
             }
           ],
         },
