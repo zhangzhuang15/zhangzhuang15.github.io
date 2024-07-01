@@ -14,6 +14,7 @@ specifiers:
   eslint-plugin-vue: ^9.19.2
   gh-pages: ^5.0.0
   ky: ^0.33.3
+  markdown-it-container: ^4.0.0
   naive-ui: ^2.34.4
   prettier: ^2.6.2
   sass: ^1.64.2
@@ -29,6 +30,7 @@ dependencies:
   '@algolia/client-search': 4.17.2
   '@giscus/vue': 2.4.0_vue@3.3.4
   ky: 0.33.3
+  markdown-it-container: 4.0.0
   search-insights: 1.10.0
   vue: 3.3.4
   vue-router: 4.2.2_vue@3.3.4
@@ -2289,6 +2291,10 @@ packages:
   /mark.js/8.11.1:
     resolution: {integrity: sha512-1I+1qpDt4idfgLQG+BNWmrqku+7/2bi5nLf4YwF8y8zXvmfiTBY3PV3ZibfrjBueCByROpuBjLLFCajqkgYoLQ==}
     dev: true
+
+  /markdown-it-container/4.0.0:
+    resolution: {integrity: sha512-HaNccxUH0l7BNGYbFbjmGpf5aLHAMTinqRZQAEQbMr2cdD3z91Q6kIo1oUn1CQndkT03jat6ckrdRYuwwqLlQw==}
+    dev: false
 
   /merge2/1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
