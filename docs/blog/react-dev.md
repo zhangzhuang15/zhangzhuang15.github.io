@@ -12,7 +12,7 @@ aside: true
 
 除此之外，我还比较感兴趣一点：react官网里的代码编辑器和预览是怎么实现的呢？
 
-![react官网代码编辑器和预览](/react-official-code-editor)
+![react官网代码编辑器和预览](/react-official-code-editor.png)
 
 [react官网链接](https://react.dev/learn)
 
