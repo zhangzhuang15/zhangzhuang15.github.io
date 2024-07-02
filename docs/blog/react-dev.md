@@ -61,7 +61,7 @@ react官网团队在实现的时候，没有将导出的组件直接交给nextjs
 最后，nextjs会像渲染一个react应用一样，产出最终的html文件
 
 ## react官网里的代码编辑器和预览
-![react官网代码编辑器和预览](/react-official-code-editor)
+![react官网代码编辑器和预览](/react-official-code-editor.png)
 
 react官网是如何实现上图的组件呢？
 
