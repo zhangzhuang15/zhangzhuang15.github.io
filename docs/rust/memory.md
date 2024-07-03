@@ -107,7 +107,7 @@ fn main() {
 }
 ```
 
-你也可以恢复compiler自动调用数据的 drop:
+你也可以恢复compiler自动调用数据drop的能力:
 ```rust 
 fn main() {
     struct Data;
@@ -244,6 +244,7 @@ fn main() {
 ### mem::forget
 当你不想让Rust所有权帮你管理内存时，你就可以使用`mem::forget`
 
+before forget:
 ```rust 
 fn main() {
     struct Data;
@@ -272,6 +273,7 @@ fn main() {
 // dropping Data
 ```
 
+forget:
 ```rust
 fn main() {
     struct Data;

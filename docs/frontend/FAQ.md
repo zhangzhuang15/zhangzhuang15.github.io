@@ -492,3 +492,10 @@ module.exports = {
 }
 
 ```
+
+## `Its return type 'ReactElement<any, any> | null' is not a valid JSX element`
+这个问题发生在用react编写的`.tsx`文件中，明明用 `React.FC` 定义的函数组件，在 tsx 结构里使用时，vscode 飘红报错，说是语法有问题。
+
+原因是，本地项目依赖中，有多个版本的 react .d.ts 声明文件，解决方法是重新安装依赖😭
+
+这里有个[stackoverflow上的解答](https://stackoverflow.com/questions/53822891/jsx-element-type-reactelementany-null-is-not-a-constructor-function-for-js)
