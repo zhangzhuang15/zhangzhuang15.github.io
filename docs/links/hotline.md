@@ -69,6 +69,9 @@ webkit官网不单单是用来下载webkit的，它还有blog，里面分享了�
 
 <LoadingPreviewCard url="https://www.w3schools.com/" />
 
+:::tip <TipIcon />
+这个网站对算法的讲解非常赞, [传送门](https://www.w3schools.com/dsa/dsa_algo_graphs_dijkstra.php)
+:::
 
 ## web.dev
 [web.dev](https://web.dev/)

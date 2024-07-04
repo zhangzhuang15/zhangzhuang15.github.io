@@ -62,3 +62,9 @@ javascript没有执行呢；
 [阅读原文](https://www.ihcblog.com/page/2/)
 
 介绍如何实现一个异步io runtime
+
+
+## GitHub Repositories Every Software Engineer Should Know
+[阅读原文](https://dev.to/jrmarcio_/github-repositories-every-software-engineer-should-know-2e80)
+
+介绍了github上有哪些仓库可以帮助软件工程师学习技术
