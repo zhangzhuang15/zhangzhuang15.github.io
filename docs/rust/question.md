@@ -971,4 +971,127 @@ fn main() {
 
 `std::path::PathBuf` 拥有路径字符串的所有权，相当于持有 `String`, 对路径可以进行写操作；
 
+
+## PhantomData 干什么用的
+PhantomData是一种标记类型，在编译之后，它不占用任何内存空间，仅仅作为一种推理符号，
+在编译阶段发挥作用。
+
+```rust 
+struct M;
+
+struct N {
+    ptr: *mut M,
+    data: PhantomData<M>
+}
+```
+`ptr`是指向 M 的裸指针，但不意味着 N 拥有 M 的所有权。如果说，你想用裸指针的方式自行管理M的资源，可以加入 `PhantomData<M>`，告诉编译器，N 拥有 M 的所有权。但实际上，M的资源释放并不是依赖所有权系统完成的，而是你自行完成的。
+
+
+```rust
+struct N<'a, T: 'a> {
+    ptr: *const T,
+    data: PhantomData<&'a T>
+}
+```
+`ptr` 是指向 T 的裸指针，裸指针没有生命周期的概念。如果说，你想给裸指针加入生命周期的限定，就可以加入 `PhantomData<&'a T>`, 告诉编译器 N 的生命周期和 'a 有关。
+
+
+## `*mut ()` 是什么类型
+c语言使用 `void*` 表示一种特殊的指针，这个指针不指向具体的数据类型，在使用这种指针的时候，利用`(char*)ptr`的强制转化方式，变为具体数据类型的指针使用。这样做的目的就是不想暴露指针到底指的是什么具体类型的数据，当然它也可以作为一种泛型的手段使用。
+
+在 Rust 语言，就使用 `*mut ()` 表示这样的指针。
+
+
+## `Ordering::Release` 和 `Ordering::Acquire`
+解释清楚这两个东西，必须要结合具体的例子。先看下面的伪代码：
+```
+data = None 
+has_data = false
+
+// thread 1
+write(&data, "hello")
+atomic_store(&has_data, true)
+
+
+// thread2
+if atomic_load(&has_data):
+    d = read(&data)
+    assert(d == "hello")
+```
+
+由于编译器重排、CPU重排，thread 1 的执行顺序可能是：
+```
+atomic_store(&has_data, true)
+write(&data, "hello")
+```
+
+当 `atomic_store` 执行完毕后，`has_data`就是 true, 这个时候，可能发生线程切换，执行 thread 2, thread 2 原子读取 has_data, 结果是 true， 然后执行 if 
+分支，读取 `data`，结果数据不是 `hello`，导致 assert 发生错误；
+
+解决方式，就是使用 `Ordering::Release` 和 `Ordering::Acquire`.
+
+```
+data = None 
+has_data = false
+
+// thread 1
+write(&data, "hello")
+atomic_store(&has_data, true, Ordering::Release)
+
+
+// thread2
+if atomic_load(&has_data, Ordering::Acquire):
+    d = read(&data)
+    assert(d == "hello")
+```
+
+想要理解上面的意思，就要先了解下内存屏障，我们将写屏障记作`Release`, 将读屏障记作`Acquire`.
+
+```
+data = 10
+
+Release
+
+data = 11
+```
+**Release 之前的写操作，不能重排到 Release 之后**；
+
+
+```
+a = b 
+
+Acquire
+
+a = c
+```
+**Acquire 之后的读操作，不能重排到 Acquire 之前**；
+
+那么，上边的伪代码可以表示为：
+```
+data = None 
+has_data = false
+
+// thread 1
+write(&data, "hello")
+Release
+atomic_store(&has_data, true)
+
+
+// thread2
+Acquire
+if atomic_load(&has_data):
+    d = read(&data)
+    assert(d == "hello")
+
+```
+
+这样 thread 1 在执行的时候， write 就不会重排了；
+
+在 Rust 中：
+- `Ordering::Release`要和写操作（store, write）搭配使用，不能和读操作搭配使用；
+- `Ordering::Acquire`要和读操作（load, read）搭配使用，不能和写操作搭配使用；
+
+> [伪代码出处](https://dev.to/kprotty/understanding-atomics-and-memory-ordering-2mom)
+
+
 <Giscus />
