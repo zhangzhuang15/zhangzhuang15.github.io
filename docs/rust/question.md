@@ -285,6 +285,16 @@ mod world {
 }
 ```
 
+## 怎么写文档注释
+文档注释可以在vscode的hint中显示出来。
+
+对于crate级的文档注释，写在 main.rs 或者 lib.rs 开头，
+注释每行用 `//!` 开头；
+
+对于函数，struct，变量的文档注释，写在定义处的上一行，注释每行用 `///` 开头；
+
+文档注释之中，支持 markdown 语法；
+
 ## 多行字符串
 
 :::code-group
@@ -440,6 +450,30 @@ fn main() {
     // 打印出来：
     // h\"\th
     let t = r#"h\"\th"#;
+}
+
+```
+
+## block 表达式使用 return 会怎么样
+```rust 
+fn main() {
+
+    let m = {
+        let t = 4;
+        t + 2
+    };
+
+    // output: 6
+    println!("{}", m);
+
+    let m = {
+        let t = 4;
+        // end up with main function!😱
+        return t+2;
+    };
+
+    // cannot execute this line,
+    println!("{}", m);
 }
 
 ```
@@ -746,6 +780,10 @@ s 不再是直接获取String，而是获取String的reference;
 
 最典型的场景就是`Future`异步编程。
 
+## raw pointer 身上有借用检查么？
+raw pointer: `*const` `*mut`
+没有借用检查，如果它指向了堆内存，你自己要保证没有内存泄漏发生！
+
 ## 结构体怎么直接就能访问属性的属性？
 因为实现了`Deref` trait
 
@@ -774,6 +812,41 @@ fn main() {
     println!("{}", n.value);
 }
 ```
+
+## 如何在vscode调试Rust代码？
+安装Rust工具链
+
+安装以下插件：
+- `CodeLLDB`
+- `rust-analyzer`
+
+为调试创建一个`launch.json`文件，该文件会给出一个`Add Configuration`的按钮，
+点击这个按钮，选择 `CodeLLDB: Debug a Cargo Target`, 自动生成调试配置参数，
+指定好命令即可，比如：
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Cargo launch",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin",
+                    "rust-practice"
+                ]
+            },
+            "args": []
+        }, 
+    ]
+}
+```
+> 默认的cargo build 也会把src/bin下的代码编译为可执行程序，会令 CodeLLDB 理解错乱，
+> 不知道你要调试的是 main.rs 编译好的可执行程序，还是 src/bin 下的，
+> 所以要给出 `--bin rust-practice`，明确告诉 CodeLLDB 究竟要调试哪个可执行程序
+
 
 ## 如何查看宏展开后的代码
 ```shell
@@ -930,6 +1003,22 @@ derive宏只会在 struct 后边追加代码，如果要修改 struct ，请使�
 :::
 
 
+## 过程宏定义中出现的 `..`表示什么意思？
+
+```rust 
+macro_rules! unrecoverable {
+    (pos=$pos:expr, $stream:ident, $($str:expr),*) => {
+        return Err(crate::basic_parser::Status::Fatal($pos .. CharStream::get_pos($stream), format![$($str),*]))
+    };
+}
+```
+`$pos .. CharStream::get_pos($stream)` 中的 `..` 是什么意思呢？
+
+它表示 range 计算，和 `for item in 3..7` 一样，
+`$pos .. CharStream::get_pos($stream)`的结果是得到了一个 `std:ops:Range`类型数据；
+
+
+
 ## 如何给str增加新的方法
 
 Rust标准库已经给 `str` 定义了一些方法，我们如何给它增加新的方法呢？
@@ -1025,8 +1114,7 @@ atomic_store(&has_data, true)
 write(&data, "hello")
 ```
 
-当 `atomic_store` 执行完毕后，`has_data`就是 true, 这个时候，可能发生线程切换，执行 thread 2, thread 2 原子读取 has_data, 结果是 true， 然后执行 if 
-分支，读取 `data`，结果数据不是 `hello`，导致 assert 发生错误；
+当 `atomic_store` 执行完毕后，`has_data`就是 true, 这个时候，可能发生线程切换，执行 thread 2, thread 2 原子读取 has_data, 结果是 true， 然后执行 if 分支，读取 `data`，结果数据不是 `hello`，导致 assert 发生错误；
 
 解决方式，就是使用 `Ordering::Release` 和 `Ordering::Acquire`.
 
@@ -1054,7 +1142,7 @@ Release
 
 data = 11
 ```
-**Release 之前的写操作，不能重排到 Release 之后**；
+**Release 上侧的写操作，不能重排到下侧，反之亦然**；
 
 
 ```
@@ -1064,7 +1152,7 @@ Acquire
 
 a = c
 ```
-**Acquire 之后的读操作，不能重排到 Acquire 之前**；
+**Acquire 下侧的读操作，不能重排到 Acquire 上侧，反之亦然**；
 
 那么，上边的伪代码可以表示为：
 ```
@@ -1092,6 +1180,68 @@ if atomic_load(&has_data):
 - `Ordering::Acquire`要和读操作（load, read）搭配使用，不能和写操作搭配使用；
 
 > [伪代码出处](https://dev.to/kprotty/understanding-atomics-and-memory-ordering-2mom)
+
+## Option类型数据后边加上一个？是什么意思
+? 运算符是 Rust 中的一个错误传播运算符，它可以用于简化处理 Option 类型或 Result 类型的代码。? 运算符可以把 Some(T) 中的值 T 解包出来，或者在遇到 None 时提前从函数中返回 None。
+
+? 运算符只能用于返回 Option 类型或 Result 类型的函数中，因为它需要提前返回 None 或 Err。? 运算符可以减少一些冗余的模式匹配或错误处理代码，让代码更简洁和清晰。
+
+```rust
+fn execute() -> Option<u8> {
+    let data = Some(10u8);
+
+    let result = data?;
+    println!("{result}");
+    Some(1)
+}
+
+fn main() {
+    let res = execute();
+    match res {
+        Some(res) => println!("{res}"),
+        None => println!("None"),
+    };
+}
+```
+
+## 如何切换rustc到 nightly 版本？
+查看你已经安装
+```sh 
+rustup show
+```
+找到带有 `nightly` 的 toolchain 名，比如`nightly-2022-09-23-aarch64-apple-darwin`
+
+```sh 
+rustup default nightly-2022-09-23-aarch64-apple-darwin
+```
+
+如果没有找到，说明你之前没有安装`nightly`的 toolchain：
+```sh 
+rustup install nightly
+```
+
+## toolchain component target 联系？
+component说的是rust标准库和编译器插件，不包含编译器；
+
+target说的是交叉编译的目标环境，rust会把编译自身的代码为一种中间代码，然后需要另一个工具编译为具体平台下的代码，这就是target要做的事情；
+
+toolchain是一套开发工具，包括component target rust编译器，提供给使用者构建项目、编译代码、运行测试的功能，cargo rustc 都包含在内；
+
+
+## `async` `await` `Future` `impl Future` `poll` `异步运行时`有什么联系？
+`async` 修饰的函数或者代码块，会被Rust编译器转化为实现`Future`的对象，并且给出 `poll`
+方法。
+
+`await`只能用于`async`函数或代码块中，会被Rust编译器转化为`poll` 方法的调用。
+
+编程者可以自行为一个struct实现 `Future` trait, 为其编写 `poll` 方法，而这个实现 `Future`的对象，和Rust编译器生成的`Future`对象没有本质区别。
+
+Rust编译器在`async`函数或者代码块中，通过`await`，可以给出何时调用`Future`的 `poll` 方法，但是对于编程者自行实现的`Future`对象，由于没有 `await` 的存在，
+Rust编译器无法帮助完成`poll`的调用，这就需要 `异步运行时`去调用`poll`。
+
+每次调用`poll`，`Future`对象作为状态机，其状态就会被处理一次，状态可能改变，也可能不变。
+
+对于`async` `await` 实现的`Future`, 本质上就是`Future`对象里面包含`Future`对象，内部`Future`对象由Rust编译器实现调度，而外层的`Future`对象则不会，除非它位于另一个`Future`对象中，因此这种类型的`Future`对象就需要一个`异步运行时`来调度。
 
 
 <Giscus />
