@@ -36,6 +36,12 @@ aside: true
 
 终端彩色文字输出库
 
+## picocolors
+
+终端彩色文字输出库
+
+使用者：vitepress
+
 ## ansi-color
 
 终端彩色文字输出库
@@ -57,6 +63,11 @@ aside: true
 ## inquirer
 
 终端用户输入交互
+
+## prompts
+终端的提示词交互
+
+使用者：vitepress
 
 ## cli-highlight
 

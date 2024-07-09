@@ -49,4 +49,19 @@ typescript-first validator
 
 获取 json 之间的差别，或者根据差别修改 json 数据。
 
+## js-big-decimal
+
+遇到了`0.1 + 0.2 != 0.3` 的问题？使用这个库解决吧
+
+```js
+const jb = require("js-big-decimal").default;
+
+console.log(jb.add('0.1', '0.2'))
+```
+
+## p-map
+功能和Promise.all一样，但创新式地加入了并发数量限制；
+
+使用者：vitepress
+
 <Giscus />

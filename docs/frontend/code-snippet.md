@@ -228,4 +228,58 @@ function link(initialValue, works) {
 }
 ```
 
+## 格式化、高亮化sql语句
+```js 
+import highlightjs from "highlight.js"
+
+const sourceCode = `
+ WITH basic AS (
+    SELECT
+     sn.dt AS dt,
+         sn.poi_type AS poi_type
+              FROM
+               ()
+            )`
+
+import * as formatter from "sql-formatter"
+
+// 格式化
+let result = formatter.format(sourceCode, { 
+    language: 'sql',
+    tabWidth: 2,
+    keywordCase: 'upper',
+    linesBetweenQueries: 1 });
+
+// 高亮化
+const h_result = highlightjs.highlight(result, {language: "sql"});
+
+// 高亮化之后的 html
+console.log(h_result.value)
+```
+
+高亮代码也可以用 prismjs 实现：
+```js 
+const {highlight, languages} = require("prismjs");
+const loadLanguages = require("prismjs/components/index");
+loadLanguages(['javascript']);
+const source = `
+  import A from "./src/a.js"
+  // value
+  const val = {
+    name: "Jack",
+    data: 10
+  };
+
+  function hello() {
+    console.log("hello world");
+  }
+
+  hello();
+`;
+const code = highlight(source, languages.sql, 'javascript');
+// 高亮处理后的html
+console.log(code)
+```
+
+
 <Giscus />
