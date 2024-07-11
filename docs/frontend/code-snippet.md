@@ -281,5 +281,41 @@ const code = highlight(source, languages.sql, 'javascript');
 console.log(code)
 ```
 
+## input失焦后，点击dropdown列表中的元素，如何阻止dropdown收起
+考虑这样的问题：输入框聚焦后，有个下拉列表出现，然后你点击下拉列表中的某一项，结果下拉列表消失，
+列表项的点击事件没有触发。
+
+本质上看，当你点击下拉列表项的时候，先触发了 onblur 事件，后触发 onclick 事件，但是由于 onblur 
+里的逻辑，导致列表从DOM树中消失，进而使得 onclick 事件没有执行。
+
+解决方法如下，出自[stackoverflow](https://stackoverflow.com/questions/39439115/how-to-execute-click-function-before-the-blur-function/57983847#57983847)
+```html
+<body>
+  <input type="text" onblur="onBlur" />
+  <ul>
+    <li tabindex='-1' onclick="onClick"></li>
+  </ul>
+  <script>
+    function onBlur(e) {
+      if (e.relatedTarget) {
+        // jump over, go to onclick
+        return;
+      }
+
+      // do something
+    } 
+
+    function onClick() {
+      console.log("I'm clicked")
+    }
+  </script>
+</body>
+```
+tabindex的作用详见[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex)
+
+简单来讲：
+- 设置 tabindex 的 element，可以聚焦；
+- 设置 tabindex='-1', 表示不能通过按下 tab 键获得聚焦，但可以通过鼠标聚焦；
+- 设置 tabindex='2', 表示可以通过 tab 键获得聚焦，正数形式下，数字越小，越先获得聚焦；
 
 <Giscus />
