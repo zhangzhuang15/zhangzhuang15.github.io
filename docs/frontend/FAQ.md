@@ -144,6 +144,43 @@ n instanceOf B; // true
 p instanceOf A; // true
 ```
 
+### `path.resolve` VS `path.join`
+```js
+const path = require("path")
+
+path.resolve("/a/b", "c") // /a/b/c
+path.join("/a/b", "c")    // /a/b/c
+
+path.resolve("/a/b", "./c")  // /a/b/c
+path.join("/a/b", "./c")  // /a/b/c
+
+
+path.resolve("/a/b", "../c")  // /a/c
+path.join("/a/b", "../c")     // /a/c
+
+path.resolve("/a/b.txt", "c")  // /a/b.txt/c
+path.join("/a/b.txt", "c")     // /a/b.txt/c
+
+path.resolve("/a/b.txt", "./c")  // /a/b.txt/c
+path.join("/a/b.txt", "./c")     // /a/b.txt/c
+
+path.resolve("/a/b.txt", "../c") // /a/c
+path.join("/a/b.txt", "../c")    // /a/c
+
+path.resolve("/a/b.txt", "/c")   // /c
+path.join("/a/b.txt", "/c")      // /a/b.txt/c
+
+path.resolve("./a/b.txt", "./c") // /Users/xxxx/a/b.txt/c   /Users/xxxx stands for cwd
+path.join("./a/b.txt", "./c")    // a/b.txt/c
+
+
+path.normalize("/a/b.txt/c.tt")    // /a/b.txt/c.tt
+path.normalize("/a/b.txt/./c.tt")  // /a/b.txt/c.tt
+path.normalize("/a/b.txt/../c.tt") // /a/c.tt
+path.normalize("a/b.txt/../c.tt")  // a/c.tt
+```
+
+
 
 ## typescript 的 class 编译结果
 ```ts

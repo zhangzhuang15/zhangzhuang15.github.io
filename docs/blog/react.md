@@ -676,6 +676,40 @@ hook.queue.lastRenderedState = newState;
 return [hook.memoizedState, hook.queue.dispatch];
 ```
 
+:::tip <TipIcon />
+在更新阶段， 执行`useState(10)`的时候，10根本没有用到，因此，在如下代码中，父组件更新component组件的props时，component组件的state不会更新：
+```js 
+const component = (props) => {
+  const [state, _] = useState(props.state);
+}
+
+const parent = () => {
+  const [num, setNum] = useState(10);
+  useEffect(() => {
+    setNum(100);
+  }, [])
+
+  return <>
+    <component state={num} />
+  </>
+}
+```
+
+如果想让 props.state 更新后，state也更新：
+```js 
+const component = (props) => {
+  const [state, setState] = useState(props.state);
+
+  useEffect(() => {
+    setState(props.state)
+  }, [
+    props.state
+  ]);
+}
+
+```
+:::
+
 #### setValue 被调用的时候发生了什么？
 
 由上述分析可知，setValue 就是 `dispatchSetState`, 这个函数做的事情：
