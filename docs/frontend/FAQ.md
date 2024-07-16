@@ -536,3 +536,46 @@ module.exports = {
 原因是，本地项目依赖中，有多个版本的 react .d.ts 声明文件，解决方法是重新安装依赖😭
 
 这里有个[stackoverflow上的解答](https://stackoverflow.com/questions/53822891/jsx-element-type-reactelementany-null-is-not-a-constructor-function-for-js)
+
+
+## webpack允许 import undefined variable?
+如果你的代码import undefined variable，然后你用webpack构建项目的时候，webpack竟然没有报错。可这个问题非常严重，因为在代码运行的时候，一旦使用这个变量，会导致crash。
+
+如果想让webpack及时报错，设置`webpackConfig.module.strictExportPresence` 为 true 即可。
+
+开启这个配置之后，你仍需要注意：
+:::code-group
+```js [src/mod.js]
+export function hello() {
+    console.log("hello world")
+}
+
+```
+```js [src/main.js]
+import { hello, jack } from "./mod";
+import * as M from "./mod";
+
+// hello is defined, webpack works
+hello();
+
+// jack is not defined, webpack fails
+jack();
+
+// webpack fails
+if (M.jack) {
+    M.jack()
+}
+
+// webpack fails
+if (M['jack']) {
+    M['jack']()
+}
+
+// webpack works!
+// so if you want to access variable mounted on
+// M dymatically, write code in this style
+if (M['jack' + '']) {
+    M['jack' + '']()
+}
+```
+:::

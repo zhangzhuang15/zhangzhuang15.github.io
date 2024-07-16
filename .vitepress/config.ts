@@ -250,6 +250,10 @@ export default defineConfig({
             {
               text: "react官网如何实现用markdown编写页面",
               link: "/blog/react-dev"
+            },
+            {
+              text: "foamTree, behind webpack-bundle-analyzer",
+              link: "/blog/foam-tree",
             }
           ],
         },
