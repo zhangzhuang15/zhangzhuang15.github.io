@@ -17,6 +17,8 @@ aside: true
 
 讲述浏览器在渲染一帧画面的时候，需要经过哪些步骤；
 
+![](/anatomy-of-a-frame.svg)
+
 ## Preload Scanner
 [阅读原文](https://web.dev/articles/preload-scanner)
 
