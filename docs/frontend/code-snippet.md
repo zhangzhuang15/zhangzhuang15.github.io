@@ -318,4 +318,119 @@ tabindex的作用详见[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/G
 - 设置 tabindex='-1', 表示不能通过按下 tab 键获得聚焦，但可以通过鼠标聚焦；
 - 设置 tabindex='2', 表示可以通过 tab 键获得聚焦，正数形式下，数字越小，越先获得聚焦；
 
+
+## 计算element位置，触底判断
+先说明几个基本认知：
+
+1. window.innerHeight
+表示浏览器网页展示区域的高度，如果有横向滚动条，滚动条的高度也算进去。这个高度可不包含滚动的高度。我们看到的内容是`document.body`，body里的内容很多时，body的
+高度就会非常多，超出 window.innerHeight 高度的那部分内容，需要利用垂直滚动条向下移动才可以看到。
+
+2. window.scrollY
+表示浏览器网页的垂直滚动条的滚动距离。在 `document.body`内容很多时，你要借助
+垂直滚动条的垂直移动才能继续看到 body 里的内容。在滚动条没有移动的时候，你只能
+看到 body 里边 0 ~ window.innerHeight 高度间的内容；当 window.scrollY = 10px的时候，你只能看到 body 里面 10px ~ window.innerHeight + 10px 高度
+间的内容
+
+3. offsetHeight
+element.borderTop + element.paddingTop + element.height + element.paddingBottom + element.borderBottom = element.offsetHeight
+
+4. offsetParent
+```html
+<body>
+  <style>
+    .parent-1 {
+      position: absolute;
+    }
+  </style>
+  <div class="parent-1">
+    <div class="parent-2">
+      <p id="son"></p>
+    </div>
+  </div>
+  <div>
+    <div id="son2"></div>
+  </div>
+
+  <script>
+    const son = document.getElementById("son");
+    // parent-2
+    son.parent;
+
+    // parent-1
+    son.offsetParent;
+
+    const son2 = document.getElementById("son2");
+    // document.body
+    son2.offsetParent;
+
+    // null
+    son2.offsetParent.offsetParent;
+  </script>
+</body>
+```
+
+计算element的位置（以垂直方向为例），可能说的是：
+- element在屏幕上的位置（即在 viewport 里的位置）
+- element在网页里的位置（即在body里的位置）
+
+```js
+// element在屏幕上的位置
+const { top } = element.getBoundingClientRect()
+```
+
+```js
+// 如果 element 的 offsetParent 是 body 的话，
+// 一步就能得到element在网页里的位置
+const top = element.offsetTop;
+```
+
+```js 
+// 如果 element 的 offsetParent 不是 body 的话，
+// 需要做一些向上追溯计算
+let parent = element.offsetParent;
+let prev = element;
+let height = 0;
+while (parent !== null) {
+  height += prev.offsetTop;
+  prev = parent;
+  parent = parent.offsetParent;
+}
+
+const top = height;
+```
+
+计算是否触底，其实就是说，element处于一个滚动区域里，它的底部是否接触到了滚动区域
+的底部。如果我们管滚动区域所归属的那个DOM节点叫做 scrollable, 那么element触底时就会有：
+```
+scrollable.scrollY + scrollable.offsetHeight == element顶部到scrollable的距离 + element.offsetHeight
+```
+
+element顶部到scrollable的距离，不能用 `element.offsetTop`计算，因为 scrollable 可能不是 element 的 offsetParent, 但不用担心，我们可以换个角度计算：
+```
+element顶部到scrollable的距离 == element顶部到viewport顶部的距离 - scrollable顶部到viewport顶部的距离
+```
+落实到代码里：
+
+```js
+const { top: elementTop } = element.getBoundingClientRect()
+const { top: scrollableTop } = scrollable.getBoundingClientRect()
+// element顶部到scrollable的距离
+const elementTopToScrollable = elementTop - scrollableTop;
+```
+
+所以element是否触底，就可以如此计算：
+```js
+const touchBottom = (el, scrollable) => {
+  const { top: elementTop } = el.getBoundingClientRect()
+  const { top: scrollableTop } = scrollable.getBoundingClientRect()
+  const elementTopToScrollable = elementTop - scrollableTop;
+  const loss = scrollable.scrollY + scrollable.offsetHeight - el.offsetHeight - elementTopToScrollable;
+  if (Math.abs(loss) < 1) {
+    return true
+  }
+  return false
+}
+```
+
 <Giscus />

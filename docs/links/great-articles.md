@@ -69,4 +69,13 @@ javascript没有执行呢；
 ## GitHub Repositories Every Software Engineer Should Know
 [阅读原文](https://dev.to/jrmarcio_/github-repositories-every-software-engineer-should-know-2e80)
 
-介绍了github上有哪些仓库可以帮助软件工程师学习技术
+介绍了github上有哪些仓库可以帮助软件工程师学习技术 
+
+
+## algorithm complexity theory
+[阅读原文](https://ycc.idv.tw/algorithm-complexity-theory.html)
+
+介绍：
+- P问题
+- NP问题
+- NP-Complete问题
