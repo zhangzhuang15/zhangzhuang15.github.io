@@ -78,6 +78,9 @@ footgun通常指的是那些容易导致程序员犯错的语言特性、API设�
 ### helpers 
 在设计一个库时，想通过一套API隐藏底层实现，让用户更轻松、更简单地使用库，这套API函数就是 helper.
 
+### bump version
+常见于git commit的comment中，表示版本号升级1个
+
 ## 使用 javascript API 遇到的坑
 ### 数组 empty slot 被跳过
 ❌
