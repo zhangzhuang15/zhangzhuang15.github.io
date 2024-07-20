@@ -105,6 +105,37 @@ ffmpeg -i source.mp4 -c:v copy -c:a copy -vcodec h264 output.mp4
 
 `output.mp4`是输出的文件路径，相对路径和绝对路径都可以；
 
+### 多个mp3合并
+```shell 
+ffmpeg -i "concat:1.mp3|2.mp3|3.mp3" -c copy ./out.mp3
+```
+
+### mp4转mp3
+```shell 
+ffmpeg -i output.mp4 -vn -ar 44100 -ac 2 -b:a 192k output.mp3
+```
+:::tip <TipIcon />
+192k指的是音频比特率，值越大，单位时间采取的数据越多，音乐质量越高，
+  常见取值： 32k 48k 64k 96k 128k 192k 256k;
+  建议使用 大于 32k 的值，32k的时候，声音会断断续续，发虚，这里有一个实验：
+     原来的音频是2.1M，经过不同比特率处理后，得到的新文件的大小
+           32k         1.2M
+           48k         1.5M
+           64k         2M
+          72k         2M
+           80k         2.5M
+           96k         3.1M
+:::
+
+### mp4去字幕
+```shell 
+ffmpeg -i video.mp4 -vcodec copy -acodec copy -sn video-no-subs.mp4
+```
+
+### 多个mp4合并
+```shell
+ffmpeg -i "concat:1.mp4|2.mp4|3.mp4" -c copy ./out.mp4
+```
 
 ## python2
 采用`brew install python@2` 无法安装 python2, 可以使用如下方法：

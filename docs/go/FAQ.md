@@ -180,3 +180,25 @@ func main() {
 ```
 
 代码正常运行，for循环可以读取 10 和 11
+
+
+## json反序列化
+```go 
+import "encoding/json"
+
+type M struct {
+    Hobby []string 
+    Data struct {
+        Name string 
+    }
+}
+
+func main() {
+    var m M
+    json.Unmarshal([]byte(`{"hobby":["a","b"],"data":{"name":"test"},"value": 10}`), &m)
+
+    // 1. M 中的字段一定要首字母大写，否则该字段无法序列化、反序列化
+    // 2. 虽然序列化的字符串中，有个 value, M 中没有value字段，但是，
+    //    Hobby Data 字段不受影响，依旧可以反序列化
+}
+```
