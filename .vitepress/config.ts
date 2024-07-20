@@ -115,6 +115,13 @@ export default defineConfig({
         ]
       },
       {
+        text: "Swift",
+        activeMatch: "^/swift/",
+        items: [
+          { text: "code snippet", link: "/swift/code-snippet"}
+        ]
+      },
+      {
         text: "开源项目",
         activeMatch: "^/open-source/",
         items: [
@@ -269,6 +276,9 @@ export default defineConfig({
         { text: 'typescript类型系统', link: '/frontend/ts-type'},
         { text: 'jsdoc常用的语法', link: '/frontend/js-doc'},
         { text: 'code snippet', link: '/frontend/code-snippet'}
+      ],
+      "/swift": [
+        { text: "code snippet", link: "/swift/code-snippet"}
       ],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },

@@ -541,6 +541,34 @@ module.exports = {
 这里有个[stackoverflow上的解答](https://stackoverflow.com/questions/53822891/jsx-element-type-reactelementany-null-is-not-a-constructor-function-for-js)
 
 
+## node-gyp 执行时，遇到python问题： ModuleNotFoundError: No module named 'distutils'
+在electron项目中，项目运行的时候，可能会使用 node-gyp, 进而遇到和 python 相关的问题。
+
+这个问题是因为python版本号不正确。在macOS上，删除系统预装的python非常困难，因此我们可以变通地解决
+这个问题，在启动项目之前，设置一个全局变量：
+```shell  
+export PYTHON=/opt/homebrew/bin/python3.11
+```
+
+之后再启动项目，这个时候 node-gyp 就会使用 python3.11 执行python脚本了。
+
+[Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
+
+
+## node-gyp 执行时，遇到python问题： ModuleNotFoundError: No module named 'distutils'
+在electron项目中，项目运行的时候，可能会使用 node-gyp, 进而遇到和 python 相关的问题。
+
+这个问题是因为python版本号不正确。在macOS上，删除系统预装的python非常困难，因此我们可以变通地解决
+这个问题，在启动项目之前，设置一个全局变量：
+```shell  
+export PYTHON=/opt/homebrew/bin/python3.11
+```
+
+之后再启动项目，这个时候 node-gyp 就会使用 python3.11 执行python脚本了。
+
+[Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
+
+
 ## webpack允许 import undefined variable?
 如果你的代码import undefined variable，然后你用webpack构建项目的时候，webpack竟然没有报错。可这个问题非常严重，因为在代码运行的时候，一旦使用这个变量，会导致crash。
 

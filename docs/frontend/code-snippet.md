@@ -317,6 +317,118 @@ tabindex的作用详见[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/G
 - 设置 tabindex 的 element，可以聚焦；
 - 设置 tabindex='-1', 表示不能通过按下 tab 键获得聚焦，但可以通过鼠标聚焦；
 - 设置 tabindex='2', 表示可以通过 tab 键获得聚焦，正数形式下，数字越小，越先获得聚焦；
+## 判断电脑是否联网
+```js 
+const online = navigator.onLine;
+if (online) {
+  console.log("联网")
+}
+```
+
+## 判断电脑是否在充电
+```js 
+
+navigator
+ .getBattery()
+ .then(batteryManager => {
+  if (batteryManager.charging) {
+    console.log("正在充电")
+  }
+ })
+```
+
+## 判断电脑连接的是4G还是3G
+```js 
+const webType = navigator.connection.effectiveType
+
+if (webType === '4g') {
+  console.log("连接了4g")
+}
+
+```
+
+## 获取浏览器宿主机的cpu核心数
+```js 
+const cores = navigator.hardwareConcurrency
+```
+
+## 获取浏览器使用的最大内存（GB）
+```js 
+const memory = navigator.deviceMemory
+```
+
+## 获取当前经纬度
+在 https 环境下生效
+
+```js 
+navigator
+  .geolocation
+  .getCurrentPosition(
+    position => {
+      const a = position.coords.latitude;
+      const b = position.coords.longitude;
+      // 精确到几米
+      const accuracy = position.coords.accuracy;
+    }, 
+    err => console.log(err))
+
+```
+## 判断电脑是否联网
+```js 
+const online = navigator.onLine;
+if (online) {
+  console.log("联网")
+}
+```
+
+## 判断电脑是否在充电
+```js 
+
+navigator
+ .getBattery()
+ .then(batteryManager => {
+  if (batteryManager.charging) {
+    console.log("正在充电")
+  }
+ })
+```
+
+## 判断电脑连接的是4G还是3G
+```js 
+const webType = navigator.connection.effectiveType
+
+if (webType === '4g') {
+  console.log("连接了4g")
+}
+
+```
+
+## 获取浏览器宿主机的cpu核心数
+```js 
+const cores = navigator.hardwareConcurrency
+```
+
+## 获取浏览器使用的最大内存（GB）
+```js 
+const memory = navigator.deviceMemory
+```
+
+## 获取当前经纬度
+在 https 环境下生效
+
+```js 
+navigator
+  .geolocation
+  .getCurrentPosition(
+    position => {
+      const a = position.coords.latitude;
+      const b = position.coords.longitude;
+      // 精确到几米
+      const accuracy = position.coords.accuracy;
+    }, 
+    err => console.log(err))
+
+```
 
 
 ## 计算element位置，触底判断
