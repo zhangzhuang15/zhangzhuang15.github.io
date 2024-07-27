@@ -261,6 +261,10 @@ export default defineConfig({
             {
               text: "foamTree, behind webpack-bundle-analyzer",
               link: "/blog/foam-tree",
+            },
+            {
+              text: "Terminal的魔法",
+              link: "/blog/terminal-io"
             }
           ],
         },
