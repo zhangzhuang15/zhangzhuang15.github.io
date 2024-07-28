@@ -4,6 +4,9 @@ page: true
 aside: true
 ---
 
+## rcore 操作系统教程
+[阅读原文](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/index.html)
+
 ## How Browser Rendering Works
 [阅读原文](https://blog.logrocket.com/how-browser-rendering-works-behind-scenes/)
 

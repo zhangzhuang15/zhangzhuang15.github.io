@@ -137,6 +137,11 @@ ffmpeg -i video.mp4 -vcodec copy -acodec copy -sn video-no-subs.mp4
 ffmpeg -i "concat:1.mp4|2.mp4|3.mp4" -c copy ./out.mp4
 ```
 
+### mp3合并到mp4
+```shell 
+ffmpeg -i 1.mp3 -i 1.mp4 -c copy merged.mp4
+```
+
 ## python2
 采用`brew install python@2` 无法安装 python2, 可以使用如下方法：
 
