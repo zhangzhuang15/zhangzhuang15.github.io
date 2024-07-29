@@ -4,6 +4,13 @@ page: true
 aside: true
 ---
 
+## 相关资料
+[GNU | The Termcap Library](https://www.gnu.org/software/termutils/manual/termcap-1.3/html_chapter/termcap_2.html)
+
+[DEC C | Getting Started with Curses](http://odl.sysworks.biz/disk$axpdocdec971/progtool/deccv56/5763profile0036.html#342_gettingstartedwithcurses)
+
+[OpenGroup | System Interfaces: Detailed ToC](https://pubs.opengroup.org/onlinepubs/9699919799/functions/contents.html)
+
 ## Description
 使用过 Vim 的你，有没有对这些现象感到惊讶：
 1. vim启动前和vim退出后，terminal的内容没有变化，仿佛 vim 是启动了一个新的窗口完成一切的操作；

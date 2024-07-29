@@ -6,6 +6,60 @@ aside: true
 
 # 🤔️🤔️🤔️
 
+## Rust std 和 Rust core 的区别
+Rust std 是让Rust语言开发的软件具备可移植性，提供了核心类型（Rust core），如 Vec， 还提供了标准宏、IO、多线程
+原语操作（如原子指令）。但 Rust std 要提供这些功能，必须要依赖操作系统。因此在裸机开发中，不能用 Rust std。
+
+Rust core 是Rust语言核心库，提供了很多基础功能，比如指针操作，它不依赖任何操作系统，可以在裸机使用。
+
+[refer](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter1/1app-ee-platform.html#)
+
+## 如何理解rustca的版本
+执行 `rustc --version --verbose`, 会有这样的结果：
+```
+rustc 1.79.0 (129f3b996 2024-06-10)
+binary: rustc
+commit-hash: 129f3b9964af4d4a709d1383930ade12dfe7c081
+commit-date: 2024-06-10
+host: aarch64-apple-darwin
+release: 1.79.0
+LLVM version: 18.1.7
+```
+其中最重要的是`host`行，它表示：
+- aarch64, CPU类型
+- apple, CP产商
+- darwin, 操作系统
+
+如果`host`是 *riscv64gc-unknown-none-elf*， 它表示：
+- riscv64gc, CPU 类型，它支持 riscv64 的 G系列 和 C系列 指令集
+- unknown, 没有确定的CPU厂商
+- none, 无操作系统
+- elf, 没有运行时库，但是会编译为 ELF 文件
+
+:::tip <TipIcon />
+RV32/64I：每款处理器都必须实现的基本整数指令集。在 RV32I 中，每个通用寄存器的位宽为 32 位；在 RV64I 中则为 64 位。它可以用来模拟绝大多数标准指令集拓展中的指令，除了比较特殊的 A 拓展，因为它需要特别的硬件支持。
+
+M 拓展：提供整数乘除法相关指令。
+
+A 拓展：提供原子指令和一些相关的内存同步机制，这个后面会展开。
+
+F/D 拓展：提供单/双精度浮点数运算支持。
+
+C 拓展：提供压缩指令拓展。
+
+[refer](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter1/1app-ee-platform.html)
+:::
+
+应用程序想要运行，就必须考虑以下几点：
+- CPU类型
+- 操作系统
+- 运行时库
+
+这也就是说：
+- 经编译后，适用于CPU A类型的程序，无法在CPU B类型的硬件上跑起来
+- 经编译后，适用于windows系统的程序，无法在macOS上运行，尽管它们的CPU类型都是一样的
+- 经编译后，尽管操作系统、CPU类型相同，采用运行时库A可以执行，采用运行时库B可能无法执行，因为有些符号可能在运行时库B中找不到
+
 ## 默认情况下，闭包会获取所有权么？
 
 不会.
