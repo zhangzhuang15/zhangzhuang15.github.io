@@ -115,6 +115,13 @@ export default defineConfig({
         ]
       },
       {
+        text: "Swift",
+        activeMatch: "^/swift/",
+        items: [
+          { text: "code snippet", link: "/swift/code-snippet"}
+        ]
+      },
+      {
         text: "开源项目",
         activeMatch: "^/open-source/",
         items: [
@@ -239,6 +246,10 @@ export default defineConfig({
               text: "十年后再看高考，大彻大悟",
               link: "/blog/exam"
             },
+            {
+              text: "凌晨4点，思维定势的惨案",
+              link: "/blog/you-cant-think",
+            },
             { 
               text: "vitepress如何支持markdown使用vue组件", 
               link: "/blog/vitepress"
@@ -246,6 +257,14 @@ export default defineConfig({
             {
               text: "react官网如何实现用markdown编写页面",
               link: "/blog/react-dev"
+            },
+            {
+              text: "foamTree, behind webpack-bundle-analyzer",
+              link: "/blog/foam-tree",
+            },
+            {
+              text: "Terminal的魔法",
+              link: "/blog/terminal-io"
             }
           ],
         },
@@ -261,6 +280,9 @@ export default defineConfig({
         { text: 'typescript类型系统', link: '/frontend/ts-type'},
         { text: 'jsdoc常用的语法', link: '/frontend/js-doc'},
         { text: 'code snippet', link: '/frontend/code-snippet'}
+      ],
+      "/swift": [
+        { text: "code snippet", link: "/swift/code-snippet"}
       ],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },

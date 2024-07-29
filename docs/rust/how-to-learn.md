@@ -198,4 +198,10 @@ aside: true
 
 [crate 地址](https://crates.io/crates/unicode-segmentation)
 
+### anyhow 
+
+在Rust编程中，当你要向上传递Error的时候，你要费很大力气去思考返回的Error具体是什么类型，
+比如说是 io 的Error，还是 core 的Error。使用 anyhow, 你不用费心思在Error类型上，直接
+往上传递即可。
+
 <Giscus />

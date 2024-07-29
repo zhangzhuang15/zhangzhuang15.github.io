@@ -50,7 +50,7 @@ fakExports.default
 ```
 :::
 
-react官网团队在实现的时候，没有将导出的组件直接交给nextjs，而是对组件进行json序列化（源码里的`stringifyNodeOnServer`函数），把序列化后的字符串交给了nextjs, nextjs 在 `Layout` 函数里，调用react官网团队给出的组件反序列化函数（源码里的`reviveNodeOnClient`函数），得到了react组件。
+react官网团队在实现的时候，没有将导出的组件直接交给nextjs，而是对组件进行json序列化（源码里的[stringifyNodeOnServer](https://github.com/zhangzhuang15/react.dev/blob/main/src/utils/compileMDX.ts#L146)函数），把序列化后的字符串交给了nextjs, nextjs 在 `Layout` 函数里，调用react官网团队给出的组件反序列化函数（源码里的[reviveNodeOnClient](https://github.com/zhangzhuang15/react.dev/blob/main/src/pages/%5B%5B...markdownPath%5D%5D.js#L74)函数），得到了react组件。
 
 :::tip <TipIcon />
 `Layout`函数是nextjs框架中的一个核心概念，它本质上就是一个react函数式组件，只不过函数名被严格要求为 `Layout`, nextjs的使用者可以给出这个函数的定义，nextjs会根据该函数的返回结果去渲染页面。
@@ -78,6 +78,106 @@ react官网是如何实现上图的组件呢？
 
 react官网有一部分组件是自己写的，有一部分是基于[headlessui](https://headlessui.com/react/menu)
 :::
+
+## 把玩 react tree
+react官网处理 mdx 的时候，会对 react tree 做一些遍历、访问，我感觉挺有意思的。平时写代码，我们只会关注react组件的功能实现，不会接触到react节点的信息。下边来看下怎么把玩react节点。
+
+:::code-group
+```jsx [src/App.jsx]
+import { useState } from "react";
+export default function App(props) {
+    const [sig, setSig] = useState(0);
+    return (<div className="container">
+        <button className="button" onClick={() => setSig(sig+1)}>{sig}</button>
+        <section className="panel">hello world</section>
+    </div>)
+}
+```
+```js [src/main.js]
+import App from "./App.jsx";
+import React from "react";
+import {Children} from "react";
+
+function main() {
+    const component = <App key={10} className="root" value={11}>
+        <div className="app">hello world</div>
+    </App>;
+    console.log("component: ", component);
+
+    // 会看到component类似这样的结构：
+    //  $$typeof: Symbol.for('react.element'),
+    //  type: type,
+    //  key: key,
+    //  ref: null,
+    //  props: props,
+    //  _owner: null,
+
+    if (component.type === App) {
+        console.log("1")
+    }
+
+    if (component.$$typeof === Symbol.for("react.element")) {
+        console.log("2")
+    }
+
+    if (component.props.key === 10) {
+        console.log("3");
+    }
+
+    if (component.props.className === "root") {
+        console.log("4");
+    }
+
+    if (component.props.children) {
+        Children.forEach(component.props.children, (child) => {
+            if (child.$$typeof === Symbol.for("react.element")) {
+                console.log("child-1")
+            }
+
+            if (child.props.className === "app") {
+                console.log("child-2")
+            }
+        })
+    }
+}
+```
+```js [src/util.js]
+
+const fakeRequire = (dep) => {
+    if (dep === "react/jsx-runtime") {
+        // require is from webpack, not nodejs
+        return require(dep);
+    }
+
+    return dep;
+}
+
+const fakeExports = {};
+
+const render = new Function("require", "exports", `
+  import App from "App";
+  import React from "react";
+
+  export default <App className="root" />;
+`);
+
+render(fakeRequire, fakeExports);
+
+const component = fakeExports.default;
+
+// type is not function like src/main.js, funny
+if (component.type === "App") {
+    console.log("1");
+}
+
+if (component.props.className === "root") {
+    console.log("2");
+}
+```
+:::
+
+
+把玩 react 节点，就像用 babel 把玩javascript抽象语法树一样，很有趣。
 
 ## 总结一下核心的package 
 

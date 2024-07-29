@@ -4,7 +4,7 @@ page: true
 aside: true
 ---
 
-# SkipList触发lock-free好奇之心
+## SkipList触发lock-free好奇之心
 读了一本关于redis实现的电子书，里边有介绍redis如何实现 SkipList 数据结构，发现其实现方式
 和邓俊辉老师数据结构教材里的实现，差别有点大，于是好奇最初设计的SkipList到底是什么样的，然后
 在维基百科里搜索SkipList，发现了诸多论文链接，注意到 SkipList 和 lock-free 编程还有关联，
@@ -54,3 +54,26 @@ livelock: 两个线程相互等待，发现资源在对方手上后，尝试下�
 
 deadlock: 两个线程相互等待，发现资源在对方手上后，自身会被挂起，其结果是线程会被挂起，线程无法
 被推进，总是不会被调度上，不占据CPU算力，CPU会显得很闲；
+
+## 内存屏障的实现
+内存屏障的作用：
+- 阻止屏障两侧的指令重排；
+- 强制把缓存中的脏数据写回内存，让其他线程从内存读取最新数据；
+
+内存屏障需要使用特殊的汇编指令完成，比如:
+- `fence` 
+
+- `lock` . 比如 `lock cmpxchg`, lock 先对总线/缓存加锁，执行 cmpxchg 指令，执行完毕后，将缓存中的脏数据写回到内存。
+> "The `LOCK` prefix ensures that the CPU has exclusive ownership of the appropriate cache line for the duration of the operation, and *provides certain additional ordering guarantees*. This may be achieved by asserting a bus lock, but the CPU will avoid this where possible. If the bus is locked then it is only for the duration of the locked instruction" —— [stackoverflow](https://stackoverflow.com/questions/8891067/what-does-the-lock-instruction-mean-in-x86-assembly)
+
+- `mfence` 
+
+- `sfence` 
+
+- `lfence`
+
+:::tip <TipIcon />
+推荐阅读：
+
+[Locks实现:背后不为人知的故事](https://www.hitzhangjie.pro/blog/2021-04-17-locks%E5%AE%9E%E7%8E%B0%E9%82%A3%E4%BA%9B%E4%B8%8D%E4%B8%BA%E4%BA%BA%E7%9F%A5%E7%9A%84%E6%95%85%E4%BA%8B/)
+:::

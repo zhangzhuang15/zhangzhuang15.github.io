@@ -4,6 +4,9 @@ page: true
 aside: true
 ---
 
+## rcore 操作系统教程
+[阅读原文](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/index.html)
+
 ## How Browser Rendering Works
 [阅读原文](https://blog.logrocket.com/how-browser-rendering-works-behind-scenes/)
 
@@ -16,6 +19,8 @@ aside: true
 [阅读原文](https://aerotwist.com/blog/the-anatomy-of-a-frame/)
 
 讲述浏览器在渲染一帧画面的时候，需要经过哪些步骤；
+
+![](/anatomy-of-a-frame.svg)
 
 ## Preload Scanner
 [阅读原文](https://web.dev/articles/preload-scanner)
@@ -62,3 +67,18 @@ javascript没有执行呢；
 [阅读原文](https://www.ihcblog.com/page/2/)
 
 介绍如何实现一个异步io runtime
+
+
+## GitHub Repositories Every Software Engineer Should Know
+[阅读原文](https://dev.to/jrmarcio_/github-repositories-every-software-engineer-should-know-2e80)
+
+介绍了github上有哪些仓库可以帮助软件工程师学习技术 
+
+
+## algorithm complexity theory
+[阅读原文](https://ycc.idv.tw/algorithm-complexity-theory.html)
+
+介绍：
+- P问题
+- NP问题
+- NP-Complete问题

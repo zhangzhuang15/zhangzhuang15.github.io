@@ -18,3 +18,12 @@ aside: true
 
 ## V2rayU
 翻墙工具
+
+## KeyCastr
+显示输入的按键
+
+## OBS Studio
+专业录制软件，有录课需求，可以一用
+
+## Screen Studio 
+制作操作视频

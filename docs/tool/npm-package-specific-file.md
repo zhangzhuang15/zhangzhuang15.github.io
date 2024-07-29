@@ -21,7 +21,6 @@ aside: true
 
 解析、编写 excel
 
-
 ## remarkable
 
 将 markdown 转化为 html, 你可以根据喜好，按照 API 接口约定，在转化中，加入
@@ -102,5 +101,26 @@ json文件预览器组件
 
 ## vue-json-editor
 json文件编辑器
+
+
+## gray-matter
+解析 front matter 的工具；
+
+在markdown文件开头，你会看到这样的内容：
+```markdown
+---
+theme: black
+name: Julie
+---
+
+# Description
+hello world
+```
+开头两个`---`之间的内容，就是 front matter，根据内容采取的格式，又分为 `yaml front matter`,
+`json front matter`, `javascript front matter` 等等。使用 `gray-matter` 处理上述内容
+后，就可以得到一个js对象，theme 和 name 的值就存在该对象的 data 属性上。
+
+
+> react官网使用了该库，去处理 mdx
 
 <Giscus />

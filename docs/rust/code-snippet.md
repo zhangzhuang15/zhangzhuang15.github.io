@@ -481,3 +481,18 @@ fn main() {
 为什么是Arc里套一个锁，而不是锁套着一个Arc呢？很简单，锁使用来锁住资源的，而不是Arc。
 :::
 
+## 获取当前时间
+```rust 
+use std::{
+    thread::sleep,
+    time::{Duration, Instant},
+};
+
+fn main() {
+    let now = Instant::now();
+    sleep(Duration::from_millis(200));
+    let last = Instant::now();
+    let timeout = last - now;
+    println!("cost: {:?}ms", timeout.as_millis());
+}
+```

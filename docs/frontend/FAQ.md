@@ -78,6 +78,9 @@ footgun通常指的是那些容易导致程序员犯错的语言特性、API设�
 ### helpers 
 在设计一个库时，想通过一套API隐藏底层实现，让用户更轻松、更简单地使用库，这套API函数就是 helper.
 
+### bump version
+常见于git commit的comment中，表示版本号升级1个
+
 ## 使用 javascript API 遇到的坑
 ### 数组 empty slot 被跳过
 ❌
@@ -143,6 +146,43 @@ m instanceOf A; // true
 n instanceOf B; // true
 p instanceOf A; // true
 ```
+
+### `path.resolve` VS `path.join`
+```js
+const path = require("path")
+
+path.resolve("/a/b", "c") // /a/b/c
+path.join("/a/b", "c")    // /a/b/c
+
+path.resolve("/a/b", "./c")  // /a/b/c
+path.join("/a/b", "./c")  // /a/b/c
+
+
+path.resolve("/a/b", "../c")  // /a/c
+path.join("/a/b", "../c")     // /a/c
+
+path.resolve("/a/b.txt", "c")  // /a/b.txt/c
+path.join("/a/b.txt", "c")     // /a/b.txt/c
+
+path.resolve("/a/b.txt", "./c")  // /a/b.txt/c
+path.join("/a/b.txt", "./c")     // /a/b.txt/c
+
+path.resolve("/a/b.txt", "../c") // /a/c
+path.join("/a/b.txt", "../c")    // /a/c
+
+path.resolve("/a/b.txt", "/c")   // /c
+path.join("/a/b.txt", "/c")      // /a/b.txt/c
+
+path.resolve("./a/b.txt", "./c") // /Users/xxxx/a/b.txt/c   /Users/xxxx stands for cwd
+path.join("./a/b.txt", "./c")    // a/b.txt/c
+
+
+path.normalize("/a/b.txt/c.tt")    // /a/b.txt/c.tt
+path.normalize("/a/b.txt/./c.tt")  // /a/b.txt/c.tt
+path.normalize("/a/b.txt/../c.tt") // /a/c.tt
+path.normalize("a/b.txt/../c.tt")  // a/c.tt
+```
+
 
 
 ## typescript 的 class 编译结果
@@ -492,3 +532,81 @@ module.exports = {
 }
 
 ```
+
+## `Its return type 'ReactElement<any, any> | null' is not a valid JSX element`
+这个问题发生在用react编写的`.tsx`文件中，明明用 `React.FC` 定义的函数组件，在 tsx 结构里使用时，vscode 飘红报错，说是语法有问题。
+
+原因是，本地项目依赖中，有多个版本的 react .d.ts 声明文件，解决方法是重新安装依赖😭
+
+这里有个[stackoverflow上的解答](https://stackoverflow.com/questions/53822891/jsx-element-type-reactelementany-null-is-not-a-constructor-function-for-js)
+
+
+## node-gyp 执行时，遇到python问题： ModuleNotFoundError: No module named 'distutils'
+在electron项目中，项目运行的时候，可能会使用 node-gyp, 进而遇到和 python 相关的问题。
+
+这个问题是因为python版本号不正确。在macOS上，删除系统预装的python非常困难，因此我们可以变通地解决
+这个问题，在启动项目之前，设置一个全局变量：
+```shell  
+export PYTHON=/opt/homebrew/bin/python3.11
+```
+
+之后再启动项目，这个时候 node-gyp 就会使用 python3.11 执行python脚本了。
+
+[Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
+
+
+## node-gyp 执行时，遇到python问题： ModuleNotFoundError: No module named 'distutils'
+在electron项目中，项目运行的时候，可能会使用 node-gyp, 进而遇到和 python 相关的问题。
+
+这个问题是因为python版本号不正确。在macOS上，删除系统预装的python非常困难，因此我们可以变通地解决
+这个问题，在启动项目之前，设置一个全局变量：
+```shell  
+export PYTHON=/opt/homebrew/bin/python3.11
+```
+
+之后再启动项目，这个时候 node-gyp 就会使用 python3.11 执行python脚本了。
+
+[Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
+
+
+## webpack允许 import undefined variable?
+如果你的代码import undefined variable，然后你用webpack构建项目的时候，webpack竟然没有报错。可这个问题非常严重，因为在代码运行的时候，一旦使用这个变量，会导致crash。
+
+如果想让webpack及时报错，设置`webpackConfig.module.strictExportPresence` 为 true 即可。
+
+开启这个配置之后，你仍需要注意：
+:::code-group
+```js [src/mod.js]
+export function hello() {
+    console.log("hello world")
+}
+
+```
+```js [src/main.js]
+import { hello, jack } from "./mod";
+import * as M from "./mod";
+
+// hello is defined, webpack works
+hello();
+
+// jack is not defined, webpack fails
+jack();
+
+// webpack fails
+if (M.jack) {
+    M.jack()
+}
+
+// webpack fails
+if (M['jack']) {
+    M['jack']()
+}
+
+// webpack works!
+// so if you want to access variable mounted on
+// M dymatically, write code in this style
+if (M['jack' + '']) {
+    M['jack' + '']()
+}
+```
+:::

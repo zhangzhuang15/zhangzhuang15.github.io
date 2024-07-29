@@ -36,4 +36,10 @@ windows Unix 统一化的 "path" module of Node
 
 A deep deletion module for node (like `rm -rf`)
 
+## pkg-dir
+
+获取 nodejs项目或者npm项目所在的根目录
+
+使用者： vitepress
+
 <Giscus />

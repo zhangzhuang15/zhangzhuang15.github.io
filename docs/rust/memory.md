@@ -11,16 +11,81 @@ aside: true
 仍需要懂得手动管理内存。
 
 ## Box::leak
-使用`Box`将数据存储在堆内存，然后使用 `Box::leak`，让`Box`不在管理这块儿内存，并返回堆内存中的数据的借用；
+`Box`用于开辟堆内存，并管理这块内存；
 
-这块儿堆内存需要我们自己管理，不再受Rust所有权系统管理；
+你可以使用leak，让`Box`放弃对内存的管理，改由你自己管理：
+```rust 
+fn main() {
+    struct M {
+        value: u8,
+    }
+    impl Drop for M {
+        fn drop(&mut self) {
+            println!("dropping");
+        }
+    }
 
-如果想释放内存，可以使用`Box::from_raw`，这块内存从新交给
-`Box`，然后Rust所有权系统就能管理内存，负责自动释放了。
+    {
+        let m = Box::new(M{value: 10});
+        // 离开这块作用域，会打印 dropping
+    }
 
+    {
+        let m = Box::new(M{value: 10});
+
+        // 自此，你要自己管理好 M{value: 10}所在的内存
+        let n = Box::leak(m);
+        // 离开这块作用域，不会打印 dropping
+    }
+}
+```
+
+你也可以把leak的资源, 再交给`Box`管理：
+```rust 
+fn main() {
+    struct M {
+        value: u8,
+    }
+    impl Drop for M {
+        fn drop(&mut self) {
+            println!("dropping");
+        }
+    }
+
+    {
+        let m = Box::new(M{value: 10});
+
+        // 自此，你要自己管理好 M{value: 10}所在的内存
+        let n = Box::leak(m);
+        // 离开这块作用域，不会打印 dropping
+    }
+
+    {
+        let m = Box::new(M{value: 10});
+
+        // 自此，你要自己管理好 M{value: 10}所在的内存
+        let n = Box::leak(m);
+        // 不用再自己管理内存了，新的 Box 会帮你管理
+        let m = Box::from_raw(n as *mut M);
+        // 离开这块作用域，会打印 dropping
+    }
+
+    {
+        let m = Box::new(M{value: 10});
+
+        // 自此，你要自己管理好 M{value: 10}所在的内存,
+        // 与 leak 不同的是，into_raw 返回的是 *mut M
+        let n = Box::into_raw(m);
+        // 不用再自己管理内存了，新的 Box 会帮你管理
+        let m = Box::from_raw(n);
+        // 离开这块作用域，会打印 dropping
+    }
+}
+```
 
 ## ManuallyDrop
 
+ManuallyDrop 可以禁止 compiler 自动调用数据的 drop:
 ```rust 
 fn main() {
     struct Data;
@@ -42,7 +107,45 @@ fn main() {
 }
 ```
 
+你也可以恢复compiler自动调用数据drop的能力:
+```rust 
+fn main() {
+    struct Data;
+    impl Drop for Data {
+        fn drop(&mut self) {
+            println!("dropping");
+        }
+    }
+
+    {
+        let m = Data;
+        // 会输出 “dropping”
+    }
+
+    {
+        let n = ManuallyDrop::new(Data);
+        // 不会输出 “dropping”
+    }
+
+    { // [!code ++]
+        let m = ManuallyDrop::new(Data); // [!code ++]
+        println!("1"); // [!code ++]
+        let n = ManuallyDrop::into_inner(m); // [!code ++]
+        println!("2"); // [!code ++]
+
+        // 会打印出：
+        // 1
+        // 2
+        // dropping
+
+    } // [!code ++]
+}
+
+```
+
 ## ptr
+ptr 提供了很多方法，让你通过 raw pointer 手动管理内存。
+
 ### ptr::read
 ```rust 
 fn main() {
@@ -141,6 +244,7 @@ fn main() {
 ### mem::forget
 当你不想让Rust所有权帮你管理内存时，你就可以使用`mem::forget`
 
+before forget:
 ```rust 
 fn main() {
     struct Data;
@@ -169,6 +273,7 @@ fn main() {
 // dropping Data
 ```
 
+forget:
 ```rust
 fn main() {
     struct Data;
