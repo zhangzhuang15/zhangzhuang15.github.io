@@ -235,3 +235,6 @@ int main(int argc, char** argv) {
 1. 监听`/dev/tty`，把这个文件里的内容，画到屏幕上；
 2. 监听`/dev/tty`, 从这个文件里读取内容，解析终端控制序列，做出反应；
 3. 启动shell程序，将命令传送给它，将它的执行结果输出到屏幕上；
+
+## 终端控制序列
+如果你对终端控制序列感兴趣，可以阅读[ansi escape control](/tool/ansi-escape-control)
