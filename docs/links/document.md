@@ -64,3 +64,15 @@ feature:
 适用于准备外国公司的面试
 
 [Tech Interview Handbook](https://www.techinterviewhandbook.org/software-engineering-interview-guide/)
+
+
+## GNU Assembler
+介绍C语言内联汇编指令，as命令行工具，obj文件格式；
+
+[GNU Assembler](https://sourceware.org/binutils/docs/as/index.html#SEC_Contents)
+
+
+## System Interfaces
+查询 Unix系统调用；
+
+[OpenGroup | System Interfaces: Detailed ToC](https://pubs.opengroup.org/onlinepubs/9699919799/functions/contents.html)
