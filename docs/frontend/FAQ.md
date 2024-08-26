@@ -555,20 +555,6 @@ export PYTHON=/opt/homebrew/bin/python3.11
 [Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
 
 
-## node-gyp 执行时，遇到python问题： ModuleNotFoundError: No module named 'distutils'
-在electron项目中，项目运行的时候，可能会使用 node-gyp, 进而遇到和 python 相关的问题。
-
-这个问题是因为python版本号不正确。在macOS上，删除系统预装的python非常困难，因此我们可以变通地解决
-这个问题，在启动项目之前，设置一个全局变量：
-```shell  
-export PYTHON=/opt/homebrew/bin/python3.11
-```
-
-之后再启动项目，这个时候 node-gyp 就会使用 python3.11 执行python脚本了。
-
-[Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
-
-
 ## webpack允许 import undefined variable?
 如果你的代码import undefined variable，然后你用webpack构建项目的时候，webpack竟然没有报错。可这个问题非常严重，因为在代码运行的时候，一旦使用这个变量，会导致crash。
 
@@ -610,3 +596,15 @@ if (M['jack' + '']) {
 }
 ```
 :::
+
+
+## 事件派发的默认顺序
+默认**bubble**顺序，即注册回调函数的最内层dom节点先执行，然后事件向外层传播，外层中注册回调函数的dom节点依次执行；
+
+如果要指定**capture**顺序，请这样做：
+```js 
+dom.addEventListener("click", () => {}, { capture: true })
+```
+
+## mousedown,mouseup,click事件的顺序
+mousedown -> mouseup -> click
