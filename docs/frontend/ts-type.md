@@ -506,3 +506,34 @@ module '/A/util.ts' {
   declare function createFn(): void;
 }
 ```
+
+### 转换对象某几个属性为指定类型
+```ts
+type TransformProperty<A extends Record<string, any>, B extends string, C> = {
+  [k in keyof A as k extends string ? k : never]: k extends B ? C : A[k];
+};
+
+
+interface M {
+  hello: number;
+  data: { value: number }
+}
+
+// K {
+//   hello: number;
+//   data: string;
+// }
+type K = TransformProperty<M, 'data', string>;
+```
+
+### 获取Promise达到fulfilled状态后得到的结果
+```ts
+type GetPromiseFulfilledResult<T extends Promise<any>> = T extends Promise<infer M> ? M : T;
+
+async function hello() {
+  return "hello"
+}
+
+// M: string
+type M = GetPromiseFulfilledResult<ReturnType<typeof hello>>
+```
