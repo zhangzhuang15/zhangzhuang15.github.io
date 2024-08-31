@@ -265,6 +265,10 @@ export default defineConfig({
             {
               text: "Terminal的魔法",
               link: "/blog/terminal-io"
+            },
+            {
+              text: "对立统一的一点看法",
+              link: "/blog/conflict-thought"
             }
           ],
         },
