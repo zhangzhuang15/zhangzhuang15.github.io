@@ -269,6 +269,10 @@ export default defineConfig({
             {
               text: "对立统一的一点看法",
               link: "/blog/conflict-thought"
+            },
+            {
+              text: "用circle svg绘制圆环",
+              link: "/blog/circle-svg"
             }
           ],
         },

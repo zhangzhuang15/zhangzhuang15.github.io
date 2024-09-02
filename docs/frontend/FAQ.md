@@ -608,3 +608,99 @@ dom.addEventListener("click", () => {}, { capture: true })
 
 ## mousedown,mouseup,click事件的顺序
 mousedown -> mouseup -> click
+
+
+## vue2和vue3中的 array refs
+[stackoverflow上的解释](https://stackoverflow.com/questions/52086128/vue-js-ref-inside-the-v-for-loop)
+
+vue2:
+```vue
+<template>
+  <div>
+    <card 
+      v-for="(cardItem, index) in cards"
+      :key="index"
+      :ref="`item_${index}`"
+    />
+    <card ref="uniq" />
+  </div>
+</template>
+<script>
+export default {
+    data() {
+        return {
+            cards: ["a", "b"]
+        }
+    },
+    mounted() {
+        // 得到一个数组，不是一个 vue instance;
+        // 你无需将 index绑定到 ref上，直接设置
+        // ref="item"， 用 this.$refs["item"][0] 访问即可
+        this.$refs["item_0"];
+
+        //  得到一个 vue instance, 不是数组
+        this.$refs["uniq"];
+    }
+}
+</script>
+```
+
+vue3中，不会在解析 v-for 语法糖的时候，自动生成数组，挂载到 $refs 上面，你可以改写成这样：
+```vue
+<template>
+  <div 
+    v-for="item in list" 
+    :ref="setItemRef">
+  </div>
+</template>
+
+// optional API
+<script>
+export default {
+  data() {
+    return {
+      itemRefs: []
+    }
+  },
+  methods: {
+    setItemRef(el) {
+      if (el) {
+        this.itemRefs.push(el)
+      }
+    }
+  },
+  beforeUpdate() {
+    this.itemRefs = []
+  },
+  updated() {
+    console.log(this.itemRefs)
+  }
+}
+</script>
+
+
+// composition API
+<script>
+import { onBeforeUpdate, onUpdated } from 'vue'
+
+export default {
+  setup() {
+    let itemRefs = []
+    const setItemRef = el => {
+      if (el) {
+        itemRefs.push(el)
+      }
+    }
+    onBeforeUpdate(() => {
+      itemRefs = []
+    })
+    onUpdated(() => {
+      console.log(itemRefs)
+    })
+    return {
+      setItemRef
+    }
+  }
+}
+</script>
+```
