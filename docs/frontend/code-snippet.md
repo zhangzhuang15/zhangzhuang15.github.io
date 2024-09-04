@@ -545,4 +545,189 @@ const touchBottom = (el, scrollable) => {
 }
 ```
 
+## tag超出范围的时候，末尾追加"..."
+对于文字的超出范围，可以采用：
+```html
+<div class="container">fdsafasfasfadsfadsfadsf</div>
+
+<style>
+  .container {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /** 必须是固定宽度，这里模拟一下 */
+    width: 100px;
+  }
+</style>
+```
+
+其实，换成这样，也可以实现效果：
+```html
+<div class="container">
+  <span class="child">fdsafdaf</span>
+  <span class="child">fdafadfkkkk</span>
+  <span class="child">dddffdafadf</span>
+</div>
+
+<style>
+  .container {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /** 必须是固定宽度，这里模拟一下 */
+    width: 100px;
+  }
+
+  .child {
+    display: inline-block;
+    padding: 0 10px;
+    background: #f5f6fa;
+    border-radius: 2px;
+    color: #ccc;
+  }
+</style>
+```
+
+上边说了，.container必须要有固定宽度才行，有一种情形，我们是使用flex布局来打造固定宽度：
+```html
+<div class="flex-container">
+  <div class="one"></div>
+  <div class="two"></div>
+</div>
+
+<style>
+  .flex-container {
+    width: 100vw;
+
+    display: flex;
+    overflow: hidden;
+  }
+
+  .one {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .two {
+    flex: none;
+    width: 100px;
+  }
+</style>
+```
+虽然我们没有指定 .one 的宽度，但在上述 flex 布局中，.one宽度是固定的，最多不会超过 100vw - 100px, 会随着 .one 内部元素的宽度而被撑开，直到抵达上限宽度100vw - 100px；如果我们没有为 .one 指定 overflow, 那么，其内部元素不会被截断，会把 .two 往后边挤。
+
+如果你像下边一样，直接套用，你会发现“...”没有出现：
+```html
+<div class="flex-container">
+  <div class="one">
+    <span class="child">fdafadfkkkk</span>
+    <span class="child">dddffdafadf</span>
+  </div>
+  <div class="two"></div>
+</div>
+
+<style>
+  .flex-container {
+    width: 100vw;
+
+    display: flex;
+    overflow: hidden;
+  }
+
+  .one {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .two {
+    flex: none;
+    width: 100px;
+  }
+
+  .child {
+    display: inline-block;
+    padding: 0 10px;
+    background: #f5f6fa;
+    border-radius: 2px;
+    color: #ccc;
+  }
+</style>
+```
+
+你需要在 .one 内部，加入一层容器：
+```html
+<div class="flex-container">
+  <div class="one">
+    <div class="container">
+      <span class="child">fdafadfkkkk</span>
+      <span class="child">dddffdafadf</span>
+    </div>
+  </div>
+  <div class="two"></div>
+</div>
+
+<style>
+  .flex-container {
+    width: 100vw;
+
+    display: flex;
+    overflow: hidden;
+  }
+
+  .one {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .container {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .two {
+    flex: none;
+    width: 100px;
+  }
+
+  .child {
+    display: inline-block;
+    padding: 0 10px;
+    background: #f5f6fa;
+    border-radius: 2px;
+    color: #ccc;
+  }
+</style>
+```
+
+## 如何实现点击外边区域，下拉框消失
+下拉框组件有个神奇的地方：当你点击下拉框内的区域，它不会收起来；当你点击它外侧的区域，它会收起来。
+
+如何实现呢？
+
+你可能想到这些实现方式：
+1. window注册一个click事件，然后用 event.clientX 和 dom.getBoundingRect() 计算鼠标点击的时候，在下拉框外边；
+
+2. 给下拉框DOM节点，绑定一个data-id属性，window上注册一个click事件，如果 event.target.dataset.id 存在，表明这个点击事件是在下拉框内部点击的
+
+不过，有个更好的方式是：
+1. 记录下拉框DOM节点 A；
+2. 在window注册一个click事件，如果 A.contains(event.target), 表明点击事件是在下拉框内部触发的
+
+对应代码如下：
+```js
+// A 表示下拉框DOM节点
+const A = document.getElementById("popover");
+
+window.addEventListener("click", (e) => {
+  if (!A.contains(e.target)) {
+    // 关闭下拉框
+    setData({ visible: false })
+  }
+})
+```
+
 <Giscus />

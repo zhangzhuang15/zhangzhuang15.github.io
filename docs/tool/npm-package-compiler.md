@@ -95,4 +95,13 @@ unist 和 unified 联系在于，unified 采用了 unist 标准实现了抽象�
 
 使用者：react官网
 
+## reprism
+对于prism的封装，更好地支持 webpack, rollup等bundler工具；
+
+你可以：
+- 高亮代码
+- 将代码tokenize
+
+使用者：@jscpd/core
+
 <Giscus />

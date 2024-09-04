@@ -704,3 +704,12 @@ export default {
 }
 </script>
 ```
+
+## 低版本typescript处理optional chain的问题
+```ts
+const state = localStorage.getItem("value")
+const stateIsRight = state?.some(i => i.k > 10);
+```
+使用 typescript@2.9.2及以下版本处理上述代码的时候，optional chain 不会被正确编译，且会在 state 和 “?” 中间加入空格。请使用3.0.0及以上版本的typescript。
+
+ts-loader处理代码的时候，使用项目安装的typescript去处理，所以在项目中使用 ts-loader的时候，也要看一眼typescript的版本号是否过低。
