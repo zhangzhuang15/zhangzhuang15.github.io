@@ -178,6 +178,29 @@ aside: true
 
 [crate 地址](https://crates.io/crates/wasm-bindgen)
 
+
+### wit-bindgen
+功能和 wasm-bindgen 一样，就像 protobuf 一样，支持在 .wit 文件中定义导入、导出内容，然后打通不同语言和wasm，目前支持 Rust/C/C++/TinyGo/Java
+
+[github](https://github.com/bytecodealliance/wit-bindgen)
+
+[crate 地址](https://crates.io/crates/wit-bindgen)
+
+### wasm3
+wasm解释器，速度快，兼容性好
+
+提供了众多语言的包封装，这里给出的是Rust封装；
+
+其他语言有 Swift/Python3/C/C++/GoLang/Zig/.Net/txiki.js/D/Nim;
+
+值得关注的是，作者来自乌克兰，正陷入到乌克兰战争中，项目更新较慢。
+
+[github](https://github.com/wasm3/wasm3?tab=readme-ov-file)
+
+[crate 地址](https://crates.io/crates/wasm3)
+
+[txiki.js github](https://github.com/saghul/txiki.js)
+
 ### crossterm
 
 终端IO工具。如果你要编写一款终端应用，类似于 `top`, `more` , `vim`, 这个工具必不可少。

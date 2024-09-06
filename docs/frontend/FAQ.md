@@ -81,6 +81,15 @@ footgun通常指的是那些容易导致程序员犯错的语言特性、API设�
 ### bump version
 常见于git commit的comment中，表示版本号升级1个
 
+### kick to login
+将用户强制重定向到登录页
+
+### aka
+also known as, abbreviation
+
+### nailed it
+常见于github评论中，表示 well done, 做的好
+
 ## 使用 javascript API 遇到的坑
 ### 数组 empty slot 被跳过
 ❌
