@@ -14,7 +14,7 @@ Rust core 是Rust语言核心库，提供了很多基础功能，比如指针操
 
 [refer](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter1/1app-ee-platform.html#)
 
-## 如何理解rustca的版本
+## 如何理解rustc的版本
 执行 `rustc --version --verbose`, 会有这样的结果：
 ```
 rustc 1.79.0 (129f3b996 2024-06-10)
@@ -1297,5 +1297,211 @@ Rust编译器无法帮助完成`poll`的调用，这就需要 `异步运行时`�
 
 对于`async` `await` 实现的`Future`, 本质上就是`Future`对象里面包含`Future`对象，内部`Future`对象由Rust编译器实现调度，而外层的`Future`对象则不会，除非它位于另一个`Future`对象中，因此这种类型的`Future`对象就需要一个`异步运行时`来调度。
 
+## 生命周期标记如何理解
+在最开始学习阶段，我是阅读 rust 官方教程扫除疑惑的，但是后来在公司内网拜读了陈天老师的博客，豁然开朗，发现之前对Rust生命周期的理解有一部分是对的，有一部分是欠妥的。在这里，我们具体阐述一下。
+
+生命周期标记出现在函数和结构体的定义中，具体看，就是这么个形式：
+```rust 
+// 结构体
+struct M<'a, 'b> {
+    value: &'a i32,
+    name: &'b str,
+}
+
+// 函数
+fn compare<'a,'b:'a>(
+    value1: &'a i32, 
+    value2: &'b i32
+) -> &'a i32 {
+    return value1;
+}
+```
+
+只有借用才会有生命周期标记，像具体的值（i32, bool, String）, 原始指针（*const, *mut），不会存在生命周期标记。
+
+在展开理解生命周期标记之前，必须要搞明白为什么需要生命周期标记。我之前没有理解全，就是因为没搞懂为什么需要生命周期标记，好在读了陈天老师的文章，把这块儿给补上了。
+
+需要生命周期标记的原因很简单：Rust编译器在编译函数或者结构体的定义代码时，缺少上下文代码，无法确定函数参数或者结构体属性中，各个借用之间的生命周期时长关系，它不知道哪个生命周期长，哪个生命周期短，结果就是，编译器不知道函数返回值的生命周期、结构体的生命周期是怎样的。
+
+函数生命周期：
+```rust 
+fn compare<'a, 'b>(value1: &'a i32, value2: &'b i32) {
+
+}
+```
+每一个函数参数（借用类型的哦），都有独立的生命周期标记，就像上面展示的 `'a` 和 `'b`.
+
+函数返回值（借用类型的哦）的生命周期，必须来自于函数参数。如果上述函数定义有一个借用类型的返回值，那么这个返回值的生命周期标记要么是 `'a`, 要么是 `'b`.
+
+生命周期长的，可以被当作生命周期短的。假设 `'b` 的生命周期比 `'a` 的生命周期长，上面的函数完全可以写成:
+```rust 
+fn compare<'a>(value1: &'a i32, value2: &'a i32) {}
+```
+再强调一下，并不是说 value2 的生命周期真的和 value1 一样长，而是说，value2的生命周期可以当作value1的生命周期一样长，能够实现这一点的话，value2的生命周期要大于等于value1的生命周期。
+
+结合一个具体的例子，再深刻理解下：
+```rust 
+
+fn compare<'a>(value1: &'a String, value2: &'a i32) -> &'a String {
+    return value1;
+}
+
+fn main() {
+    let source1 = String::from("hello");
+    let m = &source1;
+    {
+        let n = &source1;
+        {
+            let t = 32;
+            let t = &t;
+            m = compare(n, t);
+        }
+    }
+}
+```
+这个程序是 ok 的，其中，m,n和t一起结束的生命周期。
+
+改写成这个样子，也是 ok 的：
+```rust 
+
+fn compare<'a>(value1: &'a String, value2: &'a i32) -> &'a String {
+    return value1;
+}
+
+fn main() {
+    let source1 = String::from("hello");
+    let m = &source1;
+    {
+        let n = &source1;
+        {
+            let t = 32;
+            let t = &t;
+            m = compare(n, t);
+        }
+        println("{}", n);
+    }
+}
+```
+这个版本中，n 活得比t 久，根据生命周期标记，可以知道 t 的生命周期就是 'a，这也坐实了一点，生命周期久的 n，可以被当作生命周期'a处理。
+
+继续改写，这个版本就报错了：
+```rust 
+
+fn compare<'a>(value1: &'a String, value2: &'a i32) -> &'a String {
+    return value1;
+}
+
+fn main() {
+    let source1 = String::from("hello");
+    let m = &source1;
+    {
+        let n = &source1;
+        {
+            let t = 32;
+            let t = &t;
+            m = compare(n, t);
+        }
+        println!("{}", t);
+        println("{}", m);
+    }
+}
+```
+错误是说，&t 的生命周期太短了。因为代码在后边打印了m，使得 m 存活的比 t 长，那么想要让打印 m 的代码成立，只能让 t 活得更久一些了。这个例子表示，返回值的生命周期标记是多少，其生命周期就应该是多少，不能多，也不能少。这一点，和函数入参的生命周期标记非常不同。
+
+
+再看看结构体, 与函数情况差不多。
+
+结构体每一个成员（借用类型哦），都有一个独立的生命周期标记。
+
+生命周期长的成员，可以被当作是短的生命周期处理，使用短生命周期标记。
+
+和函数不同的一点是，**结构体的生命周期不能大于其成员的生命周期**。这点非常重要。
+
+下边的例子是 ok 的：
+```rust 
+struct M<'a> {
+    value: &'a String,
+    score: &'a i32,
+}
+
+fn main() {
+    let source_1 = String::from("hello");
+    let source_2 = 10;
+    let mut c = M {
+        value: &source_1,
+        score: &source_2,
+    };
+    {
+        let n = &source_1;
+        {
+            let t = 32;
+            let t = &t;
+            c = M { value: n, score: t };
+        }
+        println!("{}", n);
+    }
+}
+```
+
+如果改写成这个样子，就会报错：
+```rust 
+struct M<'a> {
+    value: &'a String,
+    score: &'a i32,
+}
+
+fn main() {
+    let source_1 = String::from("hello");
+    let source_2 = 10;
+    let mut c = M {
+        value: &source_1,
+        score: &source_2,
+    };
+    {
+        let n = &source_1;
+        {
+            let t = 32;
+            let t = &t;
+            c = M { value: n, score: t };
+        }
+        println!("{}", n);
+        print!("{}", c.score);
+    }
+}
+```
+报错的信息是，&t 存活的时间不够长。这也很好理解，我们加入了打印代码，导致 c 存活的时间比 t 更长。要知道，结构体不能比它内部成员的生命周期长。要想让打印的代码成立，只能增大 t 的生命周期。为什么不是增大 n 的生命周期呢？因为代码中，n 和 c存活的一样久，不需要增大 n 的生命周期。从另一个角度看，t 是结构体里生命周期最短的成员，它决定了结构体是否比内部成员的生命周期长，理应提高t的生命周期。
+
+最后，我们回顾一个问题，生命周期有多长，该怎么看呢？我想你一定会这样计算，从变量定义处开始，到变量再也不用的时候截止。这种理解是对的。但是，在理解函数、结构体的生命周期标记时，你可以灵活的理解。不去看变量存活的绝对时长，只需要看变量死的早晚，一个变量比另外一个变量死的早，就理解为它的生命周期更短。什么是变量死掉了呢？就是变量再也不被使用了。同时，不要把 drop函数调用，和变量死掉混为一谈。当变量死掉的时候，drop 函数不会调用，只有当离开作用域的时候，才会被调用：
+```rust 
+struct M {
+    value: i32,
+}
+
+impl Drop for M {
+    fn drop(&mut self) {
+        println!("dead");
+    }
+}
+
+fn main() {
+    let mut m = M { value: 10 };
+
+    {
+        m = M { value: 11 };
+        println!("ok");
+    }
+
+    println!("ok2");
+}
+
+// 打印结果是
+// dead
+// ok 
+// ok2
+// dead
+```
+第一个 dead，发生在重新给m赋值的时候；
+
+在 ok 输出的时候，m其实就没再使用了，也就是死了，但是drop函数却是在 ok2 后边调用的！
 
 <Giscus />

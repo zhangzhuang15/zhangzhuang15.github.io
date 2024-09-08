@@ -273,6 +273,23 @@ export default defineConfig({
             {
               text: "用circle svg绘制圆环",
               link: "/blog/circle-svg"
+            },
+            {
+              text: "博客文章阅读系列",
+              collapsed: true,
+              items: [
+                {
+                  text: "介绍",
+                  link: "/blog/blog-reading/main"
+                },
+                {
+                  text: '浩叔篇',
+                  link: "/blog/blog-reading/hao-shu"
+                },
+                {
+                  
+                }
+              ]
             }
           ],
         },
