@@ -730,4 +730,26 @@ window.addEventListener("click", (e) => {
 })
 ```
 
+## 如何让 input 只能输入数字
+```html
+<input id="m" type="number" />
+
+<style>
+/* 隐藏默认的step控件 */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+</style>
+```
+
+默认情况下，input的末尾会提供一个step控件，允许用户点击，调整输入框内的数字，我们可以使用上述的 css 隐藏掉控件。
+
+这样一来，如果用户输入的内容中，存在非数字字符，那么输入框的内容不会发生变化，也不会触发input事件。
+
 <Giscus />
