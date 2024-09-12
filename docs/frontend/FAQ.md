@@ -722,3 +722,102 @@ const stateIsRight = state?.some(i => i.k > 10);
 使用 typescript@2.9.2及以下版本处理上述代码的时候，optional chain 不会被正确编译，且会在 state 和 “?” 中间加入空格。请使用3.0.0及以上版本的typescript。
 
 ts-loader处理代码的时候，使用项目安装的typescript去处理，所以在项目中使用 ts-loader的时候，也要看一眼typescript的版本号是否过低。
+
+## 为什么babel-loader没有处理node_modules下的js文件
+如果你在webpack中如此配置：
+```js
+module.exports = {
+  ...,
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        include: /node_modules\/*\.js/,
+        loader: "babel-loader"
+      }
+    ]
+  }
+}
+```
+
+如果你的babel配置文件是 babelrc, 那么上述配置很可能会失效。
+
+自babel7.0开始，babel在处理node_modules下的文件时，不会按照babelrc给出的配置执行；
+
+解决方式有两种：
+1. 把babelrc换成babel.config.js;
+2. 在webpack中，明确指出“babel-loader”的options项；
+
+## webpack 的 module.rules 里，test正则表达式匹配的是什么？
+有如下webpack配置：
+```js
+module.exports = {
+  ...,
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        include: /node_modules\/*\.js/,
+        loader: "babel-loader"
+      }
+    ]
+  }
+}
+```
+`test: /\.js$/` 匹配的是谁呢？
+
+你可以理解为 request 或者 resource;
+
+当webpack遇到`import {} from 'A'` 代码的时候，就会解析A，得到A的resource，基于resource形成一个request。
+
+resource就是资源的绝对路径，比如'A'的resource, 就是package A的入口文件绝对路径；
+
+request是一个字符串，它基于resource，加入loader的扩展信息，比如`/node_modules/babel-loader/index.js!/node_modules/A/index.js`;
+
+如果你想调试看看，可以编写这样的Plugin，打断点调试：
+```js
+class ModuleResolverSuspendPlugin { 
+    constructor() {}
+
+    static PluginName = "ModuleResolverSuspendPlugin"
+
+    /**
+     * @param {import('webpack').Compiler} compiler
+    */
+    apply(compiler) {
+        compiler.hooks.compilation.tap(
+            ModuleResolverSuspendPlugin.PluginName,
+            (compilation) => {
+                compilation.hooks.buildModule.tap(
+                    ModuleResolverSuspendPlugin.PluginName,
+                    ($module) => {
+                      const resource = $module.resource;
+                      const request = $module.request;
+                      debugger;
+                    }
+                )
+            }
+        )
+
+    }
+}
+
+module.exports.ModuleResolverSuspendPlugin = ModuleResolverSuspendPlugin;
+```
+webpack配置：
+```js
+const { ModuleResolverSuspendPlugin } = require("./ModuleResolverSuspendPlugin.js")
+module.exports = {
+  ...,
+  plugins: [
+    new ModuleResolverSuspendPlugin()
+  ]
+}
+```
+
+## vscode调试项目的时候，cannot resolve "node"
+先确认一下，是否安装了node，并且在环境变量Path中，配置了node路径；
+
+如果满足上一个条件，那就是和你打开项目的方式有关系。你需要在macOS的terminal（其他系统，则选择默认的终端工具）中，切换到项目的根目录下，然后执行 `code .`，这样就可以了。
+
+如果命令行中，没有 `code`，请阅读[这里](/tool/vscode-config#在-path-中安装-code)

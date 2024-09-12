@@ -537,3 +537,8 @@ async function hello() {
 // M: string
 type M = GetPromiseFulfilledResult<ReturnType<typeof hello>>
 ```
+
+### 约束number为正数
+```ts
+type PositiveNumber<T extends number> = `${T}` extends `-${number}` | `0` ? never : T;
+```
