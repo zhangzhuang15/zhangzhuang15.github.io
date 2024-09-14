@@ -821,3 +821,23 @@ module.exports = {
 如果满足上一个条件，那就是和你打开项目的方式有关系。你需要在macOS的terminal（其他系统，则选择默认的终端工具）中，切换到项目的根目录下，然后执行 `code .`，这样就可以了。
 
 如果命令行中，没有 `code`，请阅读[这里](/tool/vscode-config#在-path-中安装-code)
+
+## onChange事件函数用debounce包裹后，为什么无法拿到正确的Event对象？
+```jsx
+import debounce from "lodash/debounce"
+const Component = () => {
+
+  const onChange = debounce((e) => {
+    // 报错！e.target是null，拿不到输入框的值
+    e.target.value;
+  }, 200, { trailing: true });
+  return (
+    <Input 
+      onChange={onChange}
+    />
+  );
+}
+```
+如上，展示了在第三方组件 Input 中，使用 debounce 时，可能遇到的错误；
+
+原因是 debounce 采用了 `trailing: true` 的做法。当事件被触发的时候，由于我们指定了这个配置，导致不会立即执行onChange函数，在200ms后，才会执行，那这个时候就有问题了，执行时得到的e，是输入框改变的事件对象么？肯定不是。于是，就会有e.target.value获取不到输入框内容的错误。正确做法是，改用`leading: true`.
