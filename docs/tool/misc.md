@@ -5,7 +5,7 @@ aside: true
 ---
 
 ## Description
-汇总一些额的有用工具
+汇总一些额外的有用工具
 
 ## API 查询
 ### devdocs.io
@@ -43,3 +43,9 @@ aside: true
 
 ## 图片在线转位base64
 [前往](https://www.base64-image.de/)
+
+
+## CPU benchmark
+查询各个款式cpu的benchmark跑分表现
+
+[前往](https://www.cpubenchmark.net/mid_range_cpus.html)
