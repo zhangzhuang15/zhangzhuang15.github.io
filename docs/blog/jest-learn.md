@@ -558,3 +558,317 @@ new SyntheticModule(
     }
 )
 ```
+
+## code snippet
+:::code-group
+```js [example.js]
+describe("a simple test", () => {
+    it("1+1=2", () => {
+        assertEq(1+1, 2)
+    });
+
+    it("1+2 == 3", () => {
+        assertEq(1 + 2, 3)
+    })
+
+    it("1+3 = 2", () => {
+        assertEq(1+3, 2)
+    })
+});
+```
+
+```js [jest.js]
+// 展示实现一个简易的jest
+
+import { Script, createContext } from "vm";
+import { readFileSync } from "fs";
+
+const root = {
+    type: "describe_block",
+    desc: "",
+    children: []
+}
+
+let currentBlock = root;
+let currentState = {
+    success: true,
+    descStack: [],
+}
+let result = [];
+
+const describe = (label, fn) => {
+    if (currentState.success === false) {
+        return;
+    }
+    const prev = currentBlock;
+    const node = {
+        type: "describe_block",
+        desc: label,
+        children: []
+    }
+    currentBlock = node;
+    fn();
+    prev.children.push(currentBlock);
+    currentBlock = prev;
+}
+
+const it = (label, fn) => {
+    if (currentState.success === false) {
+        return;
+    }
+    const node = {
+        type: "it",
+        desc: label,
+        children: [{
+            type: 'unit',
+            hooks: [fn]
+        }]
+    }
+    currentBlock.children.push(node)
+}
+
+const assertEq = (v1, v2) => {
+    if (currentState.success === false) {
+        return;
+    }
+    if (v1 === v2) {
+        result.push({
+            descStack: [
+                ...currentState.descStack,
+                `success: assertEq(${v1}, ${v2})`
+            ],
+            success: true,
+        })
+    } else {
+        const error = new Error("")
+        result.push({
+            descStack: [
+                ...currentState.descStack,
+                `failed: assertEq(${v1}, ${v2})`,
+                error.stack.split("\n").slice(2)
+            ],
+            success: false,
+        })
+        currentState.success = false;
+        currentState.stack = error.stack;
+    }
+}
+
+
+const code = readFileSync("./example.js", { encoding: "utf-8"} ).toString();
+const script = new Script(code);
+script.runInContext(createContext({ assertEq, describe, it }));
+
+const traverse = (nodes) => {
+    for (const node of nodes) {
+        
+        if (node.type === "unit") {
+            node.hooks[0]()
+        } else {
+            currentState.descStack.push(node.desc);
+            traverse(node.children)
+            currentState.descStack.pop();
+        }
+    }
+}
+traverse(root.children)
+
+for ( const item of result) {
+    const out = item.descStack.reduce((current, next, index) => {
+        const tabs = " ".repeat(index);
+        current += next instanceof Array ? next.map(item => tabs+ item).join("\n"): tabs + next;
+        current += "\n";
+        return current
+    } , "")
+    console.log(out)
+    console.log('');
+}
+```
+```js [mock.cjs]
+// 展示 mock 模拟， commonjs 的 module拦截
+const registry = new Map();
+const mockMark = new Map();
+const requireImpl = (spec) => {
+    if (spec === 'util') {
+        if (!registry.has(spec)) {
+            const obj = {};
+            Object.defineProperty(obj, "default", {
+                get() {
+                    if (mockMark.has(spec)) {
+                        return mockMark.get(spec).default;
+                    }
+                    return {
+                        hello: () => console.log("hello")
+                    }
+                }
+            });
+            Object.defineProperty(obj, "hello", {
+                get() {
+                    if (mockMark.has(spec)) {
+                        return mockMark.get(spec).hello;
+                    }
+                    return function() { console.log("hello")}
+
+                }
+            })
+            registry.set(spec, obj)
+        }
+        return registry.get(spec)
+    }
+}
+
+const jestObj = {
+    mock: (spec, v) => mockMark.set(spec, v)
+}
+
+const a = function(require, jest){
+    const M = require("util")
+    const { hello } = require("util");
+    M.hello();
+    hello();
+
+    jest.mock("util", {
+        default: {
+            hello: () => console.log("not")
+        },
+        hello: () => console.log("not")
+    })
+    M.hello();
+    hello();
+}
+a(requireImpl,jestObj)
+```
+
+```js [module-intercept.js]
+// 展示 esm 的 module 拦截
+import { createContext, SourceTextModule } from "vm";
+
+const moduled = new SourceTextModule(`
+import hello from "a";
+
+hello();
+function add(a, b) { return a + b };
+
+const a = 10;
+const b = 100;
+const c = add(a,b);
+
+if (c > 0) {
+  console.log(">");
+} else {
+  console.log("<");
+}
+c;`.trim(), {
+    columnOffset: 1,
+    lineOffset: 0,
+    filename: "/src/fork-main.js",
+    context: createContext({ console })
+});
+
+moduled.link((spec) => {
+  if (spec === 'a') {
+    return new SourceTextModule(`
+      export default function() {
+      console.log("hahahh")}
+      `)
+  }
+}).then(() => {
+  moduled.evaluate().then(v => {
+    console.log("v: ", v)
+  })
+})
+```
+
+```js [environment.js]
+// 展示 context 和 global 的协调性
+
+import { createContext, runInContext } from "vm";
+
+const context = createContext();
+const g = runInContext('this', context);
+
+console.log("1")
+console.log("context: ", context)
+console.log("g: ", g)
+console.log()
+
+g.a= 100
+g.b= { hello: 10 }
+
+console.log("2")
+console.log("context: ", context)
+console.log("g: ", g)
+console.log()
+
+Object.defineProperty(g, "value", {
+ get() {
+  return 100;
+ } 
+})
+
+console.log(3)
+console.log("g.value: ", g.value)
+console.log("contextt.value: ", context.value)
+```
+
+```js [babel.js]
+// 展示 jest 内部使用babel是如何处理代码的
+
+import { transformSync } from "@babel/core";
+import { createRequire } from "module";
+import { fileURLToPath } from "node:url";
+
+const result = transformSync(`
+import A from "B";
+
+describe("hello", () => {
+    var a = 10;
+    jest.mock("B", () => {})
+    var b = a;
+    {
+    jest.unmock("B");
+}
+    var c = 111
+})
+
+A.hello("how are you")
+`, {
+    caller: {
+        name: "jz-test",
+        supportsDynamicImport: true,
+        supportsStaticESM: false
+    },
+    compact: false,
+    presets: [
+        createRequire(
+            fileURLToPath(import.meta.url)
+        ).resolve("babel-preset-jest")
+    ]
+})
+
+console.log(result.code)
+```
+
+```json [package.json]
+{
+  "name": "node-vm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.25.2",
+    "babel-jest": "^29.7.0",
+    "babel-preset-jest": "^29.6.3"
+  }
+}
+```
+:::
+
+<Giscus />
