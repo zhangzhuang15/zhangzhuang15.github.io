@@ -127,7 +127,7 @@ jest在实现的时候，依旧考虑到解耦的问题。它在`jest-environmen
 ### Runtime
 Environment仅仅解决了全局变量问题，解释了为什么单元测试文件里直接使用了`describe`这种未被定义的变量，依旧可以正确执行的现象。
 
-但我们还有一个问题，也是更重要的问题是，jest是如何完成对module的Mock，以及单元测试文件是如何被执行的。
+但我们还有一个更重要的问题，jest如何完成对module的Mock，以及单元测试文件是如何被执行的。
 
 看一下这样的示意代码：
 ```js
@@ -145,16 +145,416 @@ describe("1", () => {
 
 试想一下，该如何实现这种feature呢？
 
-这就涉及到了Module拦截技术，你需要自己定义Module加载器才能实现这个。而jest就是抽象出 Runtime，来实现它的。
+这就涉及到了Module拦截技术，你需要自己定义Module加载器才能实现这个。而jest就是抽象出 Runtime，来实现它的。Module拦截技术的基本原理我们放在下一节讨论。
 
 因此，Runtime是什么意思，非常清楚了：实现Module加载器的工具，负责加载测试文件，以及测试文件内由import或者require触发的Module加载。实际上，Module加载，就是加载Module所在的那个文件而已。
 
+那么测试文件如何被执行的呢？就是使用 Runtime 加载一下这个文件就好了。
+
+首先，jest初始化Runtime的时候，会把Environment挂载上去；
+
+其次，在执行测试文件前，会将`describe` `it` `afterAll` `afterEach`这些函数挂载到 Environment 上，作为测试文件执行时的全局变量；
+
+最后，jest如果判定被测试文件是esm格式，会使用 `runtime.unstable_importModule`加载；否则，会使用 `runtime.requireModule`加载。
+> 见 `jest-circus`的 `legacy-code-todo-rewrite/jestAdapter.ts`
+
+加载的过程，就是js代码被执行的时候，`describe`这些函数就会执行。注意的是，`describe`这些函数执行的时候，只是对测试用例进行收集，并不执行，在测试文件被加载完成以后，jest就得到了一个`describeBlock`树型结构，在计算树形结构的每一个节点时，就类似于 redux 的状态管理方式，状态的最终形态就是这个树型结构。最后，jest会遍历树型结构，此时测试用例才会执行，执行结果也会被收集起来，最终再经过整理，得到整个测试文件的执行结果。
+
+大致可以用如下的代码近似描述：
+```js
+const root = {
+    type: "root_describe_block",
+    children: [],
+    hooks:[]
+}
+
+let currentBlock = root;
+
+const describe = (label, fn) => {
+    const prev = currentBlock;
+    const node = {
+        type: "describe_block",
+        children: [],
+        hooks:[]
+    }
+    currentBlock = node;
+    fn();
+    currentBlock = prev;
+}
+
+const it = (label, unitTestFn) => {
+    const node = {
+        type: "it_block",
+        hooks: [unitTestFn]
+    }
+    currentBlock.children.push(node)
+}
+
+// 表示在context的全局变量环境下，加载测试文件
+require("./1.test.js", {
+    context: { it, describe }
+})
+
+// 遍历执行
+traverse(root);
+```
+
+到这里，jest执行测试文件的过程已经解决了。我们只剩下了这些问题：
+1. jest是怎么知道测试文件是esm还是commonjs?
+2. module拦截是怎么做到的？
+3. jest相关的API (比如`jest.mock`， 不算`describe`这种断言用的API)是如何注入到测试文件的
 
 
 ## Module拦截
+### 区分esm还是commonjs
+要做拦截，就必须区分是esm还是commonjs，因为两种形态下，拦截的方法是不兼容的。
+
+jest区分的方式有：
+1. 文件名后缀。`.mjs`就是esm,`.cjs`就是commonjs.
+2. package.json的type字段。如果type是`"module"`，则js文件一律当作esm处理。
+> 见 `jest-resolve`的 `shouldLoadAsEsm.ts`
+
 ### 如何拦截require 
+有如下代码：
+```js
+const A = require("util");
+
+A.hello();
+```
+
+拦截的方法如下：
+```js
+const requireImpl = (specifier) => {
+    if (specifier === "util") 
+        return {
+          hello: () => console.log("hello")
+        }
+    return require(specifier)
+}
+
+(function(require){
+    const A = require("util")
+
+    A.hello()
+})(requireImpl)
+```
+是不是超简单？
+
+有的人会说了，如果是用ts编写的代码，引用模块的时候，都是使用 `import`，这个怎么拦截呢？
+
+原理超级简单，jest会判断ts的target是否为 `commonjs`，如果是的话，jest内部会使用babel将其转化为 require 的引入方式，然后采用上边的原理去拦截；否则，就会按照拦截import的方式处理，这个后边会说到。
+> jest使用babel被封装在几个package中。`babel-plugin-jest-hoist`和`babel-preset-jest` 提供babel插件和预设置， `babel-jest`封装babel和这两个配置，提供转化代码的能力，`jest-transform`负责调用这个能力。而`jest-transform`被集成在`jest-runtime`里。 
+
+因此，你在jest官网`Getting Started`章节会看到，除了下载jest外，还要准备好babel以及babel的preset，比如`babel-preset-env`。
+
+在jest中，commonjs形式被加载的测试文件会被包装为这样的代码：
+```js
+const { Script } = require("vm");
+const script = new Script(`
+({
+    "Object.<anonymous>": function(
+        module, 
+        exports, 
+        require,
+        __dirname,
+        __filename,
+        jest) {
+            // 测试文件被babel转化后的代码
+        }
+})`)
+
+const result = script.runInContext(context);
+const fn = result["Object.<anonymous>"];
+const module = { exports: {} };
+// 这里模拟jest自定义的module加载逻辑
+const requireImpl = () => {};
+// 模拟jest对象的实现
+const jestObject = { mock: function(){} };
+fn(
+    module, 
+    module.exports, 
+    requireImpl, 
+    __dirname, 
+    __filename, 
+    jestObject
+)
+
+// 此时module就是真正加载出来的模块了，jest会把它放入
+// 自己的模块registry对象中，模拟nodejs原生加载器的行为
+```
+> 见`jest-runtime`的 `index.ts` createScriptFromCode function
+
+这个例子也展示出了jest相关的API是怎么注入到测试文件的。但是，在esm的格式下，无法通过上述的方式完成module拦截，也自然无法以这种方式完成jest注入。所以, 在jest官网的[ECMAScript Modules](https://jestjs.io/docs/ecmascript-modules)页面，它要求你必须要在测试文件中显式引入`jest`:
+```js
+import { jest } from "@jest/globals";
+import A from "a";
+
+jest.mock("a", () => {});
+```
+
+接下来，我们模拟一下module mock:
+```js
+const registry = new Map();
+const mockMark = new Map();
+const requireImpl = (spec) => {
+    if (spec === 'util') {
+        if (!registry.has(spec)) {
+            const hello = () => console.log("hello");
+            const helloImpl = () => {
+                if (mockMark.has(spec)) {
+                    return mockMark.get(spec).hello
+                }
+                return hello;
+            }
+            const obj = {
+                default: {
+                    hello: () => {
+                        helloImpl()()
+                    }
+                },
+                hello: () => {
+                    helloImpl()()
+                }
+            };
+            registry.set(spec, obj)
+        }
+        if (mockMark.has(spec)) {
+            return mockMark.get(spec)
+        }
+        return registry.get(spec)
+    }
+    return require(spec);
+}
+
+const jestObj = {
+    mock: (spec, v) => mockMark.set(spec, v)
+}
+
+const a = function(require, jest){
+    const M = require("util")
+    const { hello } = require("util");
+    M.hello();
+    hello();
+
+    jest.mock("util", {
+        default: {
+            hello: () => console.log("not")
+        },
+        hello: () => console.log("not")
+    })
+    M.hello();
+    hello();
+}
+a(requireImpl,jestObj)
+
+// hello
+// hello
+// not
+// hello
+```
+我们基本实现了mock，不足之处在于，M.hello更新了，但是hello没有更新。jest也预料到了这种问题，它引入了变量提升，在`babel-plugin-jest-hoist`里实现的，插件会检测到`jest.mock`的调用语句，将它提升到当前块级作用域最上层，比如下面的代码：
+```js
+import A from "a";
+import B from "b";
+
+jest.mock("a", () => {});
+
+describe("hello", () => {
+    var a = 10;
+    jest.mock("b", () => {})
+});
+```
+
+会被处理成：
+```js
+function _getJestObj() {
+  const {
+    jest
+  } = require("@jest/globals");
+  _getJestObj = () => jest;
+  return jest;
+}
+_getJestObj().mock("a", () => {});
+import A from "a";
+import B from "b";
+
+describe("hello", () => {
+    _getJestObj().mock("b", () => {});
+    var a = 10;
+})
+```
+
+于是，如果我们mock module之后，访问A的时候，得到的就是mock之后的内容，而不是原始的内容。但是，这种处理方式的缺点在于，你必须算准了`jest.mock`的位置，像`jest.mock("b", () => {})`的位置就不好，无法成功mock module "b".
+
+你一定还有问题，`import`语句在被nodejs执行的时候，会被提升到顶层执行呀。是的，你说的没错，但上述只是说jest做了变量提升，没有说babel的工作到此为止了，后续babel会将`import`转化为`require`语句，要知道`require`语句是不存在提升的。
 
 
 ### 如何拦截import
+拦截import，意味着不需要将`import`转化为`require`, 因此在处理esm的测试文件时，jest只会用babel做一些常规的转化，不会改写`import`。
+
+而拦截的基本原理完全依赖nodejs提供的vm模块。
+
+```js
+import { SourceTextModule } from "vm";
+
+const context = createContext({ 
+    name: "Peter",
+    console
+});
+const module = new SourceTextModule(`
+import A from "a";
+function hello() {
+    A.hello(name);
+}
+hello();
+
+export default hello;
+`, { context });
+
+module
+    .link((spec) => {
+        if (spec === "a") {
+            return new SourceTextModule(`
+            export default function(name) {
+                console.log("hello ", name)
+            }`)
+        }
+    })
+    .then(moduled => {
+        // 执行，输出hello Peter
+        moduled.evaluate();
+    })
+```
+
+jest只需要这样做：
+```js
+import { SourceTextModule } from "vm";
+
+new SourceTextModule(`
+// 测试文件的代码
+`, { context }).link(spec => {
+    // jest自定义的Module加载器
+    return resolveModule(spec)
+});
+```
+
+从上述原理看，jest相关的API没办法像上一节提到的方式注入，只能作为一个package被显式地在测试文件里引入，或者挂载到 context 上（jest没这么做， 可能是想和commonjs处理的风格保持一致， commonjs处理的时候，也没有将jest相关的API挂载到全局变量global上）。
+
+jest官网还介绍了一种方式：用`import.meta.jest`访问jest相关的API。这个实现起来也很简单：
+```js
+import { SourceTextModule } from "vm";
+
+new SourceTextModule(`
+// 测试文件的代码
+`, { 
+    context,
+    initializeImportMeta: (meta) => {
+        // createJestObj模拟jest相关API的创建
+        meta.jest = createJestObj();
+    }
+})
+```
 
 ### 如何拦截import()
+无论是commonjs还是esm, 都支持 `import()` 动态引用模块，拦截原理依旧是使用vm模块。
+
+在commonjs，是这么做的：
+```js
+const { Script } = require("vm");
+const script = new Script(`
+({
+    "Object.<anonymous>": function(
+        module, 
+        exports, 
+        require,
+        __dirname,
+        __filename,
+        jest) {
+            // 测试文件被babel转化后的代码
+        }
+})`, {
+    importModuleDynamically: async (spec) => {
+        // 模拟jest自定义Module加载器
+        return resolveModule(spec);
+    }
+})
+```
+
+在esm, 是这么做的：
+```js
+import { SourceTextModule } from "vm";
+
+new SourceTextModule(`
+// 测试文件的代码
+`, { 
+    context,
+    importModuleDynamically: async (spec) => {
+        // 模拟jest自定义Module加载器
+        return resolveModule(spec);
+    }
+})
+```
+
+### 如何处理.node文件的引入
+直接用nodejs的require处理， `require("example.node")`
+
+### 如何处理.wasm文件的引入
+```js
+import { SyntheticModule } from "vm";
+// 1. 读取文件，转为二进制数据
+const buffer = read("example.wasm")
+
+// 2. 调用nodejs全局变量 WebAssembly 完成编译
+const wasmModule = WebAssembly.compile(buffer);
+
+// 3. 拿到导入和导出原始对象
+const exports = WebAssembly.Module.exports(wasmModule);
+const imports = WebAssembly.Module.imports(wasmModule);
+
+// 4. 解析得到导入的modules
+const importModules = parse(imports);
+
+// 5. 合成模块；到这一个步骤，一个wasm文件成功转为nodejs的标准Module
+new SyntheticModule(
+    // 导出名列表
+    exports.map(({name}) => name),
+    function() {
+        const importsObject = {};
+        for (const {module, name} of imports) {
+          if (!importsObject[module]) {
+            importsObject[module] = {};
+          }
+          importsObject[module][name] = importModules[module].namespace[name];
+        }
+        const wasmInstance = new WebAssembly.Instance(
+            wasmModule,
+            importsObject
+        )
+
+        for (const { name } of exports) {
+            // 设置各个导出属性的实现
+            this.setExport(name, wasmInstance.exports[name])
+        }
+    }
+)
+```
+
+### 如何处理.json文件的引入
+如果是commonjs, 直接用require处理，`require("example.json")`
+
+如果是esm，这样做：
+```js
+import { SyntheticModule } from "vm";
+
+// 1. 读取json内容
+const jsonString = read("example.json")
+
+// 2. 合成模块返回
+new SyntheticModule(
+    ['default'],
+    function () {
+        const obj = JSON.parse(jsonString);
+        this.setExport("default", obj);
+    }
+)
+```
