@@ -168,6 +168,7 @@ export default defineConfig({
             { text: "work thoughts", link: "/me/work-thoughts" },
             { text: "my life", link: "/me/my-life" },
             { text: "my travel", link: "/me/my-travel" },
+            { text: "第一次系列", link: "/me/first-time" }
           ],
         },
       ],
