@@ -92,7 +92,7 @@ const global = runInContext("this", context);
 ```
 像`console`这样默认的全局变量，我们就可以使用`global`访问;
 
-如果对`global`写入一些属性，或者使用 `Object.defineProperty`定义一些属性，还可以使用`context`访问，尽管二者不是严格相等的，但要注意的是，想`console`这种属性只有在`global`才能访问到；
+如果对`global`写入一些属性，或者使用 `Object.defineProperty`定义一些属性，还可以使用`context`访问，尽管二者不是严格相等的，但要注意的是，像`console`这种属性只有在`global`才能访问到；
 
 ```js
 global.a = 10;
@@ -808,7 +808,7 @@ Object.defineProperty(g, "value", {
 
 console.log(3)
 console.log("g.value: ", g.value)
-console.log("contextt.value: ", context.value)
+console.log("context.value: ", context.value)
 ```
 
 ```js [babel.js]
@@ -854,14 +854,12 @@ console.log(result.code)
   "name": "node-vm",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "jest.js",
   "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "JasonZhang",
+  "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.25.2",
     "babel-jest": "^29.7.0",

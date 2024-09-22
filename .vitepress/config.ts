@@ -276,6 +276,10 @@ export default defineConfig({
               link: "/blog/circle-svg"
             },
             {
+              text: "jest学习笔记",
+              link: "/blog/jest-learn"
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
@@ -286,9 +290,6 @@ export default defineConfig({
                 {
                   text: '浩叔篇',
                   link: "/blog/blog-reading/hao-shu"
-                },
-                {
-                  
                 }
               ]
             }
@@ -373,14 +374,6 @@ export default defineConfig({
           link: '/tool/ansi-escape-control'
         },
         { text: 'software', link: '/tool/software' }
-        // {
-        //   text: "Docker",
-        //   items: [
-        //     { text: "docker常用指令", link: "/tool/docker-cmd" },
-        //     { text: "Dockerfile", link: "/tool/dockerfile" },
-        //     { text: "Docker Composite", link: "/tool/docker-composite" },
-        //   ],
-        // },
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
