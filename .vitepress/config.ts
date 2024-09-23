@@ -168,6 +168,7 @@ export default defineConfig({
             { text: "work thoughts", link: "/me/work-thoughts" },
             { text: "my life", link: "/me/my-life" },
             { text: "my travel", link: "/me/my-travel" },
+            { text: "第一次系列", link: "/me/first-time" }
           ],
         },
       ],
@@ -265,6 +266,32 @@ export default defineConfig({
             {
               text: "Terminal的魔法",
               link: "/blog/terminal-io"
+            },
+            {
+              text: "对立统一的一点看法",
+              link: "/blog/conflict-thought"
+            },
+            {
+              text: "用circle svg绘制圆环",
+              link: "/blog/circle-svg"
+            },
+            {
+              text: "jest学习笔记",
+              link: "/blog/jest-learn"
+            },
+            {
+              text: "博客文章阅读系列",
+              collapsed: true,
+              items: [
+                {
+                  text: "介绍",
+                  link: "/blog/blog-reading/main"
+                },
+                {
+                  text: '浩叔篇',
+                  link: "/blog/blog-reading/hao-shu"
+                }
+              ]
             }
           ],
         },
@@ -347,14 +374,6 @@ export default defineConfig({
           link: '/tool/ansi-escape-control'
         },
         { text: 'software', link: '/tool/software' }
-        // {
-        //   text: "Docker",
-        //   items: [
-        //     { text: "docker常用指令", link: "/tool/docker-cmd" },
-        //     { text: "Dockerfile", link: "/tool/dockerfile" },
-        //     { text: "Docker Composite", link: "/tool/docker-composite" },
-        //   ],
-        // },
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },

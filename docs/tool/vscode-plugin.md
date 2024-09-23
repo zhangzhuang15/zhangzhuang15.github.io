@@ -19,6 +19,8 @@ aside: true
     "mhutchie.git-graph",
     "donjayamanne.githistory",
     "huizhou.githd",
+    "eamodio.gitlens",
+    "fabiospampinato.vscode-diff",
     "quillaja.goasm",
     "jevakallio.vscode-live-frame",
     "glenn2223.live-sass",
@@ -36,7 +38,14 @@ aside: true
     "rangav.vscode-thunder-client",
     "gruntfuggly.todo-tree",
     "wayou.vscode-icons-mac",
-    "flowtype.flow-for-vscode"
+    "flowtype.flow-for-vscode",
+    "Gruntfuggly.todo-tree",
+    "jock.svg",
+    "NarasimaPandiyan.jetbrainsmono",
+    "dsznajder.es7-react-js-snippets",
+    "pucelle.vscode-css-navigation",
+    "t-sauer.vscode-babel-repl",
+    "ms-vscode.makefile-tools"
   ]
 }
 ```

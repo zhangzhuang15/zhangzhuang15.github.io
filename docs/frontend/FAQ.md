@@ -81,6 +81,15 @@ footgun通常指的是那些容易导致程序员犯错的语言特性、API设�
 ### bump version
 常见于git commit的comment中，表示版本号升级1个
 
+### kick to login
+将用户强制重定向到登录页
+
+### aka
+also known as, abbreviation
+
+### nailed it
+常见于github评论中，表示 well done, 做的好
+
 ## 使用 javascript API 遇到的坑
 ### 数组 empty slot 被跳过
 ❌
@@ -555,20 +564,6 @@ export PYTHON=/opt/homebrew/bin/python3.11
 [Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
 
 
-## node-gyp 执行时，遇到python问题： ModuleNotFoundError: No module named 'distutils'
-在electron项目中，项目运行的时候，可能会使用 node-gyp, 进而遇到和 python 相关的问题。
-
-这个问题是因为python版本号不正确。在macOS上，删除系统预装的python非常困难，因此我们可以变通地解决
-这个问题，在启动项目之前，设置一个全局变量：
-```shell  
-export PYTHON=/opt/homebrew/bin/python3.11
-```
-
-之后再启动项目，这个时候 node-gyp 就会使用 python3.11 执行python脚本了。
-
-[Github问题案例](https://github.com/cypress-io/cypress/issues/28695)
-
-
 ## webpack允许 import undefined variable?
 如果你的代码import undefined variable，然后你用webpack构建项目的时候，webpack竟然没有报错。可这个问题非常严重，因为在代码运行的时候，一旦使用这个变量，会导致crash。
 
@@ -610,3 +605,239 @@ if (M['jack' + '']) {
 }
 ```
 :::
+
+
+## 事件派发的默认顺序
+默认**bubble**顺序，即注册回调函数的最内层dom节点先执行，然后事件向外层传播，外层中注册回调函数的dom节点依次执行；
+
+如果要指定**capture**顺序，请这样做：
+```js 
+dom.addEventListener("click", () => {}, { capture: true })
+```
+
+## mousedown,mouseup,click事件的顺序
+mousedown -> mouseup -> click
+
+
+## vue2和vue3中的 array refs
+[stackoverflow上的解释](https://stackoverflow.com/questions/52086128/vue-js-ref-inside-the-v-for-loop)
+
+vue2:
+```vue
+<template>
+  <div>
+    <card 
+      v-for="(cardItem, index) in cards"
+      :key="index"
+      :ref="`item_${index}`"
+    />
+    <card ref="uniq" />
+  </div>
+</template>
+<script>
+export default {
+    data() {
+        return {
+            cards: ["a", "b"]
+        }
+    },
+    mounted() {
+        // 得到一个数组，不是一个 vue instance;
+        // 你无需将 index绑定到 ref上，直接设置
+        // ref="item"， 用 this.$refs["item"][0] 访问即可
+        this.$refs["item_0"];
+
+        //  得到一个 vue instance, 不是数组
+        this.$refs["uniq"];
+    }
+}
+</script>
+```
+
+vue3中，不会在解析 v-for 语法糖的时候，自动生成数组，挂载到 $refs 上面，你可以改写成这样：
+```vue
+<template>
+  <div 
+    v-for="item in list" 
+    :ref="setItemRef">
+  </div>
+</template>
+
+// optional API
+<script>
+export default {
+  data() {
+    return {
+      itemRefs: []
+    }
+  },
+  methods: {
+    setItemRef(el) {
+      if (el) {
+        this.itemRefs.push(el)
+      }
+    }
+  },
+  beforeUpdate() {
+    this.itemRefs = []
+  },
+  updated() {
+    console.log(this.itemRefs)
+  }
+}
+</script>
+
+
+// composition API
+<script>
+import { onBeforeUpdate, onUpdated } from 'vue'
+
+export default {
+  setup() {
+    let itemRefs = []
+    const setItemRef = el => {
+      if (el) {
+        itemRefs.push(el)
+      }
+    }
+    onBeforeUpdate(() => {
+      itemRefs = []
+    })
+    onUpdated(() => {
+      console.log(itemRefs)
+    })
+    return {
+      setItemRef
+    }
+  }
+}
+</script>
+```
+
+## 低版本typescript处理optional chain的问题
+```ts
+const state = localStorage.getItem("value")
+const stateIsRight = state?.some(i => i.k > 10);
+```
+使用 typescript@2.9.2及以下版本处理上述代码的时候，optional chain 不会被正确编译，且会在 state 和 “?” 中间加入空格。请使用3.0.0及以上版本的typescript。
+
+ts-loader处理代码的时候，使用项目安装的typescript去处理，所以在项目中使用 ts-loader的时候，也要看一眼typescript的版本号是否过低。
+
+## 为什么babel-loader没有处理node_modules下的js文件
+如果你在webpack中如此配置：
+```js
+module.exports = {
+  ...,
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        include: /node_modules\/*\.js/,
+        loader: "babel-loader"
+      }
+    ]
+  }
+}
+```
+
+如果你的babel配置文件是 babelrc, 那么上述配置很可能会失效。
+
+自babel7.0开始，babel在处理node_modules下的文件时，不会按照babelrc给出的配置执行；
+
+解决方式有两种：
+1. 把babelrc换成babel.config.js;
+2. 在webpack中，明确指出“babel-loader”的options项；
+
+## webpack 的 module.rules 里，test正则表达式匹配的是什么？
+有如下webpack配置：
+```js
+module.exports = {
+  ...,
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        include: /node_modules\/*\.js/,
+        loader: "babel-loader"
+      }
+    ]
+  }
+}
+```
+`test: /\.js$/` 匹配的是谁呢？
+
+你可以理解为 request 或者 resource;
+
+当webpack遇到`import {} from 'A'` 代码的时候，就会解析A，得到A的resource，基于resource形成一个request。
+
+resource就是资源的绝对路径，比如'A'的resource, 就是package A的入口文件绝对路径；
+
+request是一个字符串，它基于resource，加入loader的扩展信息，比如`/node_modules/babel-loader/index.js!/node_modules/A/index.js`;
+
+如果你想调试看看，可以编写这样的Plugin，打断点调试：
+```js
+class ModuleResolverSuspendPlugin { 
+    constructor() {}
+
+    static PluginName = "ModuleResolverSuspendPlugin"
+
+    /**
+     * @param {import('webpack').Compiler} compiler
+    */
+    apply(compiler) {
+        compiler.hooks.compilation.tap(
+            ModuleResolverSuspendPlugin.PluginName,
+            (compilation) => {
+                compilation.hooks.buildModule.tap(
+                    ModuleResolverSuspendPlugin.PluginName,
+                    ($module) => {
+                      const resource = $module.resource;
+                      const request = $module.request;
+                      debugger;
+                    }
+                )
+            }
+        )
+
+    }
+}
+
+module.exports.ModuleResolverSuspendPlugin = ModuleResolverSuspendPlugin;
+```
+webpack配置：
+```js
+const { ModuleResolverSuspendPlugin } = require("./ModuleResolverSuspendPlugin.js")
+module.exports = {
+  ...,
+  plugins: [
+    new ModuleResolverSuspendPlugin()
+  ]
+}
+```
+
+## vscode调试项目的时候，cannot resolve "node"
+先确认一下，是否安装了node，并且在环境变量Path中，配置了node路径；
+
+如果满足上一个条件，那就是和你打开项目的方式有关系。你需要在macOS的terminal（其他系统，则选择默认的终端工具）中，切换到项目的根目录下，然后执行 `code .`，这样就可以了。
+
+如果命令行中，没有 `code`，请阅读[这里](/tool/vscode-config#在-path-中安装-code)
+
+## onChange事件函数用debounce包裹后，为什么无法拿到正确的Event对象？
+```jsx
+import debounce from "lodash/debounce"
+const Component = () => {
+
+  const onChange = debounce((e) => {
+    // 报错！e.target是null，拿不到输入框的值
+    e.target.value;
+  }, 200, { trailing: true });
+  return (
+    <Input 
+      onChange={onChange}
+    />
+  );
+}
+```
+如上，展示了在第三方组件 Input 中，使用 debounce 时，可能遇到的错误；
+
+原因是 debounce 采用了 `trailing: true` 的做法。当事件被触发的时候，由于我们指定了这个配置，导致不会立即执行onChange函数，在200ms后，才会执行，那这个时候就有问题了，执行时得到的e，是输入框改变的事件对象么？肯定不是。于是，就会有e.target.value获取不到输入框内容的错误。正确做法是，改用`leading: true`.

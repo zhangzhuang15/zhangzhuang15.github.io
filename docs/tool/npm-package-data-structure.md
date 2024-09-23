@@ -33,4 +33,10 @@ FZF算法实现模糊匹配，原版使用Go语言实现；
 ## sha1
 sha1算法，计算hash值
 
+
+## spark-md5
+md5 hash算法的实现，特点：fatest。
+
+使用者：@jscpd/tokenizer
+
 <Giscus />

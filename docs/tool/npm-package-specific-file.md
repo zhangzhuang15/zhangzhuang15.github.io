@@ -123,4 +123,34 @@ hello world
 
 > react官网使用了该库，去处理 mdx
 
+
+## css-tree
+将css文件转为 css AST, 借此遍历AST收集节点信息，完成css代码的转化
+
+[css-tree API](https://github.com/csstree/csstree/blob/ba6dfd8bb0e33055c05f13803d04825d98dd2d8d/docs/parsing.md)
+
+
+## postcss-prefix-selector
+postcss一个插件，可以给 className 添加前缀或者后缀。
+
+比如将：
+```css
+.a {
+    color: red
+}
+```
+
+转为
+
+```css
+.a[component-hash-233445] {
+    color: blue;
+}
+```
+
+## postcss-selector-parser
+解析css代码，得到它的所有selector节点，形成AST树，支持遍历、修改，达成对css代码中各个selector的修改。
+
+但要注意，只能修改selector，规则中的css属性不受影响
+
 <Giscus />

@@ -64,3 +64,41 @@ feature:
 适用于准备外国公司的面试
 
 [Tech Interview Handbook](https://www.techinterviewhandbook.org/software-engineering-interview-guide/)
+
+
+## GNU Assembler
+介绍C语言内联汇编指令，as命令行工具，obj文件格式；
+
+[GNU Assembler](https://sourceware.org/binutils/docs/as/index.html#SEC_Contents)
+
+
+## System Interfaces
+查询 Unix系统调用；
+
+[OpenGroup | System Interfaces: Detailed ToC](https://pubs.opengroup.org/onlinepubs/9699919799/functions/contents.html)
+
+
+## GTK+
+跨平台GUI的C代码库，主要用于linux桌面系统中，在macOS也可以使用。
+
+[GTK+官网](https://docs.gtk.org/gtk3/)
+
+## GLib
+C代码库，GLib 提供了许多有用的功能，包括但不限于：
+
+数据结构：如链表（GList）、哈希表（GHashTable）、动态数组（GArray）等。
+
+字符串处理：如 GString、字符串实用函数等。
+
+文件和 I/O：如 GFile、GIOChannel 等。
+
+事件循环：如 GMainLoop、GSource 等。
+
+线程和并发：如 GThread、GMutex、GCond 等。
+
+[GLib官网](https://docs.gtk.org/glib/)
+
+## OpenSSL
+C代码库，用于加密、解密运算，https中就是使用了它。
+
+[OpenSSL官网](https://docs.openssl.org/master/)

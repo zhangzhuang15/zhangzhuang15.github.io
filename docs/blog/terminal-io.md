@@ -4,6 +4,13 @@ page: true
 aside: true
 ---
 
+## 相关资料
+[GNU | The Termcap Library](https://www.gnu.org/software/termutils/manual/termcap-1.3/html_chapter/termcap_2.html)
+
+[DEC C | Getting Started with Curses](http://odl.sysworks.biz/disk$axpdocdec971/progtool/deccv56/5763profile0036.html#342_gettingstartedwithcurses)
+
+[OpenGroup | System Interfaces: Detailed ToC](https://pubs.opengroup.org/onlinepubs/9699919799/functions/contents.html)
+
 ## Description
 使用过 Vim 的你，有没有对这些现象感到惊讶：
 1. vim启动前和vim退出后，terminal的内容没有变化，仿佛 vim 是启动了一个新的窗口完成一切的操作；
@@ -141,6 +148,86 @@ env | grep TERM
 读取、写入 `/dev/tty` 的行为，并没有影响终端控制序列。二者不要混为一谈。
 :::
 
+## termcap
+上文说过，终端控制序列有一大堆，很难记住，有没有什么方法可以简化呢？答案是有的，你可以使用 `termcap.h`。这个头文件提供了若干函数，按照想要的功能，让你查询到终端控制序列。
+
+```c 
+// main.c
+#include <stdlib.h>
+#include <termcap.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main(int argc, char** argv) {
+    char term_buffer[2048];
+    char* term_type = getenv("TERM");
+    // 相当于打开记录终端控制序列的数据库
+    int success = tgetent(term_buffer, term_type);
+    if (success > 0) {
+        printf("we open the data base");
+    }
+
+    // 读取表示清空屏幕的终端控制序列，存储到
+    // result 中；
+    char buffer[2048];
+    char* result = tgetstr("cl", &buffer);
+
+    // 为了便于观察输出，我们将stdio的缓冲写关闭
+    setvbuf(stdout, NULL, _IONBF, BUFSIZE);
+
+    printf("aaaaaaaaaaaa\n");
+    printf("aaaaaaaaaaaa\n");
+    printf("aaaaaaaaaaaa\n");
+
+    sleep(2);
+
+    // 清空屏幕的终端控制序列存储在 result 中，
+    // 打印它的话，就会启动清屏效果
+    printf("%s", result);
+
+    return 0;
+}
+```
+编译运行：
+```shell
+gcc main.c -lcurses -o main && ./main
+```
+
+:::tip <TipIcon />
+`tgetstr`的第一个参数取哪些值，可以用 `man terminfo` 查看；
+
+尽管 `termcap` 很好用，但是并不推荐。因为用 `tgetstr`查询的时候，你必须在第二个参数位置上，指定一段内存空间的起始地址。`tgetstr`会将查询结果存储到这个空间里，随着存储内容的增多，这段空间面临着内存溢出的风险，就算我们把空间开辟得很大，依旧有风险。为了保险起见，要预估自己要使用多少个终端控制序列，然后开辟适合的内存空间。总之，使用要谨慎。
+
+你可以使用`tgetflag`查询终端是否支持某个终端控制序列；
+
+对于操作光标的终端控制序列，光靠 `tgetstr` 还不够，还要用上`tgoto`:
+```c
+#include <stdlib.h>
+#include <termcap.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main(int argc, char** argv) {
+    char term_buffer[2048];
+    char* term_type = getenv("TERM");
+    // 相当于打开记录终端控制序列的数据库
+    int success = tgetent(term_buffer, term_type);
+    if (success > 0) {
+        printf("we open the data base");
+    }
+
+    char buffer[2048];
+    char* result = tgetstr("cm", &buffer);
+    result = tgoto(result, 2, 2);
+    // 光标移动到终端页面的第2行第2列
+    printf("%s", result);
+    return 0;
+}
+```
+:::
+
+[refer](https://www.gnu.org/software/termutils/manual/termcap-1.3/html_chapter/termcap_2.html)
+
 ## 终端模拟器做的事其实不多
 在 `termios.h` 中，可以利用 `tcsetattr` 函数调整终端调制器的波特率，或者做出对终端的其他设置，实质上，它影响的是io驱动程序将数据传送到`/dev/tty`文件的环节，这个环节，终端模拟器并不参与。抛开了这种工作，终端模拟器要做的事情就不怎么多了。
 
@@ -148,3 +235,6 @@ env | grep TERM
 1. 监听`/dev/tty`，把这个文件里的内容，画到屏幕上；
 2. 监听`/dev/tty`, 从这个文件里读取内容，解析终端控制序列，做出反应；
 3. 启动shell程序，将命令传送给它，将它的执行结果输出到屏幕上；
+
+## 终端控制序列
+如果你对终端控制序列感兴趣，可以阅读[ansi escape control](/tool/ansi-escape-control)
