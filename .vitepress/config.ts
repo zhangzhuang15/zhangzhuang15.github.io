@@ -174,7 +174,8 @@ export default defineConfig({
       ],
       "/go": [
         { text: "how to learn", link: "/go/how-to-learn" },
-        { text: "FAQ", link: '/go/FAQ'}
+        { text: "FAQ", link: '/go/FAQ'},
+        { text: "Module recommend", link: "/go/recommend-module"}
       ],
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
