@@ -225,6 +225,14 @@ export default defineConfig({
               link: "/blog/process_question",
             },
             {
+              text: "并发编程的一些零碎概念",
+              link: "/blog/concurrent-concept"
+            },
+            {
+              text: "百万并发？并发连接数上限怎么估计？",
+              link: "/blog/concurrent-links"
+            },
+            {
               text: 'Promise Resolve 的秘密',
               link: '/blog/promise-resolve'
             },
@@ -279,6 +287,34 @@ export default defineConfig({
             {
               text: "jest学习笔记",
               link: "/blog/jest-learn"
+            },
+            {
+              text: '什么是"monad"',
+              link: "/blog/monad-intro"
+            },
+            {
+              text: "axios和content-type请求头",
+              link: '/blog/axios-content-type'
+            },
+            {
+              text: "下载html遇到的gzip问题",
+              link: '/blog/gzip-when-download-html'
+            },
+            {
+              text: "浏览器加载资源小结",
+              link: "/blog/browser-download-resource"
+            },
+            {
+              text: "coreutils解读",
+              link: '/blog/core-utils'
+            },
+            {
+              text: "fucking webpack concept",
+              link: "/blog/fucking-webpack-concept"
+            },
+            {
+              text: "从 ElementUI 源码学到的小知识",
+              link: '/blog/learn-from-element-ui'
             },
             {
               text: "博客文章阅读系列",

@@ -206,7 +206,8 @@ static void daemonize(void) {
 守护进程和后台进程还有一个明显的区别出现在关闭 terminal 的时候。
 
 以 macOS 为例，打开 terminal App, 我们启动一个长久工作的后台进程，当我们关闭 terminal App 的时候，会给出这样的提示：
-![截屏2023-05-31 23.05.34.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/db9a06a49e474e9c9420bb3045e1a26f~tplv-k3u1fbpfcp-watermark.image?)
+
+![截屏1](/pm2-capture-1.png)
 
 点击终止后，后台进程就会被关闭，terminal App 也会退出；点击取消的话，后台进程继续运行，terminal App 不会退出。
 
@@ -244,7 +245,7 @@ static void daemonize(void) {
 
 这里参考 pm2 0.4.10 版本源码。项目结构如下：
 
-![截屏2023-06-01 23.26.18.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f9e4dab324e64c0f984a199a18d436e3~tplv-k3u1fbpfcp-watermark.image?)
+![截屏2](/pm2-capture-2.png)
 
 接下来，锁定 pm2 的入口文件，开始分析。
 
@@ -252,7 +253,7 @@ static void daemonize(void) {
 
 文件内容非常简单，就是使用`commander`库构建命令行 App。
 
-![截屏2023-06-01 23.29.29.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/23acba83482c4c2b8e8df59a8e300374~tplv-k3u1fbpfcp-watermark.image?)
+![截屏3](/pm2-capture-3.png)
 
 看到`commander.command`的调用（图中只是冰山一角），不难得知 pm2 支持的子命令有：
 
