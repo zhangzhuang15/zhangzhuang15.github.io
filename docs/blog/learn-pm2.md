@@ -280,11 +280,11 @@ static void daemonize(void) {
 
 截取了`CLI`几个方法的定义：
 
-![截屏2023-06-01 23.35.25.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7442deeb1714469bab2f51d1bc2b4a11~tplv-k3u1fbpfcp-watermark.image?)
+![截屏4](/pm2-capture-4.png)
 
-![截屏2023-06-01 23.35.55.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a5e87d991a54e7da253ee18dd2fa525~tplv-k3u1fbpfcp-watermark.image?)
+![截屏5](/pm2-capture-5.png)
 
-![截屏2023-06-01 23.36.18.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f8991ac9b2e1474abdb300b9246efab7~tplv-k3u1fbpfcp-watermark.image?)
+![截屏6](/pm2-capture-6.png)
 
 发现`CLI`的实现中，底层还是依赖`Satan`，原来真谛在`Satan`。
 
@@ -294,7 +294,7 @@ static void daemonize(void) {
 
 但有一个地方值得留意：
 
-![截屏2023-06-01 23.42.35.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a1b44fc7876940e587b22948d25b014e~tplv-k3u1fbpfcp-watermark.image?)
+![截屏7](/pm2-capture-7.png)
 
 你输入 pm2 命令行后，`commander`不会立即解析命令行参数，而是等待事件`satan:client:ready`发生，才会触发解析，按照上边说的逻辑执行。
 
@@ -302,7 +302,7 @@ static void daemonize(void) {
 
 纵观这个文件，只有在开头中 require Satan 这一步，才能动手脚。
 
-![截屏2023-06-01 23.47.03.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4c3e31a16df742b4b4ce67f3b2e9847f~tplv-k3u1fbpfcp-watermark.image?)
+![截屏8](/pm2-capture-8.png)
 
 `require`指令不仅代表着加载一个模块对象，而且意味着在加载过程中，会运行一些代码。
 
@@ -311,15 +311,15 @@ static void daemonize(void) {
 
 让我们看看 Satan 中发生了什么：
 
-![截屏2023-06-03 17.06.10.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6a2f3265e44044b3bb88cbae9d70d07f~tplv-k3u1fbpfcp-watermark.image?)
+![截屏9](/pm2-capture-9.png)
 
-![截屏2023-06-03 17.06.32.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2bef40bb300c43ccae4422e399c48f1d~tplv-k3u1fbpfcp-watermark.image?)
+![截屏10](/pm2-capture-10.png)
 
 全文除了定义 Satan，还执行了`Satan.onReady`。结合前面说的，只要我们执行了 pm2 命令行，pm2 就要等到`satan:client:ready`事件发生，才会解析命令行参数，执行特定的子命令。同时呢，pm2 在一开始执行的时候，先 require 了 Satan, 所以也会执行 Satan 中的代码，也就是`Satan.onReady`。
 
 OK，事不宜迟，看看`Satan.onReady`发生了什么吧。
 
-![截屏2023-06-03 17.12.13.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e10fb01f9f264880904c80623749e50d~tplv-k3u1fbpfcp-watermark.image?)
+![截屏11](/pm2-capture-11.png)
 
 方法中定义了一个即时函数 init，一旦 onReady 要执行，init 函数就会立即执行。
 
@@ -342,7 +342,7 @@ OK，事不宜迟，看看`Satan.onReady`发生了什么吧。
 
 此时环境变量中肯定没有 DAEMON, 所以会跳入到 else 逻辑里执行 pingDaemon:
 
-![截屏2023-06-03 17.51.11.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f04ce06b657d4c87bc12f53a24504363~tplv-k3u1fbpfcp-watermark.image?)
+![截屏12](/pm2-capture-12.png)
 
 尽管我们不知道`axon`库是干什么的，但我们能大致猜出，使用的是 sock 通讯，而且还是 Unix 域的 sock 通讯，因为里面没有看到什么关乎网络 IP 的信息。
 
@@ -360,11 +360,11 @@ OK，事不宜迟，看看`Satan.onReady`发生了什么吧。
 
 前文我们也说了，我们假设是第一次执行 pm2，因此肯定不会有守护进程，顺理成章地就要执行 launchDaemon。
 
-![截屏2023-06-03 17.21.24.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4666d6d06e2342bdb4baba38bdfe14a4~tplv-k3u1fbpfcp-watermark.image?)
+![截屏13](/pm2-capture-13.png)
 
 启动一个守护进程和启动一个进程大致相同，使用了`child_process`库的`fork`方法，关键点在于`detached`, 根据[nodejs 官网 API 文档介绍](https://nodejs.org/dist/latest-v18.x/docs/api/child_process.html#optionsdetached)，在非 windows 平台下，设置了该参数为 true，会使得新进程成为新进程组的 leader 进程，同时开启一个新的会话。
 
-![截屏2023-06-03 17.25.10.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8df8328f467b49f09af742a104514425~tplv-k3u1fbpfcp-watermark.image?)
+![截屏14](/pm2-capture-14.png)
 
 这是经过 nodejs 封装之后启动守护进程的方式，原始的 c 语言启动一个守护进程要比这个复杂一点。
 
@@ -377,9 +377,9 @@ OK，事不宜迟，看看`Satan.onReady`发生了什么吧。
 
 按照操作系统的角度看，有了上述的设置，开启一个守护进程没什么问题，但是在 nodejs 的运行时角度看，这还不够，所以代码中加入了`child.unref()`，根据官网的说法，该方法作用如下：
 
-![截屏2023-06-03 17.35.09.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/204e50b90fd34428b8400943de6d3a5d~tplv-k3u1fbpfcp-watermark.image?)
+![截屏15](/pm2-capture-15.png)
 
-![截屏2023-06-03 17.36.27.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a849f2cc8ddb4c39831628c4378e6c89~tplv-k3u1fbpfcp-watermark.image?)
+![截屏16](/pm2-capture-16.png)
 
 也就是说，如果你没有使用这个方法，尽管设置 detached 为 true，但实际上父进程依旧会等待子进程结束，守护进程是不能有这一步的。
 
@@ -397,7 +397,7 @@ OK，事不宜迟，看看`Satan.onReady`发生了什么吧。
 
 ### Satan.remoteWrapper
 
-![截屏2023-06-03 18.14.21.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/944f84c56ffb4860897aa235f5712eae~tplv-k3u1fbpfcp-watermark.image?)
+![截屏17](/pm2-capture-17.png)
 
 第一点要明确，这个逻辑是在守护进程中完成的，当前进程在做的事情是等待守护进程发来数据，然后触发`satan:daemon:ready`事件。
 
@@ -409,7 +409,7 @@ OK，事不宜迟，看看`Satan.onReady`发生了什么吧。
 
 ### Satan.launchRPC
 
-![截屏2023-06-03 18.26.02.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a6aba40af5c14e92873c793d77580b49~tplv-k3u1fbpfcp-watermark.image?)
+![截屏18](/pm2-capture-18.png)
 
 逻辑出乎意料简单。
 
@@ -421,7 +421,7 @@ OK，事不宜迟，看看`Satan.onReady`发生了什么吧。
 
 Satan.onReady 是在 Satan 这个库被加载的时候实行的，而这个加载是在下图监听动作之前发生的：
 
-![截屏2023-06-01 23.42.35.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a1b44fc7876940e587b22948d25b014e~tplv-k3u1fbpfcp-watermark.image?)
+![截屏19](/pm2-capture-19.png)
 
 那么会不会出现一种状况：Satan 已经发送了`satan:client:ready`事件，但是该事件监听动作还没来得及执行呢？
 
@@ -435,7 +435,7 @@ Satan.onReady 是在 Satan 这个库被加载的时候实行的，而这个加�
 
 ## pm2 子命令的实现
 
-![截屏2023-06-03 21.02.09.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/64ab483a14bf49e7953c5e343094354e~tplv-k3u1fbpfcp-watermark.image?)
+![截屏20](/pm2-capture-20.png)
 
 子命令的实现发生在 Satan.remoteWrapper, 还记得这个方法是做什么的吗？
 
@@ -447,7 +447,7 @@ Satan.onReady 是在 Satan 这个库被加载的时候实行的，而这个加�
 
 OK，接下来就看一下 God 中发生了什么。
 
-![截屏2023-06-03 21.29.14.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d1fdfce1c51442fb87ccdc4f0c6a9594~tplv-k3u1fbpfcp-watermark.image?)
+![截屏21](/pm2-capture-21.png)
 
 - 定义了 God 的很多方法
 - 执行了即时函数 `initEngine`
@@ -463,11 +463,11 @@ OK，接下来就看一下 God 中发生了什么。
 
 接下来我们以创建一个进程为例，看看都要经过什么。
 
-![截屏2023-06-03 21.38.25.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f7d5264b24464a9bb8bc388d818297b5~tplv-k3u1fbpfcp-watermark.image?)
+![截屏22](/pm2-capture-22.png)
 
 可以看到，创建一个进程的工作是`execute`完成的。
 
-![截屏2023-06-03 21.39.19.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7abb98041375483983a4bd05b25f6cc7~tplv-k3u1fbpfcp-watermark.image?)
+![截屏23](/pm2-capture-23.png)
 
 逻辑简要概括无非几步：
 
@@ -478,7 +478,7 @@ OK，接下来就看一下 God 中发生了什么。
 
 剩下的，就是搞清楚`ProcessContainer.js`都搞了啥。
 
-![截屏2023-06-03 21.44.31.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c4a47fc821cc4badb417a3b7fe7b863c~tplv-k3u1fbpfcp-watermark.image?)
+![截屏24](/pm2-capture-24.png)
 
 做的事也很直白：
 
@@ -487,7 +487,7 @@ OK，接下来就看一下 God 中发生了什么。
 
 瞧瞧最终的核心`exec`。
 
-![截屏2023-06-03 21.48.05.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/17bce84df43a4927aee506c1d514c0fa~tplv-k3u1fbpfcp-watermark.image?)
+![截屏25](/pm2-capture-25.png)
 
 - 重定向标准输出和标准错误
 - `require`加载真正要执行的脚本（这里就是上文说的进程引导）

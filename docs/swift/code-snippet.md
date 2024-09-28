@@ -4,6 +4,187 @@ page: true
 aside: true
 ---
 
+## 语法突击
+:::code-group
+```swift [switch-example.swift]
+// 展示：类型模式匹配
+
+func main() {
+    var score = 10
+    switch score {
+    // 90 <= score <= 100
+    case 90...100:
+        print("A")
+    // 80 <= score < 90
+    case 80..<90:
+        print("B")
+    case let val where val >= 50 && val < 80:
+        print("C")
+    default:
+        print("D")
+    }
+
+
+    let enty = (100, "hello")
+    switch enty {
+    case let (_score, msg) where _score > 10:
+        print("msg: \(msg)")
+    default:
+        print("")
+    }
+
+    enum Direction {
+        case Left(String)
+        case Right(String)
+    }
+
+    let direction: Direction = .Left("left")
+    switch direction {
+    case let .Left(direction):
+        print("msg: \(direction)")
+    case let .Right(direction):
+        print("msg: \(direction)")
+    }
+}
+```
+```swift [optional-example.swift]
+// 展示：optional类型处理
+
+func callbackThrowingError() throws -> String {
+    throw NSError(domain: "com.example", code: 0, userInfo: nil)
+}
+
+func main() {
+    var source: String? = nil
+
+    // nil给过滤掉了，不会执行
+    if let m = source {
+        let val = m.take()
+        print("\(val)")
+    }
+
+    // source是nil的话，采取默认值 “hello”
+    source = source ?? "hello"
+
+    // 通过 guard 校验，不会执行 else 语句，
+    // 如果进入到 else 语句，必须保证程序提前结束，
+    // 这是 guard 的固定要求
+    guard let val = source else {
+        print("bail out")
+        return
+    }
+
+    // 在确保不是nil的时候，可以使用!强制unwrap optional value,
+    // 此时  value 就是 String 类型
+    let value = val!
+    print("\(value)")
+
+    // 可使用 ？防御，一旦val是nil，直接返回nil，不用执行hasPrefix
+    if let _ = val?.hasPrefix("hel") {
+        print("hello has prefix 'hel'")
+    }
+
+    // 如果 callbackThrowingError 抛出一个 Error, try?
+    // 会将其转化为 nil
+    if let _ = try? callbackThrowingError() {
+        print("ok")
+    } else {
+        print("some error")
+    }
+
+}
+```
+```swift [mutating-example.swift]
+// 展示：mutating 修饰符
+enum Color {
+    case red(Int)
+    case blue(Int)
+
+    mutating func increaseBrightness(by amount: Int) {
+        switch self {
+        case .red(let r):
+            self = .red(r + amount)
+        case .blue(let b):
+            self = .blue(b + amount)
+        }
+    }
+}
+
+struct Point {
+    var x: Int
+    var y: Int
+
+    mutating func move(by dx: Int, dy: Int) {
+        x += dx
+        y += dy
+    }
+}
+```
+```swift [enum-example.swift]
+// 展示： enum 
+enum OperationResult {
+    case success(message: String)
+    case failure(error: Error)
+
+    // static method is supported
+    static func createSuccess(message: String) -> OperationResult {
+        return .success(message: message)
+    }
+
+    static func createFailure(error: Error) -> OperationResult {
+        return .failure(error: error)
+    }
+
+    // computed property is supported
+    var message: String {
+        switch self {
+        case .success(let message):
+            return message
+        case .failure(let error):
+            return "Error: \(error.localizedDescription)"
+        }
+    }
+
+    // method is supported
+    func displayMessage() {
+        switch self {
+        case .success(let message):
+            print("Success: \(message)")
+        case .failure(let error):
+            print("Failure: \(error)")
+        }
+    }
+}
+
+let successResult = OperationResult.createSuccess(message: "Operation successful")
+let failureResult = OperationResult.createFailure(error: NSError(domain: "com.example", code: 404, userInfo: nil))
+
+print(successResult)  // Outputs "OperationResult.success(message: "Operation successful")"
+print(failureResult)  // Outputs "OperationResult.failure(error: Error Domain=com.example Code=404)"
+
+
+protocol Displayable {
+    func display()
+}
+
+// extension and protocol are supported
+extension OperationResult: Displayable {
+    func display() {
+        switch self {
+        case .success(let message):
+            print("Success: \(message)")
+        case .failure(let error):
+            print("Failure: \(error)")
+        }
+    }
+}
+
+
+// keep in mind that one enum cannot inherit from another enum like class
+```
+
+:::
+
 ## 创建文件
 ```swift
 import Foundation

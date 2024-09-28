@@ -327,6 +327,10 @@ export default defineConfig({
                 {
                   text: '浩叔篇',
                   link: "/blog/blog-reading/hao-shu"
+                },
+                {
+                  text: "Rust",
+                  link: "/blog/blog-reading/rust-program"
                 }
               ]
             }
