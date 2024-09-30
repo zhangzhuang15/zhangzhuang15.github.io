@@ -285,6 +285,10 @@ export default defineConfig({
               link: "/blog/circle-svg"
             },
             {
+              text: "flex布局小结",
+              link: "/blog/flex-intro",
+            },
+            {
               text: "jest学习笔记",
               link: "/blog/jest-learn"
             },
