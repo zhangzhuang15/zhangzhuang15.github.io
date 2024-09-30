@@ -115,6 +115,13 @@ aside: true
 
 [tabby](https://github.com/zhangzhuang15/tabby)
 
+## btop
+A terminal app written by C++ 20, showing you the resources of memory, network, disk, process and etc.
+
+You can learn how to use os native library to build your own terminal app, improving your control of terminal.
+
+[btop](https://github.com/aristocratos/btop)
+
 ## 实现一个文件管理器
 `Rust`
 

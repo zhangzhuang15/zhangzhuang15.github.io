@@ -39,7 +39,7 @@ aside: true
 
 阿逊手指一动，显示器上出现了一个大（lao）佬（tou）。
 
-![截屏2023-05-14 16.11.29.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7d79aae1b54b45739611cc236bb5f34e~tplv-k3u1fbpfcp-watermark.image?)
+![截屏2023-05-14 16.11.29.png](/doglea.png)
 
 阿逊：当当当！这就是Doug Lea本尊了。
 
@@ -193,7 +193,7 @@ Doug Lea在论文中也给出选择这种结构的原因：
 
 论文中给出了这样的解释：
 
-![截屏2023-05-14 19.22.36.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ea15f24fc53c4fc9bf35f782754260a1~tplv-k3u1fbpfcp-watermark.image?)
+![截屏1](/doglea-paper-capture-1.png)
 
 每个节点都记录着被阻塞的线程的信息。
 
@@ -208,7 +208,7 @@ Doug Lea在论文中也给出选择这种结构的原因：
 
 当然，这只是一个基础模型，Doug Lea也提到要基于此，做许多调整，不能直接用。所以在论文后边，Doug Lea给出了入队和出队的一般形式：
 
-![截屏2023-05-14 19.42.55.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/12e46963550b49b3a41de799e1c8606d~tplv-k3u1fbpfcp-watermark.image?)
+![截屏2](/doglea-paper-capture-2.png)
 
 从代码里可以看到很多有趣的地方。
 
@@ -254,7 +254,7 @@ Doug Lea在论文中也给出选择这种结构的原因：
 ## 未解决篇
 从Doug Lea给出的实验数据看，ReentrantLock要比sychronized性能更好。
 
-![截屏2023-05-14 21.06.36.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/88b33c289e95432ea6d2c0d32104db3d~tplv-k3u1fbpfcp-watermark.image?)
+![截屏3](/doglea-paper-capture-3.png)
 
 4U的4代表4-core cpu， U代表cpu厂商（具体是谁不重要），2A 2P同理。
 
