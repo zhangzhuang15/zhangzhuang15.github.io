@@ -321,6 +321,10 @@ export default defineConfig({
               link: '/blog/learn-from-element-ui'
             },
             {
+              text: "Fucking swift package manager",
+              link: "/blog/swift-package-manager"
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
