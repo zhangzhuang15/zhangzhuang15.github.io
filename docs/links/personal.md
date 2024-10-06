@@ -103,4 +103,14 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 他没有自己的博客文章，但是会在 youtube 上分享视频，记录项目开发过程。
 
 
+## Richard Stevens
+[前往](http://www.kohala.com/start/)
+
+传奇人物，著作有《Unix环境高级编程》、《Unix网络编程： 第一卷套接口API》、《TCP/IP详解卷1协议》等
+
+## Jeff Preshing‘s Blog
+[前往](https://preshing.com/)
+
+`C++` `Python`
+
 <Giscus />

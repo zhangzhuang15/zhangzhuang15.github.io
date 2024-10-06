@@ -182,7 +182,29 @@ extension OperationResult: Displayable {
 
 // keep in mind that one enum cannot inherit from another enum like class
 ```
+```swift [operator-override.swift]
+// 展示运算符重载
+struct M {
+    var value: Int
 
+    static func +(lhs: M, rhs: M) -> Int {
+        return lhs.value + rhs.value
+    }
+}
+
+func main() {
+    var m = M()
+    m.value = 10
+
+    var n = M()
+    n.value = 20
+
+    let t = m + n
+    print("\(t)")
+}
+
+main()
+```
 :::
 
 ## 创建文件
@@ -391,6 +413,35 @@ queue.async(execute: workItem2)
 
 // 保持主线程运行一段时间，以便观察输出
 Thread.sleep(forTimeInterval: 5)
+```
+```swift [thread.swift]
+import Foundation
+
+func main() {
+    group.enter()
+    let th1 = Thread() { () in
+        Thread.sleep(forTimeInterval: 4 )
+        print("hello world")
+        group.leave()
+    }
+    
+    group.enter()
+    let th2 = Thread() { () in
+       print("ok ok I know it")
+        Thread.sleep(forTimeInterval: 6)
+        print("why not")
+        group.leave()
+    }
+    
+    th1.start()
+    th2.start()
+    
+    group.wait()
+    print("all done")
+
+}
+
+main()
 ```
 :::
 
