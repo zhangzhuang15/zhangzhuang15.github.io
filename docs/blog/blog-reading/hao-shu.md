@@ -375,3 +375,182 @@ aside: true
 - [Scalable memory allocation using jemalloc](https://www.facebook.com/notes/facebook-engineering/scalable-memory-allocation-using-jemalloc/480222803919)
 
 - [Decreasing RAM Usage by 40% Using jemalloc with Python & Celery](https://zapier.com/engineering/celery-python-jemalloc/)
+
+
+
+### linux
+- [Red Hat Enterprise Linux文档](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/?version=7)
+
+- [Linux Insides](https://github.com/0xAX/linux-insides): GitHub上的一个开源电子书，其中讲述了Linux内核是怎样启动、初始化以及进行管理的
+
+- [LWN’s kernel page](http://lwn.net/Kernel/Index/)
+
+- [Learn Linux Kernel from Android Perspective](http://learnlinuxconcepts.blogspot.com/2014/10/this-blog-is-to-help-those-students-and.html)
+
+- [Linux Kernel Doc](https://www.kernel.org/doc/)
+
+- [Kernel Planet](http://planet.kernel.org/): Linux内核开发者的Blog，有很多很不错的文章和想法
+
+- [Linux Performance and Tuning Guidelines](https://lenovopress.com/redp4285.pdf): IBM出的红皮书
+
+- [TLK: The Linux Kernel](http://tldp.org/LDP/tlk/tlk.html)
+
+- [Linux Performance](https://www.brendangregg.com/linuxperf.html): 提供了和Linux系统性能相关的各种工具和文章收集
+
+- [Optimizing web servers for high throughput and low latency](https://blogs.dropbox.com/tech/2017/09/optimizing-web-servers-for-high-throughput-and-low-latency/): 一篇非常底层的系统调优的文章，来自DropBox
+
+
+### 网络
+- [Red Hat Enterprise Linux Network Performance Tuning Guide](https://access.redhat.com/sites/default/files/attachments/20150325_network_performance_tuning.pdf): 红帽出品的网络调优的文章
+
+- [Awesome Pcap Tools](https://github.com/caesar0301/awesome-pcaptools): 罗列了一些工具，帮助你调试网络相关的程序
+
+- [Making Linux TCP Fast](https://netdevconf.org/1.2/papers/bbr-netdev-1.2.new.new.pdf)：一篇非常不错的TCP调优的论文
+
+- [Monitoring and Tuning the Linux Networking Stack: Receiving Data](https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/)
+
+- [Computer Network Tutorials](https://www.geeksforgeeks.org/computer-network-tutorials/)
+
+- [RFC 826 - An Ethernet Address Resolution Protocol](https://tools.ietf.org/html/rfc826): 链路层的协议RFC
+
+- Tunnel相关的协议RFC：
+  - [RFC 1853 - IP in IP Tunneling](https://tools.ietf.org/html/rfc1853)
+  - [RFC 2784 - Generic Routing Encapsulation (GRE)](https://tools.ietf.org/html/rfc2784)
+  - [RFC 2661 - Layer Two Tunneling Protocol “L2TP”](https://tools.ietf.org/html/rfc2661)
+  - [RFC 2637 - Point-to-Point Tunneling Protocol (PPTP)](https://tools.ietf.org/html/rfc2637)
+
+- TCP/IP层相关：
+  - [TCP的那些事儿（上）](https://coolshell.cn/articles/11564.html)
+  - [TCP的那些事儿（下）](https://coolshell.cn/articles/11609.html)
+  - [RFC 793 - Transmission Control Protocol](https://tools.ietf.org/html/rfc793): 最初的TCP标准定义，但不包括TCP相关细节。
+  - [RFC 813 - Window and Acknowledgement Strategy in TCP](https://tools.ietf.org/html/rfc813): TCP窗口与确认策略，并讨论了在使用该机制时可能遇到的问题及解决方法
+  - [RFC 879 - The TCP Maximum Segment Size and Related Topics](https://tools.ietf.org/html/rfc879): 讨论MSS参数对控制TCP分组大小的重要性，以及该参数与IP分段大小的关系等
+  - [RFC 896 - Congestion Control in IP/TCP Internetworks](https://tools.ietf.org/html/rfc896): 讨论拥塞问题和TCP如何控制拥塞
+  - [RFC 2581 - TCP Congestion Control](https://tools.ietf.org/html/rfc2581): 描述用于拥塞控制的四种机制：慢启动、拥塞防御、快重传和快恢复
+  - [RFC 6582 - The NewReno Modification to TCP’s Fast Recovery Algorithm](https://tools.ietf.org/html/rfc6582): 一个改进的快速恢复算法
+  - [RFC 2018 - TCP Selective Acknowledgment Options](https://tools.ietf.org/html/rfc2018): TCP的选择确认
+  - [RFC 2883 - An Extension to the Selective Acknowledgement (SACK) Option for TCP](https://tools.ietf.org/html/rfc2883): 对于RFC 2018的改进
+  - [RFC 2988 - Computing TCP’s Retransmission Timer](https://tools.ietf.org/html/rfc2988): 讨论与TCP重传计时器设置相关的话题，重传计时器控制报文在重传前应等待多长时间。也就是经典的TCP Karn/Partridge重传算法。
+  - [RFC 6298 - Computing TCP’s Retransmission Timer](https://tools.ietf.org/html/rfc6298): TCP Jacobson/Karels Algorithm重传算法
+
+
+- HTTP协议相关：
+  - [RFC 7230 - Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing](https://tools.ietf.org/html/rfc7230)
+  - [RFC 7231 - Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content](https://tools.ietf.org/html/rfc7231)
+  - [RFC 7232 - Hypertext Transfer Protocol (HTTP/1.1): Conditional Requests](https://tools.ietf.org/html/rfc7232)
+  - [RFC 7233 - Hypertext Transfer Protocol (HTTP/1.1): Range Requests](https://tools.ietf.org/html/rfc7233)
+  - [RFC 7234 - Hypertext Transfer Protocol (HTTP/1.1): Caching](https://tools.ietf.org/html/rfc7234)
+  - [RFC 7235 - Hypertext Transfer Protocol (HTTP/1.1): Authentication](https://tools.ietf.org/html/rfc7235)
+
+- HTTP2协议相关：
+  - [http2 explained](https://http2-explained.haxx.se/en/part1): 介绍http2的免费电子书
+  - [RFC 7540 - Hypertext Transfer Protocol Version 2 (HTTP/2)](https://httpwg.org/specs/rfc7540.html)
+  - [RFC 7541 - HPACK: Header Compression for HTTP/2](https://httpwg.org/specs/rfc7541.html)
+
+
+
+### 分布式
+#### 要点
+
+- **服务调度**，涉及服务发现、配置管理、弹性伸缩、故障恢复等。
+
+- **资源调度**，涉及对底层资源的调度使用，如计算资源、网络资源和存储资源等。
+
+- **流量调度**，涉及路由、负载均衡、流控、熔断等。
+
+- **数据调度**，涉及数据复本、数据一致性、分布式事务、分库、分表等。
+
+- **容错处理**，涉及隔离、幂等、重试、业务补偿、异步、降级等。
+
+- **自动化运维**，涉及持续集成、持续部署、全栈监控、调用链跟踪等。
+
+:::tip <TipIcon />
+- 分布式系统之所以复杂，就是因为它太容易出错了。这意味着，你要把处理错误的代码当成正常功能的代码来处理。
+- 开发一个健壮的分布式系统的成本是单体系统的几百倍甚至几万倍。这意味着，我们要自己开发一个，需要能力很强的开发人员。
+- 非常健壮的开源的分布式系统并不多，或者说基本没有。这意味着，如果你要用开源的，那么你需要hold得住其源码。
+- 管理或是协调多个服务或机器是非常难的。这意味着，我们要去读很多很多的分布式系统的论文。
+- 在分布式环境下，出了问题是很难debug的。这意味着，我们需要非常好的监控和跟踪系统，还需要经常做演练和测试。
+- 在分布式环境下，你需要更科学地分析和统计。这意味着，我们要用P90这样的统计指标，而不是平均值，我们还需要做容量计划和评估。
+- 在分布式环境下，需要应用服务化。这意味着，我们需要一个服务开发框架，比如SOA或微服务。
+- 在分布式环境下，故障不可怕，可怕的是影响面过大，时间过长。这意味着，我们需要花时间来开发我们的自动化运维平台。
+               
+<p style="text-align: right; margin-right: 40px;">-- 左耳听风</p>
+:::
+
+#### 理论
+拜占庭容错系统研究中有三个重要理论：CAP、FLP和DLS
+
+CAP: 
+- 一致性（Consistency）
+- 可用性（Availability）
+- 分区容忍（Partition tolerance）
+> “在网络发生阻断（partition）时，你只能选择数据的一致性（consistency）或可用性（availability），无法两者兼得”。
+
+- [An introduction to distributed systems](https://github.com/aphyr/distsys-class): 分布式教学提纲
+
+- [拜占庭将军问题论文](https://www.microsoft.com/en-us/research/uploads/prod/2016/12/The-Byzantine-Generals-Problem.pdf)
+  - [Dr.Dobb’s - The Byzantine Generals Problem](http://www.drdobbs.com/cpp/the-byzantine-generals-problem/206904396)
+  - [The Byzantine Generals Problem](http://blog.jameslarisch.com/the-byzantine-generals-problem)
+  - [Practicle Byzantine Fault Tolerance](http://pmg.csail.mit.edu/papers/osdi99.pdf)
+
+- [FLP impossibility](https://www.the-paper-trail.org/post/2008-08-13-a-brief-tour-of-flp-impossibility/)
+
+- [DLS](http://groups.csail.mit.edu/tds/papers/Lynch/jacm88.pdf)
+
+- [CAP Twelve Years Later: How the Rules Have Changed](https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed)
+
+- [Harvest, Yield, and Scalable Tolerant Systems](https://pdfs.semanticscholar.org/5015/8bc1a8a67295ab7bce0550886a9859000dc2.pdf)
+
+- [Base: An Acid Alternative](https://queue.acm.org/detail.cfm?id=1394128): eBay的架构师在2008年发表给ACM的文章，是一篇解释BASE原则，或者说最终一致性的经典文章
+
+- [Eventually Consistent](https://www.allthingsdistributed.com/2008/12/eventually_consistent.html):AWS的CTO维尔纳·沃格尔（Werner Vogels）在2008年发布在ACM Queue上的一篇数据库方面的重要文章，阐述了NoSQL数据库的理论基石——最终一致性
+
+- “8条荒谬的分布式假设（Fallacies of Distributed Computing）”
+  1. 网络是稳定的。
+  2. 网络传输的延迟是零。
+  3. 网络的带宽是无穷大。
+  4. 网络是安全的。
+  5. 网络的拓扑不会改变。
+  6. 只有一个系统管理员。
+  7. 传输数据的成本为零。
+  8. 整个网络是同构的。
+  > [Fallacies of Distributed Computing Explained](http://www.rgoarchitects.com/Files/fallacies.pdf):解释为什么这些观点是错误的
+
+
+## 软件设计
+### 幂等性设计
+
+### 隔离设计
+
+### 异步通讯
+
+### 补偿事务
+
+### 服务的状态
+
+### 重试设计
+
+### 熔断设计
+
+### 限流设计
+
+### 降级设计
+
+### 秒杀
+
+### 边缘计算
+
+### 缓存
+
+
+### 分布式锁
+
+### 配置中心
+
+### 数据库扩展
+
+### 边车模式
+
+### 服务网络
+
+### 网关模式

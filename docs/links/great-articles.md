@@ -189,3 +189,43 @@ javascript没有执行呢；
 
 ## C++ optimize
 [阅读原文](https://agner.org/optimize/optimizing_cpp.pdf)
+
+## Optimizing web servers for high throughput and low latency
+[阅读原文](https://blogs.dropbox.com/tech/2017/09/optimizing-web-servers-for-high-throughput-and-low-latency/)
+
+一篇非常底层的系统调优的文章，来自DropBox
+
+## Linux Insides
+[阅读原文](https://github.com/0xAX/linux-insides)
+
+GitHub上的一个开源电子书，其中讲述了Linux内核是怎样启动、初始化以及进行管理的
+
+## Red Hat Enterprise Linux Network Performance Tuning Guide
+[阅读原文](https://access.redhat.com/sites/default/files/attachments/20150325_network_performance_tuning.pdf):
+
+红帽出品的网络调优的文章
+
+## Making Linux TCP Fast
+[阅读原文](https://netdevconf.org/1.2/papers/bbr-netdev-1.2.new.new.pdf)
+
+一篇非常不错的TCP调优的论文
+
+## Computer Network Tutorials
+[阅读原文](https://www.geeksforgeeks.org/computer-network-tutorials/)
+
+计算机网络基础知识入门介绍的文章
+
+## Monitoring and Tuning the Linux Networking Stack: Receiving Data
+[阅读原文](https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/)
+
+[姊妹篇： Monitoring and Tuning the Linux Networking Stack: Sending Data](https://blog.packagecloud.io/eng/2017/02/06/monitoring-tuning-linux-networking-stack-sending-data/)
+
+## Congestion Avoidance and Control
+[阅读原文](http://ee.lbl.gov/papers/congavoid.pdf)
+
+拥塞控制的论文
+
+## http2 explained
+[阅读原文](https://http2-explained.haxx.se/en/part1)
+
+介绍http2的免费电子书
