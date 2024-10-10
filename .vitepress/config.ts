@@ -329,6 +329,14 @@ export default defineConfig({
               link: "/blog/cpp-rust"
             },
             {
+              text: '接触cpp',
+              link: '/blog/learning-cpp'
+            },
+            {
+              text: '与二进制文件打交道',
+              link: '/blog/talk-to-executable'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
