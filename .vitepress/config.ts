@@ -148,8 +148,8 @@ export default defineConfig({
           { text: 'vscode', link: '/tool/vscode-install' },
           { text: 'front dev', link: '/tool/front-dev/config' },
           { text: 'NPM', link: '/tool/index-npm' },
-          { text: 'software', link: '/tool/software' }
-
+          { text: 'software', link: '/tool/software' },
+          { text: 'misc', link: '/tool/misc' }
         ],
       },
       {
@@ -434,7 +434,8 @@ export default defineConfig({
           text: 'ansi escape control',
           link: '/tool/ansi-escape-control'
         },
-        { text: 'software', link: '/tool/software' }
+        { text: 'software', link: '/tool/software' },
+        { text: 'misc', link: "/tool/misc"}
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },

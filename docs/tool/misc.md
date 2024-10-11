@@ -32,7 +32,6 @@ aside: true
 - 部分语言\库的示例代码太少，或者可读性不好
 
 
-
 ## macOS 虚拟机
 [前往](https://mac.getutm.app/)
 
@@ -49,3 +48,17 @@ aside: true
 查询各个款式cpu的benchmark跑分表现
 
 [前往](https://www.cpubenchmark.net/mid_range_cpus.html)
+
+## astexplorer
+[前往](https://astexplorer.net/)
+
+<LoadingPreviewCard url="https://astexplorer.net/" />
+
+支持各种编程语言的AST生成器
+
+## ts-ast-viewer
+[前往](https://ts-ast-viewer.com/)
+
+<LoadingPreviewCard url="https://ts-ast-viewer.com/" />
+
+typescript的AST生成器
