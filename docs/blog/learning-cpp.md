@@ -620,4 +620,76 @@ int main() {
 还想折腾么？我反正是不想了。
 
 
+## 初始化的写法
+```cpp
+class A {
+  private:
+    int a;
+
+  public:
+    A(int a): a(a) {}
+};
+
+int main() {
+  // 以下的写法都是等效的
+  A a = 10;
+  A b(10);
+  A c = {10};
+  A d{10};
+
+  return 0;
+}
+```
+
+也可以有这种写法，在c++17是没有错误的：
+```cpp
+class A {
+  private:
+    int a;
+    int b;
+
+  public:
+    A(int a, int b): a(a), b(b) {}
+}
+
+int main() {
+  A a(10, 20);
+  A b = {10, 20};
+  A c{10, 20};
+  return 0;
+}
+```
+
+也可以用这种定义方式：
+```cpp
+class A {
+  private:
+    int a;
+    int b;
+
+  public:
+    A(std::initializer_list<int> list) {  // [!code highlight]
+      auto iter = list.begin();           // [!code highlight]
+      a = *iter;                          // [!code highlight]
+      iter++;                             // [!code highlight]
+      if (iter != list.end()) {           // [!code highlight]
+        b = *iter;                        // [!code highlight]
+      } else {                            // [!code highlight]
+        b = 0;                            // [!code highlight]
+      }                                   // [!code highlight]
+    }                                     // [!code highlight]
+}
+
+int main() {
+  // work
+  A a = {10, 20}; 
+  // work
+  A b{10, 20};
+  // error!
+  A c(10, 20);  // [!code highlight]
+  return 0;
+}
+```
+> 这种方式适合定义容器类型的class, 如 list, vector 等
+
 <Giscus />
