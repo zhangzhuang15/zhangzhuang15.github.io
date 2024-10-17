@@ -692,4 +692,120 @@ int main() {
 ```
 > 这种方式适合定义容器类型的class, 如 list, vector 等
 
+:::tip <TipIcon />
+如果你没有写出对应的构造函数，C++编译器会默认提供 构造函数、拷贝构造函数、赋值运算符号，这个行为是把双刃剑，好处是省得你写一写代码，坏处是它背着你做了这些事情。因此，你最好还是明确给出这些构造函数的实现，不要空缺！
+:::
+
+
+## inherit
+C++的继承方式提供了public, protected, private三种方式。
+
+:::code-group
+```cpp [public.cpp]
+class Base {
+  private:
+    void show();
+
+  public:
+    void hello();
+
+  protected:
+    void see();
+};
+
+class Derive: public Base {
+  public:
+    void say();
+};
+
+// Derive 粗略等效于：
+class M {
+  private:
+    void show();
+
+  public:
+    void hello();
+    void say();
+
+  protected:
+    void see();
+};
+```
+```cpp [protected.cpp]
+class Base {
+  private:
+    void show();
+
+  public:
+    void hello();
+
+  protected:
+    void see();
+};
+
+class Derive: protected Base {
+  public:
+    void say();
+};
+
+// Derive 粗略等效于：
+class M {
+  private:
+    void show();
+
+  public:
+    void say();
+
+  protected:
+    void hello();
+    void see();
+};
+
+```
+
+```cpp [private.cpp]
+class Base {
+  private:
+    void show();
+
+  public:
+    void hello();
+
+  protected:
+    void see();
+};
+
+class Derive: private Base {
+  public:
+    void say();
+};
+
+// Derive 粗略等效于：
+class M {
+  private:
+    void show();
+    void hello();
+    void see();
+
+  public:
+    void say();
+};
+```
+:::
+
+`A: public B` 的意思，就是 `A is B` 的意思，A继承了B的接口，代码中把所有的B替换成A的话，代码照常运行，因为二者接口兼容；
+
+`A: private B`的意思，就是 `A is implemented in terms of B`, A没有继承B的接口，但是A继承了B的实现。此时，`A must not be B`。此时的行为，非常类似于A内部有个成员是B对象，即A中组合了B。
+
+`A: protected B`除了它语法中的含义外，找不到上述的一些结构设计上的含义，不要使用这种继承方式。
+
+作为对比，我们可以看看其它编程语言的表现。
+
+Swift中直接抛弃了多继承机制，只有public继承的语义，简洁、清晰，我非常喜欢。
+
+Java中抛弃了多继承机制，但仍保留了public/protected/private的继承方式，虽有改进，但感觉差点儿意思，我对此中立。
+
+Go 和 Rust 采用组合的方式搞“继承”，我的最爱。
+
+
 <Giscus />
