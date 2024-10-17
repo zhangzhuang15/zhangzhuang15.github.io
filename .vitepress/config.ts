@@ -333,6 +333,10 @@ export default defineConfig({
               link: '/blog/learning-cpp'
             },
             {
+              text: 'rust编译出来的executable file比cpp大？',
+              link: '/blog/rust-binary-is-big'
+            },
+            {
               text: '与二进制文件打交道',
               link: '/blog/talk-to-executable'
             },
