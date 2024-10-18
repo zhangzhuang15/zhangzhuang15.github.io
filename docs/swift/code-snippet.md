@@ -9,6 +9,10 @@ aside: true
 ```swift [switch-example.swift]
 // 展示：类型模式匹配
 
+struct MM {
+    let value: Int
+}
+
 func main() {
     var score = 10
     switch score {
@@ -45,6 +49,31 @@ func main() {
     case let .Right(direction):
         print("msg: \(direction)")
     }
+
+
+    enum M {
+        case Left(MM)
+        case Right(String)
+    }
+
+    let m: M = .Left(MM(value: 10))
+    switch m {
+    case let .Left(m):
+       print("value: \(m.value)")
+    case let .Right(s):
+       print("s: \(s)")
+    }
+
+    // 你不能如此匹配:
+    // switch m {
+    // case .Left(let M(value)):
+    //   print("value: \(value)")
+    // case let .Right(s):
+    //   print("s: \(s)")
+    // }
+    //
+    // swift的模式匹配没有Rust强大，无法玩出上述的表达
+
 }
 ```
 ```swift [optional-example.swift]

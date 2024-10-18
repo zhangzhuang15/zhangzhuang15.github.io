@@ -148,8 +148,8 @@ export default defineConfig({
           { text: 'vscode', link: '/tool/vscode-install' },
           { text: 'front dev', link: '/tool/front-dev/config' },
           { text: 'NPM', link: '/tool/index-npm' },
-          { text: 'software', link: '/tool/software' }
-
+          { text: 'software', link: '/tool/software' },
+          { text: 'misc', link: '/tool/misc' }
         ],
       },
       {
@@ -329,6 +329,18 @@ export default defineConfig({
               link: "/blog/cpp-rust"
             },
             {
+              text: '接触cpp',
+              link: '/blog/learning-cpp'
+            },
+            {
+              text: 'rust编译出来的executable file比cpp大？',
+              link: '/blog/rust-binary-is-big'
+            },
+            {
+              text: '与二进制文件打交道',
+              link: '/blog/talk-to-executable'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
@@ -426,7 +438,8 @@ export default defineConfig({
           text: 'ansi escape control',
           link: '/tool/ansi-escape-control'
         },
-        { text: 'software', link: '/tool/software' }
+        { text: 'software', link: '/tool/software' },
+        { text: 'misc', link: "/tool/misc"}
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
