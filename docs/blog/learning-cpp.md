@@ -807,5 +807,14 @@ Java中抛弃了多继承机制，但仍保留了public/protected/private的继�
 
 Go 和 Rust 采用组合的方式搞“继承”，我的最爱。
 
+## virtual
+virtual很令人困惑：
+- 所有的virtual函数都必须override么？
+- pure virtual 函数在定义的时候有实现么？
+- 构造函数可以virtual么？
+- 构造函数内调用virtual函数很危险？
+- override virtual函数时，入参的默认值要和原来版本保持一致？
+- virtual函数会导致class体积增加？
+
 
 <Giscus />

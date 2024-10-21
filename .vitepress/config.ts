@@ -341,6 +341,10 @@ export default defineConfig({
               link: '/blog/talk-to-executable'
             },
             {
+              text: "使用vue遇到的一些坑",
+              link: '/blog/vue-apply'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
