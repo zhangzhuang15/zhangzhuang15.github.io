@@ -375,7 +375,8 @@ export default defineConfig({
         { text: "首页", link: "/frontend/index-page" },
         { text: 'typescript类型系统', link: '/frontend/ts-type'},
         { text: 'jsdoc常用的语法', link: '/frontend/js-doc'},
-        { text: 'code snippet', link: '/frontend/code-snippet'}
+        { text: 'code snippet', link: '/frontend/code-snippet'},
+        { text: 'FAQ', link: '/frontend/FAQ' }
       ],
       "/swift": [
         { text: "code snippet", link: "/swift/code-snippet"}

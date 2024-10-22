@@ -752,4 +752,55 @@ input[type=number] {
 
 这样一来，如果用户输入的内容中，存在非数字字符，那么输入框的内容不会发生变化，也不会触发input事件。
 
+
+## 下载文件
+```js
+function download(url) {
+    const urlObj = new URL(url, location.href)
+    
+    function simpleDownload(url) {
+        const a = document.createElement('a')
+        a.href = url 
+        // 等效于 <a download>
+        a.download = ''
+        a.click()
+    }
+
+    // same origin
+    if (urlObj.origin === location.origin) {
+        simpleDownload(url)
+        return
+    }
+
+    // 非同源的解决方式
+    const req = new XMLHttpRequest()
+    req.timeout = 10 * 1000
+    req.responseType = 'blob'
+    req.onreadystatechange = () => {
+        if (req.readyState === 4) {
+            /**@type {Blob} */
+            const res = req.response
+            const $url = URL.createObjectURL(res)
+            simpleDownload($url)
+            // 执行后，正在下载的文件不会受到影响
+            URL.revokeObjectURL($url)
+        }
+    }
+    req.onerror = () => {
+        console.log('下载失败，请稍后重试')
+    }
+    req.ontimeout = () => {
+        console.log('下载超时，请稍后重试')
+    }
+    req.open('GET', url)
+    req.send(null)
+}
+```
+
+`URL.revokeObjectURL` 不会导致下载的文件被删除。
+
+`URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件是存储在blob的，只有blob对象被垃圾回收后，文件才会被删除。如果没有调用 `URL.revokeObjectURL` ，$url 就会持有 blob 的引用，导致 blob 对象无法被垃圾回收，造成内存泄漏，也导致文件占据内容，无法被释放。
+
+非同源方式下，即便你设置了 `download` 属性，也不会生效，因此要特殊处理。
+
 <Giscus />
