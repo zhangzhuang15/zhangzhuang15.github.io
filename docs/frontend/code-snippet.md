@@ -766,8 +766,19 @@ function download(url) {
         a.click()
     }
 
+    // Firefox浏览器不支持跨域资源的<a>download属性下载，
+    // 因此，你无法通过设置<a>的download属性，主动下载资源；
+    //
+    // Chrome浏览器支持跨域资源下载，但是在跨域情形中，你
+    // 无法设置<a>的download属性，为要下载的资源重新命名;
+
     // same origin
     if (urlObj.origin === location.origin) {
+        simpleDownload(url)
+        return
+    }
+    // google chrome
+    if (navigator && navigator.userAgent.toLowerCase().includes("chrome")) {
         simpleDownload(url)
         return
     }
@@ -801,6 +812,5 @@ function download(url) {
 
 `URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件是存储在blob的，只有blob对象被垃圾回收后，文件才会被删除。如果没有调用 `URL.revokeObjectURL` ，$url 就会持有 blob 的引用，导致 blob 对象无法被垃圾回收，造成内存泄漏，也导致文件占据内容，无法被释放。
 
-非同源方式下，即便你设置了 `download` 属性，也不会生效，因此要特殊处理。
 
 <Giscus />

@@ -130,3 +130,98 @@ export default {
 ```
 
 默认情况下，不会立即调用 watch value effect，这就意味着，当 value 第一次变化的时候，我们只是给 value 绑定了 effect, 在第二次变化的时候，effect才会执行。
+
+## $route.params 为什么是空对象或者undefined
+在最早期的vue-router, 支持`this.$router.replace({ path: '', params })` 传入params，在跳转到的页面中，使用`this.$route.params`可以访问到。但是呢，如果用户完成跳转之后，点击浏览器的刷新按钮，那么`params`就会被清除。正因为如此，在后来的vue-router版本中，取消了这种用法，你不能传params，只能传query。query记录在url上，即便刷新，也不会丢失。
+
+如果你非要传入params，只能自己调用浏览器原生的history对象搞定。
+
+## 清理资源时，不要相信 beforeDestroy
+假设有这样的代码：
+:::code-group
+```js [src/api.js]
+const Context = {
+    cached: false,
+    data: []
+}
+
+export async function fetchData() {
+    if (Context.cached) {
+        return Context.data
+    }
+    const url = ''
+    const data = await fetch(url)
+    Context.cached = true
+    Context.data = data
+    return data
+}
+
+export function dispose() {
+    Context.cached = false
+    Context.data = []
+}
+```
+
+```vue [src/componentOne.vue]
+<template></template>
+<script>
+import { fetchData, dispose } from "./api.js"
+export default {
+    name: 'componentOne',
+    data() {
+        return {
+            list: []
+        }
+    },
+    mounted() {
+        fetchData()
+          .then(data => this.list = data)
+    },
+    beforeDestroy() {
+        dispose()
+    }
+}
+</script>
+```
+
+```vue [src/componentTwo.vue]
+<template></template>
+<script>
+import { fetchData, dispose } from "./api.js"
+export default {
+    name: 'componentTwo',
+    data() {
+        return {
+            list: []
+        }
+    },
+    mounted() {
+        fetchData()
+          .then(data => this.list = data)
+    },
+    beforeDestroy() {
+        dispose()
+    }
+}
+</script>
+```
+:::
+
+考虑这样的一个情景，componentOne组件卸载，componentTwo组件挂载。如果前者早于后者，不会有什么大问题，但是后者一旦早于前者，就会有问题，后者就会看到旧数据。
+
+这种循序很有隐蔽，请看：
+```vue
+<template>
+  <tabs>
+    <tab-pane>
+        <component-one />
+    </tab-pane>
+    <tab-pane>
+        <component-two />
+    </tab-pane>
+  </tabs>
+</template>
+
+```
+
+如果我们切换tab页，从 component-two 所展示的页面切换到 component-one 的页面，你就会受到视觉效果影响，觉得是 component-two 先卸载了，然后component-one挂载。可是vue的渲染是根据vnode tree来的，component-one 位于 component-two之前，那么极有可能是先挂载component-one，再卸载component-two。然后....一些诡异又玄学的事情就发生了。

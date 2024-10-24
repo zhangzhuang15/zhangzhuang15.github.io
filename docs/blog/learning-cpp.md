@@ -816,5 +816,159 @@ virtual很令人困惑：
 - override virtual函数时，入参的默认值要和原来版本保持一致？
 - virtual函数会导致class体积增加？
 
+### 所有的virtual函数都必须override么
+override表示Base类内的方法可以Derive类重写，Derive类不需要全部重写，没有重写的函数，就会复用Base类的实现。
+
+
+```cpp
+class Base {
+  public: {
+    virtual void hello() {}
+  }
+};
+
+class Derive: public Base {
+  public: {
+
+  }
+};
+```
+
+但是，Base 的 pure virtual 函数，Derive类型必须重写。因为 pure virtual 函数本身是没有定义的。既然Base没有定义出来，Derive类还没重写，那调用起来就会出问题。
+
+
+### 构造函数可以virtual么
+构造函数不可以，但是析构函数可以。
+
+```cpp
+class Base {
+  public: 
+     ~Base() {
+      std::cout << "wow";
+     }
+  
+};
+
+class Derive: public Base {
+  public: 
+    ~Derive() {
+      std::cout << "hooo";
+    }
+};
+
+int main() {
+  Base* p = new Derive();
+  delete p;
+  return 0;
+}
+```
+output:
+```txt
+wow
+```
+我去，Derive的析构函数没有执行，内存泄漏！
+
+纠正的方法：
+```cpp
+class Base {
+  public: 
+     ~Base() {            // [!code --]
+     virtual ~Base() {    // [!code ++]
+      std::cout << "wow";
+     }
+  
+};
+
+class Derive: public Base {
+  public: 
+    ~Derive() {
+      std::cout << "hooo";
+    }
+};
+
+int main() {
+  Base* p = new Derive();
+  delete p;
+  return 0;
+}
+```
+
+如果是三层继承呢
+```cpp
+class Base {
+  public: 
+     ~Base() {
+      std::cout << "wow";
+     }
+  
+};
+
+class Derive: public Base {
+  public: 
+    ~Derive() {
+      std::cout << "hooo";
+    }
+};
+
+class C: public Derive {
+  public:
+  ~C() {
+    std::cout << "ohhh";
+  }
+};
+
+int main() {
+  Derive* p = new C();
+  delete p;
+  return 0;
+}
+```
+output:
+```txt
+hooowow
+```
+C的析构函数没有执行。如果给Derive的析构函数加入virtual修饰，确实可以解决这个问题,但在加入之后，如果改为`Base* p = new C()`，那么Derive和C的析构函数依旧不会执行。因此，最佳的方式，是给 Base 的析构函数加入 virtual
+
+### override virtual函数时，入参的默认值要和原来版本保持一致
+是的。
+
+Derive在重写Base的方法时，方法的入参列表要和Base保持一致，但是默认值要不要一致，并没有严格规定，但是，你还是要保持一致。不然就会有下面代码的问题。
+
+```cpp
+class Base {
+  public: 
+    virtual void hello(int m = 4) {
+      std::cout << "hello";
+      std::cout << m;
+    }
+  
+};
+
+class Derive: public Base {
+  public: 
+    void hello(int m = 2) override {
+      std::cout << "world" << std::endl;
+      std::cout << m;
+    };
+  
+};
+
+int main() {
+  Derive d;
+  Base* p = &d;
+  p->hello();
+  return 0;
+}
+```
+output:
+```txt
+world
+4
+```
+
+太可怕了！
+
+调用的是Derive定义的hello, 默认参数传的是Base的
+
 
 <Giscus />
