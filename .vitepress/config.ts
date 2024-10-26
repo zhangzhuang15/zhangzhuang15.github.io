@@ -341,6 +341,10 @@ export default defineConfig({
               link: '/blog/talk-to-executable'
             },
             {
+              text: '函数调用ABI',
+              link: '/blog/call-abi'
+            },
+            {
               text: "使用vue遇到的一些坑",
               link: '/blog/vue-apply'
             },

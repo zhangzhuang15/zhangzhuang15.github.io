@@ -27,7 +27,7 @@ LLVM version: 18.1.7
 ```
 其中最重要的是`host`行，它表示：
 - aarch64, CPU类型
-- apple, CP产商
+- apple, CPU产商
 - darwin, 操作系统
 
 如果`host`是 *riscv64gc-unknown-none-elf*， 它表示：
