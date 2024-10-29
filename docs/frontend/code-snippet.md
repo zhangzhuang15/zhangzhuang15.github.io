@@ -752,4 +752,65 @@ input[type=number] {
 
 这样一来，如果用户输入的内容中，存在非数字字符，那么输入框的内容不会发生变化，也不会触发input事件。
 
+
+## 下载文件
+```js
+function download(url) {
+    const urlObj = new URL(url, location.href)
+    
+    function simpleDownload(url) {
+        const a = document.createElement('a')
+        a.href = url 
+        // 等效于 <a download>
+        a.download = ''
+        a.click()
+    }
+
+    // Firefox浏览器不支持跨域资源的<a>download属性下载，
+    // 因此，你无法通过设置<a>的download属性，主动下载资源；
+    //
+    // Chrome浏览器支持跨域资源下载，但是在跨域情形中，你
+    // 无法设置<a>的download属性，为要下载的资源重新命名;
+
+    // same origin
+    if (urlObj.origin === location.origin) {
+        simpleDownload(url)
+        return
+    }
+    // google chrome
+    if (navigator && navigator.userAgent.toLowerCase().includes("chrome")) {
+        simpleDownload(url)
+        return
+    }
+
+    // 非同源的解决方式
+    const req = new XMLHttpRequest()
+    req.timeout = 10 * 1000
+    req.responseType = 'blob'
+    req.onreadystatechange = () => {
+        if (req.readyState === 4) {
+            /**@type {Blob} */
+            const res = req.response
+            const $url = URL.createObjectURL(res)
+            simpleDownload($url)
+            // 执行后，正在下载的文件不会受到影响
+            URL.revokeObjectURL($url)
+        }
+    }
+    req.onerror = () => {
+        console.log('下载失败，请稍后重试')
+    }
+    req.ontimeout = () => {
+        console.log('下载超时，请稍后重试')
+    }
+    req.open('GET', url)
+    req.send(null)
+}
+```
+
+`URL.revokeObjectURL` 不会导致下载的文件被删除。
+
+`URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件是存储在blob的，只有blob对象被垃圾回收后，文件才会被删除。如果没有调用 `URL.revokeObjectURL` ，$url 就会持有 blob 的引用，导致 blob 对象无法被垃圾回收，造成内存泄漏，也导致文件占据内容，无法被释放。
+
+
 <Giscus />

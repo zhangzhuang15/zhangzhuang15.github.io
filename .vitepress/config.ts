@@ -341,6 +341,18 @@ export default defineConfig({
               link: '/blog/talk-to-executable'
             },
             {
+              text: '函数调用ABI',
+              link: '/blog/call-abi'
+            },
+            {
+              text: '协程-用C语言实现',
+              link: '/blog/coroutine'
+            },
+            {
+              text: "使用vue遇到的一些坑",
+              link: '/blog/vue-apply'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
@@ -371,7 +383,8 @@ export default defineConfig({
         { text: "首页", link: "/frontend/index-page" },
         { text: 'typescript类型系统', link: '/frontend/ts-type'},
         { text: 'jsdoc常用的语法', link: '/frontend/js-doc'},
-        { text: 'code snippet', link: '/frontend/code-snippet'}
+        { text: 'code snippet', link: '/frontend/code-snippet'},
+        { text: 'FAQ', link: '/frontend/FAQ' }
       ],
       "/swift": [
         { text: "code snippet", link: "/swift/code-snippet"}

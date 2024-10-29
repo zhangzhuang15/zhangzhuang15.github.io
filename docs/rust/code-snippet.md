@@ -496,3 +496,89 @@ fn main() {
     println!("cost: {:?}ms", timeout.as_millis());
 }
 ```
+
+## 内联汇编
+rustc的**nightly版本**才支持内联汇编
+
+```rust 
+#![feature(asm)]
+
+fn main() {
+    let x = 42;
+    let mut y = 0;
+
+    unsafe {
+        asm!(
+            "mov {0}, {1}",
+            out(reg) y, // 将寄存器的值赋给 y
+            in(reg) x   // 将 x 的值放入寄存器
+        );
+    }
+
+    println!("y = {}", y); // 输出: y = 42
+}
+```
+经过Rust编译之后，`{0}`就会变成一个具体的寄存器名称，我们在编写的代码的时候，无需关心，降低了我们的编程心智。所以，把`{0}`和`{1}`理解为寄存器即可。`{0}`和`y`建立联系，汇编代码执行完毕后的`{0}`的值，会存入`y`。`{1}`和`x`建立联系，表示`{1}`的初始值，取自`x`.
+
+
+多个参数，多行汇编：
+```rust 
+#![feature(asm)]
+
+fn main() {
+    let x = 42;
+    let mut y = 0;
+    let mut z = 0;
+
+    unsafe {
+        asm!(
+            "mov {0}, {1}",
+            "mov {2}, {1}",
+            out(reg) y, // 将寄存器的值赋给 y
+            in(reg) x,  // 将 x 的值放入寄存器
+            out(reg) z  // 将寄存器的值赋给 z
+        );
+    }
+
+    println!("y = {}, z = {}", y, z); // 输出: y = 42, z = 42
+}
+
+```
+
+```rust 
+#![feature(asm)]
+
+fn main() {
+    let mut x = 42;
+
+    unsafe {
+        asm!(
+            "add {0}, 1",
+            inout(reg) x // x 既是输入又是输出
+        );
+    }
+
+    println!("x = {}", x); // 输出: x = 43
+}
+```
+
+`{0}`的初始值来自于`x`,而汇编代码执行完毕后，`{0}`的值会被写入`x`.
+
+
+绑定具体的寄存器：
+```rust 
+#![feature(asm)]
+
+fn main() {
+    let mut x = 42;
+
+    unsafe {
+        asm!(
+            "add eax, 1",
+            inout("eax") x // x 既是输入又是输出，使用 eax 寄存器
+        );
+    }
+
+    println!("x = {}", x); // 输出: x = 43
+}
+```

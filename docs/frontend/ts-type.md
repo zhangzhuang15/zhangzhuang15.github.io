@@ -538,7 +538,89 @@ async function hello() {
 type M = GetPromiseFulfilledResult<ReturnType<typeof hello>>
 ```
 
+在较新版本的typescript中，用 `Awaited` 就能做到：
+```ts
+const p = Promise.resolve(10)
+
+// K is number type
+type K = Awaited<typeof p>
+```
+
 ### 约束number为正数
 ```ts
 type PositiveNumber<T extends number> = `${T}` extends `-${number}` | `0` ? never : T;
+```
+
+### 获取函数入参的类型
+```ts
+function hello(a: string, b: number, c: { name: string }) {}
+
+type aType = Parameters<typeof hello>[0]
+type bType = Parameters<typeof hello>[1]
+type cType = Parameters<typeof hello>[2]
+```
+
+### 获取函数返回值的类型
+```ts
+function hello() {
+  return Promise.resolve(10)
+}
+
+type M = ReturnType<typeof hello>
+```
+
+### 指定某个field变成optional
+```ts
+interface A {
+  a: string,
+  b: number,
+  t: string
+}
+
+type PartialSome<T, K in keyof T> = Omit<T, K> & Pick<Partial<T>, K>
+
+type B = PartialSome<A, 't'>
+// {
+//   a: string,
+//   b: number,
+//   t?: string
+// }
+```
+
+### 指定某个field变成required
+```ts
+interface A {
+  a: string,
+  b?: number,
+  c?: number
+}
+
+type RequiredSome<T, K in keyof T> = Omit<T, K> & Pick<Required<T>, K>
+
+type B = RequiredSome<A, 'b'>
+// {
+//   a: string,
+//   b: number,
+//   c?: number
+// }
+```
+
+### 把所有的field变成Optional
+```ts
+interface A {
+  a: number
+  b: string
+}
+
+type B = Partial<A>
+```
+
+### 把所有的field变成required
+```ts
+interface A {
+  a?: number
+  b?: number
+}
+
+type B = Required<A>
 ```
