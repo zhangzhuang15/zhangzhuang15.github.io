@@ -345,6 +345,10 @@ export default defineConfig({
               link: '/blog/call-abi'
             },
             {
+              text: '协程-用C语言实现',
+              link: '/blog/coroutine'
+            },
+            {
               text: "使用vue遇到的一些坑",
               link: '/blog/vue-apply'
             },
