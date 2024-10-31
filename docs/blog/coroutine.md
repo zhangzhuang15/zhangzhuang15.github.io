@@ -668,6 +668,332 @@ gcc main.c -O1 -o main
 - 不支持多线程
 
 
+## 汇编纯享版
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#define STACK_SIZE 1024
+
+typedef struct {
+    u_int64_t x0;
+    /** 栈顶寄存器 */
+    u_int64_t sp;
+    /** 栈底寄存器 */
+    u_int64_t x29;
+    /** 返回地址寄存器 */
+    u_int64_t x30;
+    /** 协程结束，应该跳转到哪个地址 */
+    u_int64_t endAddr;
+    u_int64_t endSp;
+    u_int64_t endX29;
+    u_int64_t endX30;
+
+    uint64_t entry;
+    uint64_t stack;
+    uint64_t size;
+    uint64_t dead;
+    uint64_t start;
+} Routine;
+
+Routine* queueZero();
+Routine* queueOne();
+
+typedef void (*Entry)();
+
+Routine* current;
+Routine queue[2];
+
+void switchToRoutine();
+
+void markCurrentDead() {
+    current->dead = 1;
+};
+
+__attribute__((naked)) void wrapper() {
+    __asm__ volatile(
+        "sub sp, sp, #16\n\t"
+        "str x29, [sp]\n\t"
+        "str x30, [sp, #8]\n\t"
+        "blr x0\n\t"
+        "bl _markCurrentDead\n\t"
+        "bl _switchToRoutine\n\t"
+        "ldr x29, [sp]\n\t"
+        "ldr x30, [sp, #8]\n\t"
+        "add sp, sp, #16\n\t"
+        "ret\n\t"
+        :
+        :
+        :"memory"
+    );
+}
+
+void createRoutine(Entry entry) {
+    u_int8_t* stack = (u_int8_t*)malloc(STACK_SIZE);
+    if (stack == NULL) {
+        perror("Failed to allocate stack memory");
+        exit(EXIT_FAILURE);
+    }
+    Routine r;
+    uint64_t aligned_sp = (uint64_t)(stack + STACK_SIZE - 1) & ~0xF; // 16字节对齐
+    r.sp = aligned_sp;
+    r.x29 = aligned_sp;
+    r.entry = (uint64_t)wrapper;
+    r.x30 = (uint64_t)wrapper;
+    r.size = STACK_SIZE - 1;
+    r.dead = 0;
+    r.stack = (uint64_t)stack;
+    r.x0 = (uint64_t)entry;
+    r.start = 0;
+
+    queue[1] = r;
+}
+
+void execute();
+void release();
+void mainRoutineEntry();
+
+void createMainRoutine(Entry entry) {
+    u_int8_t* stack = (u_int8_t*)malloc(STACK_SIZE);
+    if (stack == NULL) {
+        perror("Failed to allocate stack memory");
+        exit(EXIT_FAILURE);
+    }
+    Routine r;
+    uint64_t aligned_sp = (uint64_t)(stack + STACK_SIZE - 1) & ~0xF; // 16字节对齐
+    r.sp = aligned_sp;
+    r.x29 = aligned_sp;
+    r.entry = (uint64_t)entry;
+    r.x30 = (uint64_t)entry;
+    r.size = STACK_SIZE - 1;
+    r.dead = 0;
+    r.stack = (uint64_t)stack;
+    r.x0 = (uint64_t)entry;
+
+    queue[0] = r;
+}
+
+__attribute__((naked)) void create() {
+    __asm__ volatile(
+        "sub sp, sp, #16\n\t"
+        "str x29, [sp]\n\t"
+        "str x30, [sp, #8]\n\t"
+        "adrp	x0, _mainRoutineEntry@PAGE\n\t"
+	    "add	x0, x0, _mainRoutineEntry@PAGEOFF\n\t"
+        "bl _createMainRoutine\n\t"
+        "bl _execute\n\t"
+        "bl _release\n\t"
+        "ldr x29, [sp]\n\t"
+        "ldr x30, [sp, #8]\n\t"
+        "add sp, sp, #16\n\t"
+        "ret\n\t"
+    );
+}
+
+__attribute__((naked)) void switchToInitChildRoutine_1() {
+    __asm__ volatile(
+        "mov x10, sp\n\t"
+        "str x10, [x0, #8]\n\t"
+        "str x29, [x0, #16]\n\t"
+        "str x30, [x0, #24]\n\t"
+        "ldr x10, [x1, #8]\n\t"
+        "mov sp, x10\n\t"
+        "ldr x29, [x1, #16]\n\t"
+        "ldr x30, [x1, #24]\n\t"
+        "ldr x0, [x1]\n\t"
+        "ret\n\t"
+        : 
+        :
+        :"memory", "x10", "x30", "x0", "x1"
+    ); 
+}
+
+__attribute__((naked)) void switchToChildRoutine_1() {
+    __asm__ volatile(
+        "mov x10, sp\n\t"
+        "str x10, [x0, #8]\n\t"
+        "str x29, [x0, #16]\n\t"
+        "str x30, [x0, #24]\n\t"
+        "ldr x10, [x1, #8]\n\t"
+        "mov sp, x10\n\t"
+        "ldr x29, [x1, #16]\n\t"
+        "ldr x30, [x1, #24]\n\t"
+        "ret\n\t"
+        : 
+        : 
+        :"memory","x10", "x30"
+    );
+}
+
+__attribute__((naked)) void switchToRoutine_1() {
+   __asm__ volatile(
+       // 保存当前上下文
+       "mov x2, sp\n\t"
+       "str x2, [x0, #8]\n\t"
+       "str x29, [x0, #16]\n\t"
+       "str x30, [x0, #24]\n\t"
+       // 加载主协程上下文
+       "ldr x2, [x1, #8]\n\t"
+       "mov sp, x2\n\t"
+       "ldr x29, [x1, #16]\n\t"
+       "ldr x30, [x1, #24]\n\t"
+       "ret\n\t"
+       :
+       :
+       :"x2", "memory", "x1"
+   );
+}
+
+__attribute__((naked)) void switchToRoutine() {
+    __asm__ volatile(
+        "sub sp, sp, #16\n\t"
+        "str x29, [sp]\n\t"
+        "str x30, [sp, #8]\n\t"
+        "bl _getMain\n\t"
+        "mov x1, x0\n\t"
+        "bl _getCurrent\n\t"
+        "ldr x29, [sp]\n\t"
+        "ldr x30, [sp, #8]\n\t"
+        "add sp, sp, #16\n\t"
+        "b _switchToRoutine_1\n\t"
+        :
+        :
+        :"x0","x1"
+    );
+}
+
+
+void hello() {
+    printf("hello\n");
+    switchToRoutine();
+    printf("world\n");
+    switchToRoutine();
+    printf("111\n");
+}
+
+uint64_t getMain() {
+    return (uint64_t)&queue[0];
+}
+
+uint64_t getCurrent() {
+    return (uint64_t)&current->x0;
+}
+
+uint64_t choose() {
+    if (queue[1].dead == 0) {
+        current = &queue[1];
+        return (uint64_t)&queue[1];
+    }
+    current = &queue[0];
+    return 0;
+}
+
+__attribute__((naked)) void mainRoutineEntry() {
+    __asm__ volatile(
+        "get_start: \n\t"
+        "bl _choose\n\t"
+        "cbz x0, 1f\n\t"
+        "ldr x1, [x0, #96]\n\t"
+        "cbz x1, 2f\n\t"
+        "mov x1, x0\n\t"
+        "bl _getMain\n\t"
+        "bl _switchToChildRoutine_1\n\t"
+        "b get_start\n\t"
+        "2: \n\t"
+        "mov x1, #1\n\t"
+        "str x1, [x0, #96]\n\t"
+        "mov x1, x0\n\t"
+        "bl _getMain\n\t"
+        "bl _switchToInitChildRoutine_1\n\t"
+        "b get_start\n\t"
+        "1: \n\t"
+        "bl _getMain\n\t"
+        "ldr x10, [x0, #40]\n\t"
+        "mov sp, x10\n\t"
+        "ldr x29, [x0, #48]\n\t"
+        "ldr x30, [x0, #56]\n\t"
+        "ret\n\t"
+    );
+}
+
+__attribute__((naked)) void execute() {
+    __asm__ volatile(
+        "mov x2, sp\n\t"
+        "mov x3, x30\n\t"
+        "bl _getMain\n\t"
+        "str x2, [x0, #40]\n\t"
+        "str x29, [x0, #48]\n\t"
+        "str x3, [x0, #56]\n\t"
+        "ldr x2, [x0, #8]\n\t"
+        "mov sp, x2\n\t"
+        "ldr x29, [x0, #16]\n\t"
+        "ldr x30, [x0, #24]\n\t"
+        "ret\n\t"
+        :
+        :
+        :"x2","memory","x3"
+    );
+}
+
+void release() {
+    free((uint8_t*)(queue[0].stack));
+    free((uint8_t*)(queue[1].stack));
+}
+
+int main() {
+    createRoutine(hello);
+
+    create();
+    
+    printf("ok, that's right\n");
+    printf("wow\n");
+
+    return 0;
+}
+```
+
+使用`-O0`编译后，结果可以运行，但是不稳定，有的时候成功，有的时候失败，报如下的错误：
+```txt
+malloc: Region cookie corrupted for region 0x139800000 (value is 0)[0x1398081fc]
+```
+在上一个版本中，如果用`-O0`编译，一定会报错。
+
+内联汇编中，要引入的C数据较多时，生成的汇编代码中会有非常多的寄存器，寄存器越多，就会引入寄存器之间的污染，导致异常的结果。因此，这个版本做了改进，能用汇编代码的地方，全都改用汇编代码。
+
+这里说一下循环语句怎么用汇编写出来：
+```c
+__attribute__((naked)) void mainRoutineEntry() {
+    __asm__ volatile(
+        "get_start: \n\t"
+        "bl _choose\n\t"
+        "cbz x0, 1f\n\t"
+        "ldr x1, [x0, #96]\n\t"
+        "cbz x1, 2f\n\t"
+        "mov x1, x0\n\t"
+        "bl _getMain\n\t"
+        "bl _switchToChildRoutine_1\n\t"
+        "b get_start\n\t"
+        "2: \n\t"
+        "mov x1, #1\n\t"
+        "str x1, [x0, #96]\n\t"
+        "mov x1, x0\n\t"
+        "bl _getMain\n\t"
+        "bl _switchToInitChildRoutine_1\n\t"
+        "b get_start\n\t"
+        "1: \n\t"
+        "bl _getMain\n\t"
+        "ldr x10, [x0, #40]\n\t"
+        "mov sp, x10\n\t"
+        "ldr x29, [x0, #48]\n\t"
+        "ldr x30, [x0, #56]\n\t"
+        "ret\n\t"
+    );
+}
+```
+
+开头的标签可以随意命名，比如`get_start`，内部的标签，在定义的时候，用数字表示，在跳转的时候，要使用数字+f, 比如 1f 2f.
+
 ## 调试技巧
 调试前，需要`-g`编译代码：
 ```shell 
@@ -695,5 +1021,33 @@ image lookup --symbol wrapper
 b 0x0000000100003cc8
 ```
 > 地址一定是十六进制表达，不能是十进制表达
+
+
+展示当前的汇编代码：
+```shell
+disassemble
+```
+
+单步运行汇编指令（step over）:
+```shell 
+ni
+```
+
+单步运行汇编指令(step in):
+```shell
+si
+```
+
+继续执行：
+```shell 
+c
+```
+
+读取某个地址附近的数据：
+```shell
+memory read 0x1000 --size 16
+```
+> 读取0x1000开始的16个字节
+
 
 <Giscus />
