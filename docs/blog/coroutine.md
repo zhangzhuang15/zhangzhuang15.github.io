@@ -403,4 +403,297 @@ void wrapper(Entry entry) {
 然后协程的entry字段指向 wrapper。容我以后有时间再捣鼓捣鼓吧。
 
 
+## 优化1
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#define STACK_SIZE 1024
+
+typedef struct {
+    u_int64_t x0;
+    /** 栈顶寄存器 */
+    u_int64_t sp;
+    /** 栈底寄存器 */
+    u_int64_t x29;
+    /** 返回地址寄存器 */
+    u_int64_t x30;
+    /** 协程结束，应该跳转到哪个地址 */
+    u_int64_t endAddr;
+    u_int64_t endSp;
+    u_int64_t endX29;
+    u_int64_t endX30;
+
+    uint64_t entry;
+    uint64_t stack;
+    size_t size;
+    volatile int dead;
+    volatile int start;
+} Routine;
+
+Routine* queueZero();
+Routine* queueOne();
+
+typedef void (*Entry)();
+
+Routine* current;
+Routine queue[2];
+
+void switchToRoutine();
+
+void markCurrentDead() {
+    current->dead = 1;
+};
+
+void wrapper(Entry entry) {
+    entry();
+    markCurrentDead();
+    printf("ehy\n");
+    switchToRoutine();
+}
+
+void createRoutine(Entry entry) {
+    u_int8_t* stack = (u_int8_t*)malloc(STACK_SIZE);
+    if (stack == NULL) {
+        perror("Failed to allocate stack memory");
+        exit(EXIT_FAILURE);
+    }
+    Routine r;
+    uint64_t aligned_sp = (uint64_t)(stack + STACK_SIZE - 1) & ~0xF; // 16字节对齐
+    r.sp = aligned_sp;
+    r.x29 = aligned_sp;
+    r.entry = (uint64_t)wrapper;
+    r.x30 = (uint64_t)wrapper;
+    r.size = STACK_SIZE - 1;
+    r.dead = 0;
+    r.stack = (uint64_t)stack;
+    r.x0 = (uint64_t)entry;
+    r.start = 0;
+
+    queue[1] = r;
+}
+
+void execute();
+void release();
+void mainRoutineEntry();
+
+void createMainRoutine(Entry entry) {
+    u_int8_t* stack = (u_int8_t*)malloc(STACK_SIZE);
+    if (stack == NULL) {
+        perror("Failed to allocate stack memory");
+        exit(EXIT_FAILURE);
+    }
+    Routine r;
+    uint64_t aligned_sp = (uint64_t)(stack + STACK_SIZE - 1) & ~0xF; // 16字节对齐
+    r.sp = aligned_sp;
+    r.x29 = aligned_sp;
+    r.entry = (uint64_t)entry;
+    r.x30 = (uint64_t)entry;
+    r.size = STACK_SIZE - 1;
+    r.dead = 0;
+    r.stack = (uint64_t)stack;
+    r.x0 = (uint64_t)entry;
+
+    queue[0] = r;
+}
+
+void create() {
+    createMainRoutine(mainRoutineEntry);
+    execute();
+    release();
+}
+
+__attribute__((naked)) void switchToInitChildRoutine() {
+    __asm__ volatile(
+        "mov %0, sp\n\t"
+        "mov %1, x29\n\t"
+        "mov %2, x30\n\t"
+        : "=r"(queue[0].sp), "=r"(queue[0].x29), "=r"(queue[0].x30)
+        :
+        :"memory"
+    );
+   
+    __asm__ volatile(
+        "ldr x10, [%0]\n\t"
+        "mov sp, x10\n\t"
+        "ldr x29, [%1]\n\t"
+        "ldr x30, [%2]\n\t"
+        "ldr x0, [%3]\n\t"
+        "ret\n\t"
+        :
+        :"r"(&current->sp), "r"(&current->x29), "r"(&current->x30), "r"(&current->x0)
+        :"x10", "x30", "memory", "x0"
+    );
+    
+}
+
+__attribute__((naked)) void switchToChildRoutine() {
+    __asm__ volatile(
+        "mov %0, sp\n\t"
+        "mov %1, x29\n\t"
+        "mov %2, x30\n\t"
+        : "=r"(queue[0].sp), "=r"(queue[0].x29), "=r"(queue[0].x30)
+        :
+        :"memory"
+    );
+    __asm__ volatile(
+        "mov x10, %0\n\t"
+        "mov sp, x10\n\t"
+        "mov x29, %1\n\t"
+        "mov x30, %2\n\t"
+        "ret\n\t"
+        : 
+        :"r"(current->sp), "r"(current->x29), "r"(current->x30)
+        :"x10", "x30", "memory"
+    );
+}
+
+__attribute__((naked)) void switchToRoutine() {
+    __asm__ volatile(
+        "mov x1, sp\n\t"
+        "mov %0, x1\n\t"
+        "mov x1, x29\n\t"
+        "mov %1, x1\n\t"
+        "mov x1, x30\n\t"
+        "mov %2, x1\n\t"
+        : "=r"(current->sp), "=r"(current->x29), "=r"(current->x30)
+        :
+        :"memory", "x1"
+    );
+    
+    __asm__ volatile(
+        "mov x10, %0\n\t"
+        "mov sp, x10\n\t"
+        "mov x29, %1\n\t"
+        "mov x30, %2\n\t"
+        "ret\n\t"
+        :
+        :"r"(queue[0].sp), "r"(queue[0].x29), "r"(queue[0].x30)
+        :"x10", "x30", "memory"
+    );
+}
+
+void hello() {
+    printf("hello\n");
+    switchToRoutine();
+    printf("world\n");
+    switchToRoutine();
+    printf("111\n");
+}
+
+void mainRoutineEntry() {
+    while(1) {
+        current = &queue[0];
+        printf("enter main routine\n");
+        Routine* b = &queue[1];
+        if (b->dead == 1) {
+            printf("yes\n");
+            __asm__ volatile(
+                "mov sp, %0\n\t"
+                "mov x29, %1\n\t"
+                "mov x30, %2\n\t"
+                "ret\n\t"
+                :
+                :"r"(current->endSp), "r"(current->endX29), "r"(current->endX30)
+            );
+        } else {
+            current = b;
+            if (b->start == 0) {
+                b->start = 1;
+                switchToInitChildRoutine();
+            } else {
+                switchToChildRoutine();
+            }
+        }
+    }
+};
+
+__attribute__((naked)) void execute() {
+    __asm__ volatile(
+        "mov x2, sp\n\t"
+        "str x2, [%0]\n\t"
+        "str x29, [%1]\n\t"
+        "str x30, [%2]\n\t"
+        "ldr x2, [%3]\n\t"
+        "mov sp, x2\n\t"
+        "ldr x29, [%4]\n\t"
+        "ldr x30, [%5]\n\t"
+        "ret\n\t"
+        :
+        :"r"(&queue[0].endSp), "r"(&queue[0].endX29), "r"(&queue[0].endX30),"r"(&queue[0].sp), "r"(&queue[0].x29), "r"(&queue[0].x30)
+        :"x2", "x30", "memory"
+    );
+}
+
+void release() {
+    free((uint8_t*)(queue[0].stack));
+    free((uint8_t*)(queue[1].stack));
+}
+
+int main() {
+    createRoutine(hello);
+    create();
+    printf("ok, that's right\n");
+    printf("wow\n");
+    return 0;
+}
+
+```
+
+优化点：
+- 只开放创建普通协程的函数`createRoutine`
+- 调度协程的创建细节、以及所有协程内存资源的释放，由 `create` 函数隐藏
+- 普通协程内，只能使用`switchToRoutine`主动切换协程，同时感知到不到协程结构体
+
+上述代码在改进过程中，遇到了内存异常访问的问题，比如bus错误，段错误。根据Stack Overflow上其他人的帮助（[看这里](https://stackoverflow.com/questions/79141359/whats-wrong-with-my-implementation-of-c-style-coroutine)），我采用了一些解决方法。
+
+对于`execute`函数，以前版本是纯正的C函数，但里边主要做的是上下文切换，最好是纯粹的汇编代码搞定，一般的C函数在经过编译后
+会在函数开头、结尾插入样板代码，比如调整sp寄存器，存储和恢复x29,x30寄存器，ret指令调用。为了不让C编译器搞这些事情，要加入
+`__attribute__((naked))`修饰，这样你在函数里内联了哪些汇编代码，编译后的结果就是这些汇编代码。要注意的是，加入这个修饰
+符号后，函数只能包含内联汇编，不能有C语言代码，但C的全局变量是可以使用的。
+
+`execute`和`release`函数不能放入`createMainRoutine`中，要把三者平铺在一个新的函数，也就是`create`内。原因和缓存有关。
+`release`函数需要访问 queue，然后释放堆内存。如果放在 `createMainRoutine`函数的话，编译的时候，queue的值会存入到内存
+中，当接着`execute`函数保存的上下文结果，切换回`createMainRoutine`的时候，queue的值还是旧的，`queue[0].stack`不存在，
+释放就会出错。解决方式是，不要在`createMainRoutine`创建的栈空间内执行释放，因此要从`createMainRoutine`中把release函数
+拎出来。至于 `execute` 函数，不受此影响，可以放在 `createMainRoutine`，也可以不用放在里边。
+
+上述代码夹杂着c代码和汇编，采取默认优化程度(-O0)编译的话，存在问题，需要用-O1级别编译：
+```shell  
+gcc main.c -O1 -o main
+```
+
+缺陷：
+- 不支持多线程
+
+
+## 调试技巧
+调试前，需要`-g`编译代码：
+```shell 
+gcc main.c -O1 -g -o main
+```
+
+### lldb 指令 
+读取寄存器的值：
+```shell 
+register read x30
+```
+
+查看地址0x100003df8开始的汇编代码：
+```shell 
+disassemble --start-address 0x100003df8
+```
+
+查看符号wrapper所在的地址：
+```shell 
+image lookup --symbol wrapper
+```
+
+给指令地址0x0000000100003cc8打断点：
+```shell 
+b 0x0000000100003cc8
+```
+> 地址一定是十六进制表达，不能是十进制表达
+
 <Giscus />
