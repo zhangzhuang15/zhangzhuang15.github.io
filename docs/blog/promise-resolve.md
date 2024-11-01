@@ -206,7 +206,7 @@ Promise.resolve()
 
 先看看 promise-resolve.tq:
 
-```tq
+```txt
 // https://tc39.es/ecma262/#sec-promise.resolve
 transitioning builtin
 PromiseResolve(implicit context: Context)(
@@ -239,7 +239,7 @@ ResolvePromise(implicit context: Context)(
 
 先瞧瞧 `PromiseResolve`:
 
-```tq
+```txt
 transitioning builtin
 PromiseResolve(implicit context: Context)(
     constructor: JSReceiver, value: JSAny): JSAny {
@@ -297,7 +297,7 @@ PromiseResolve(implicit context: Context)(
 
 这代码，废话连篇，简化版就是：
 
-```tq
+```txt
 transitioning builtin
 PromiseResolve(implicit context: Context)(
     constructor: JSReceiver, value: JSAny): JSAny {
@@ -353,7 +353,7 @@ PromiseResolve(implicit context: Context)(
 
 那就看看呗：
 
-```tq
+```txt
 // https://tc39.es/ecma262/#sec-promise-resolve-functions
 transitioning builtin
 ResolvePromise(implicit context: Context)(
@@ -460,7 +460,7 @@ ResolvePromise(implicit context: Context)(
 
 废话连篇，怎么能忍，上简化版：
 
-```tq
+```txt
 // https://tc39.es/ecma262/#sec-promise-resolve-functions
 transitioning builtin
 ResolvePromise(implicit context: Context)(
