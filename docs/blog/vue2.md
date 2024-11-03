@@ -22,10 +22,14 @@ vue2源码使用的是 2.7.14 版本
   </thead>
   <tbody>
     <tr>
-      <td rowspan="5">src/platforms/web</td>
+      <td rowspan="6">src/platforms/web</td>
       <td>runtime/index.ts</td>
       <td>对于不同的runtime，暴露出来的接口有所不同，但它们都要暴露出Vue，本文件存储的就是Vue逻辑，
       如果你想知道，使用框架时遇到的Vue变量到底是什么东西，就看这个文件</td>
+    </tr>
+    <tr>
+      <td>runtime/patch.ts</td>
+      <td>定义虚拟节点Diff算法的入口文件，更具体的定义在src/core/vdom/patch.ts</td>
     </tr>
     <tr>
       <td>entry-runtime-esm.ts</td>
@@ -631,10 +635,10 @@ export default {
   }
 }
 ```
+vue在watcher添加依赖方面，采用了双缓存的思路，它拥有一个队列，存储上次watcher执行过后，添加的依赖，使用另一个队列，存储当前watcher执行而添加的依赖，之后用新依赖队列替换旧依赖队列，新依赖队列重新设置为空队列。光替换还是不行的，依赖和watcher之间的双向关联的，如果旧依赖在新依赖队列里不存在，还应该让这个依赖把watcher删除，`this.cleanupDeps()` 就是干这个用的。
 
-`this.value`的读取操作，是依赖动态变化的 `this.age`，这也意味着，在某一次，watcher被加入到 `this.value`的 Dep 中，
-在另外一次执行的时候，watcher被加入到 `this.count`的Dep中。因此，watcher每次执行`this.getter()`更新后，它所归属的
-Dep都要更新一下。`this.cleanupDeps`就是删除旧的Dep，改为新的Dep.
+以上述代码为例，watch.age方法会被转化为一个watcher对象，this.age的Dep对象存储这个watcher，当 this.age 更新时，通过Dep对象存储的watcher对象，就能把watch.age方法执行一下。假设this.age为11，watch.age方法被执行了，根据分支条件，执行了`this.value`，根据依赖收集原理，this.value的Dep对象会将watcher对象存储，watcher对象为了清楚有哪些Dep对象存储了自己，也会把this.value的Dep对象存储一下。后来this.age变成了9，watch.age方法又被执行了，根据分支条件，执行了`this.count`，本次watcher只会收集到this.count的Dep对象，而上一次收集到的只有this.value的Dep对象，这时候，`this.cleanupDeps()` 要做的事情就是，将watcher从this.value的Dep对象里删除。
+
 
 #### 2. 谁来删除watcher 
 在 vue 中，创建好的 Watcher，大多数情况下，都不会绑定到 Vue 实例上；
@@ -648,11 +652,59 @@ Dep都要更新一下。`this.cleanupDeps`就是删除旧的Dep，改为新的De
 被垃圾回收，那么Dep也会被释放掉，进而Dep中的watcher的引用计数就会减少，达到0的时候，watcher 
 也就被释放掉了。
 
-#### 3. $watch 
+#### 3. watch options 
+不论你使用 `Vue.prototype.$watch`，还是使用 `watch: {}` option 去建立watcher，都必须要处理好options。在开发的时候，我们常会嘀咕：什么时候 options.immediate设置为 true， 什么时候设置 options.deep 为true。
+
+options还有其它选项，底层都是调用了`new Watcher(vm, expOrFn, cb, options, isRenderWatcher)`, options选项也是与此兼容的。
+
+影响 watcher 行为的属性有：
+- deep, 默认值为false
+- sync, 默认值为false
+- lazy, 默认值为false
+
+嗯？怎么没有 immediate 呢？ 这是因为 options.immediate没有用在 watcher对象内部，只用在 `Vue.prototype.$watch`（`watch: {}`本质也是在调用$watch）。下面细说一下。
+
+**options.immediate=true**
+```ts 
+  Vue.prototype.$watch = function (
+    expOrFn: string | (() => any),
+    cb: any,
+    options?: Record<string, any>
+  ): Function {
+    const vm: Component = this
+    if (isPlainObject(cb)) {
+      return createWatcher(vm, expOrFn, cb, options)
+    }
+    options = options || {}
+    options.user = true
+    const watcher = new Watcher(vm, expOrFn, cb, options)
+    if (options.immediate) {  // [!code highlight]
+      const info = `callback for immediate watcher "${watcher.expression}"` // [!code highlight]
+      pushTarget() // [!code highlight]
+      invokeWithErrorHandling(cb, vm, [watcher.value], vm, info) // [!code highlight]
+      popTarget() // [!code highlight]
+    } // [!code highlight]
+    return function unwatchFn() {
+      watcher.teardown()
+    }
+  }
+```
+`Vue.prototype.$watch(expOrFn, cb, options)`中，使用`new Watcher`创建一个watcher对象，此时watcher.value的初始值就有了， 具体是什么，根据 options.lazy 而定，如果 options.lazy 是true, 初始值就是 undefined，否则，就是根据expOrFn计算出来的被watch的响应式变量值。接着会将watcher.value作为 cb 函数的参数值，立即执行一次cb函数。看好了呀，pushTarget将Dep.target设置为 undefined，也就是说，本次执行 cb 函数，不会触发cb函数内响应式变量的依赖收集，但是，如果cb函数内有对响应式变量的设置，会触发该响应式变量相关的effect，比如UI重新渲染。
+  
+
+**options.lazy**
+它用在computed属性上，和watch无关。如果为true，computed属性在第一次访问时，直接返回undefined, 第二次访问才会根据它所依赖的响应式变量正式计算一遍，也就是在这一次，建立起它和响应式变量的响应式关系。
+
+**options.deep=true**
+假设响应式变量`this.a= { b: 'hello'}`, 在没有加入options.deep=true时，如果`this.a.b = 'c'`，watcher的cb不会执行，只有`this.a={ b: 'c'}` 才会执行。数组也是同理，`this.a=[1,2,3]`， 如果 `this.a[0] = 10`，watcher的cb不会执行。
+
+**options.sync=true**
+当响应式变量更新时，watcher的cb会立即被执行；否则，会被加入到`nextTick`里稍后执行。
 
 #### 4. 渲染
+`new Watcher(vm, expOrFn, cb, options, isRenderWatcher)`最后的参数 isRenderWatcher 将watcher分为rendering watcher和普通的watcher，渲染的工作，就是有rendering watcher完成的，它被绑定在`vm._watcher`上。
 
-#### 5. watchEffect 
+[详见这里](#响应式变量更新后-怎么就自动重新渲染了)
 
 ### Observer 
 定义位置：`src/core/observer/index.ts`
@@ -837,10 +889,72 @@ value 会不会失去响应式，要看 getter 方法返回的结果是否经过
 
 ## composition API 
 ### reactive 
-待补充
+```ts 
+function reactive(target: object) {
+  makeReactive(target, false)
+  return target
+}
+
+function shallowReactive<T extends object>(
+  target: T
+): ShallowReactive<T> {
+  makeReactive(target, true)
+  def(target, ReactiveFlags.IS_SHALLOW, true)
+  return target
+}
+
+function makeReactive(target: any, shallow: boolean) {
+  if (!isReadonly(target)) {
+    const ob = observe(
+      target,
+      shallow,
+      isServerRendering() /* ssr mock reactivity */
+    )
+  }
+}
+```
+本质是调用`observe`，也就是创建`Observer`对象实现。假设我们响应式化的普通对象是target, 那么会有这样的关系：
+- observer.value === target 
+- target.__ob__ === observer 
+- 如果target作为另一个对象b的属性存在，即 b = { target },observer.dep负责跟踪b.target的依赖
+- target的各个属性，则会有一个闭包产生的Dep对象负责跟踪依赖
 
 ### ref
-待补充
+```ts 
+function ref(value?: unknown) {
+  return createRef(value, false)
+}
+
+function shallowRef(value?: unknown) {
+  return createRef(value, true)
+}
+
+function createRef(rawValue: unknown, shallow: boolean) {
+  if (isRef(rawValue)) {
+    return rawValue
+  }
+  const ref: any = {}
+  def(ref, RefFlag, true)
+  def(ref, ReactiveFlags.IS_SHALLOW, shallow)
+  def(
+    ref,
+    'dep',
+    defineReactive(ref, 'value', rawValue, null, shallow, isServerRendering())
+  )
+  return ref
+}
+```
+
+本质还是使用`Observer`。`defineReactive`返回的就是跟踪`ref.value`依赖的Dep对象。
+
+对比一下`reactive`:
+```ts 
+const val = { name: 'jack', age: 8 }
+
+reactive(val); // 会有 val.__ob__ 
+
+ref(val);// 没有 val.__ob__, 只有 val.dep 和 val.value。 不存在 val.value.__ob__
+```
 
 ### watch 
 待补充
@@ -958,7 +1072,7 @@ class Watcher {
 :::tip <TipIcon />
 `_render`是 vue 对 `render` 的一层封装，这层封装不改变功能；
 
-`render`是有组件的编写人员定义的，比如你直接定义了这个方法，或者你编写了`<template>`，
+`render`是组件的编写人员定义的，比如你直接定义了这个方法，或者你编写了`<template>`，
 vue编译器将它转为`render`方法；
 :::
 
