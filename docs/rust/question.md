@@ -906,6 +906,25 @@ fn main() {
 ```shell
 cargo install cargo-expand
 cargo expand
+
+# 如果有很多bins，用这个方法指定要看哪个bin
+cargo expand --bin main
+```
+
+## 如何查看源代码的HIR
+```shell 
+# 必须保证 rustc 是nightly版本！
+
+# HIR AST
+rustc -Z unpretty=hir-tree --edition 2021 ./src/main.rs
+
+# HIR 代码
+rustc -Z unpretty=hir --edition 2021 ./src/main.rs
+```
+
+## 如何查看源代码的MIR
+```shell 
+rustc --emit=mir --edition 2021 ./src/main.rs   
 ```
 
 ## 定义rust过程宏的流程
@@ -1296,6 +1315,51 @@ Rust编译器无法帮助完成`poll`的调用，这就需要 `异步运行时`�
 每次调用`poll`，`Future`对象作为状态机，其状态就会被处理一次，状态可能改变，也可能不变。
 
 对于`async` `await` 实现的`Future`, 本质上就是`Future`对象里面包含`Future`对象，内部`Future`对象由Rust编译器实现调度，而外层的`Future`对象则不会，除非它位于另一个`Future`对象中，因此这种类型的`Future`对象就需要一个`异步运行时`来调度。
+
+## 如何查看 `async` 和 `await` 最终生成的代码
+[有一篇文章](https://wiki.cont.run/lowering-async-await-in-rust/)解释了这个问题，与这个话题相关的资料有：
+- [Future Trait](https://rust-lang.github.io/async-book/02_execution/02_future.html)
+- [Rust HIR](https://rustc-dev-guide.rust-lang.org/hir.html)
+- [from_generator](https://github.com/rust-lang/rust/blob/3ee016ae4d4c6ee4a34faa2eb7fdae2ffa7c9b46/library/core/src/future/mod.rs#L55-L92)
+
+简单来说，`async` 和 `await` 是 Rust 的关键字，它和Rust宏不一样，Rust宏经过 `cargo expand` 处理，就能看到宏展开之后生成的Rust代码是怎样的，但是这种展开，对`async`和`await`没有任何效果。
+
+想要看到`async` 和 `await` 变成了怎样的代码，必须要把源码编译为HIR（Rust的一种中间码）。
+
+简单理解的话，`async`函数内部会变成这样：
+1. 利用from_generator生成一个Future对象。生成的过程是编译器完成的，from_generator也不是普通的Rust函数，你在标准库里找不到实现，只能在Rust编译器源码里找到。
+2. 返回这个Future对象。
+[Rust编译器处理async的源码](https://github.com/rust-lang/rust/blob/3ee016ae4d4c6ee4a34faa2eb7fdae2ffa7c9b46/compiler/rustc%5Fast%5Flowering/src/expr.rs#L518-L607)
+
+```rs
+async fn hello(v: i32) -> i32 {
+    100
+}
+
+// 粗略会被编译器处理为
+// fn hello(v: i32) -> Future<Output = i32> {
+//   return future_from_generator(|| -> 100 };
+// }
+```
+
+`await`会变成永久循环内嵌状态机。
+```txt 
+Desugar `<expr>.await` into:
+
+match ::std::future::IntoFuture::into_future(<expr>) {
+    mut pinned => loop {
+        match unsafe { ::std::future::Future::poll(
+            <::std::pin::Pin>::new_unchecked(&mut pinned),
+            ::std::future::get_context(task_context),
+        ) } {
+            ::std::task::Poll::Ready(result) => break result,
+            ::std::task::Poll::Pending => {}
+        }
+        task_context = yield ();sb
+    }
+}
+```
+[Rust编译器处理await的源码](https://github.com/rust-lang/rust/blob/3ee016ae4d4c6ee4a34faa2eb7fdae2ffa7c9b46/compiler/rustc%5Fast%5Flowering/src/expr.rs#L609-L800)
 
 ## 生命周期标记如何理解
 在最开始学习阶段，我是阅读 rust 官方教程扫除疑惑的，但是后来在公司内网拜读了陈天老师的博客，豁然开朗，发现之前对Rust生命周期的理解有一部分是对的，有一部分是欠妥的。在这里，我们具体阐述一下。

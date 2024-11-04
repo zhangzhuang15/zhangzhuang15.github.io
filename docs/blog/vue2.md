@@ -706,6 +706,54 @@ options还有其它选项，底层都是调用了`new Watcher(vm, expOrFn, cb, o
 
 [详见这里](#响应式变量更新后-怎么就自动重新渲染了)
 
+#### 5. computed 和 watch 在使用Watcher方面的差异
+`new Watcher(vm, expOrFn, cb, options, isRenderWatcher)`
+
+**computed**
+```js
+export default {
+  data() {
+    return {
+      val: 100
+    }
+  },
+  computed: {
+    hello() {
+      return this.val > 100 ? 'execllent': 'not bad'
+    }
+  }
+}
+```
+computed在使用Watcher对象，`expOrFn`就是我们定义的hello函数，cb是没有用到的；最终，hello函数被记录在 watcher.get() 方法中。如果options.lazy=false, 那么在hello被初次定义的时候，watcher.get()就会被调用，建立好 val 和 hello 的响应式关系；如果options.lazy=true，那么在hello第二次被访问的时候，watcher.get()会被调用，首次直接返回undefined。至于访问hello的时候，为什么会触发watcher.get()也很简单，只需要用Object.defineProperty定义hello的时候，在其get属性中调用watcher.get()即可：
+```ts 
+Object.defineProperty(this, 'hello', {
+  get() {
+    return watcher.get()
+  }
+})
+```
+
+**watch**
+```ts 
+export default {
+  data() {
+    return {
+      val: 100
+    }
+  },
+  watch: {
+    val(value) {
+     const v = value > 100 ? 'execllent': 'not bad'
+     console.log("hello: ", v)
+    }
+  }
+}
+```
+watch在使用Watcher的时候，`expOrFn`就是要watch的属性，比如上边例子中的`val`，cb就是watch.val函数。在首次定义watcher的时候，就会触发watcher.get()方法，建立val和watcher的响应式关系。等到后续val更新的时候，watcher.update()就会被调用，从而再次执行 watch.val 函数。
+
+**总结**
+在建立响应式关系的时候，依靠watcher.get()实现，这个方法一执行，关系就建立了；computed属性在更新的时候，只会调用watcher.get(),计算出最新的computed属性值；被watch的属性更新时，会调用watcher.update()，让watch里注册的函数再执行一次。
+
 ### Observer 
 定义位置：`src/core/observer/index.ts`
 
@@ -956,17 +1004,309 @@ reactive(val); // 会有 val.__ob__
 ref(val);// 没有 val.__ob__, 只有 val.dep 和 val.value。 不存在 val.value.__ob__
 ```
 
+### computed
+```ts
+function computed<T>(
+  getterOrOptions: ComputedGetter<T> | WritableComputedOptions<T>,
+  debugOptions?: DebuggerOptions
+) {
+  let getter: ComputedGetter<T>
+  let setter: ComputedSetter<T>
+
+  const onlyGetter = isFunction(getterOrOptions)
+  if (onlyGetter) {
+    getter = getterOrOptions
+    setter = __DEV__
+      ? () => {
+          warn('Write operation failed: computed value is readonly')
+        }
+      : noop
+  } else {
+    getter = getterOrOptions.get
+    setter = getterOrOptions.set
+  }
+
+  const watcher = isServerRendering()
+    ? null
+    : new Watcher(currentInstance, getter, noop, { lazy: true })
+
+  const ref = {
+    // some libs rely on the presence effect for checking computed refs
+    // from normal refs, but the implementation doesn't matter
+    effect: watcher,
+    get value() {
+      if (watcher) {
+        if (watcher.dirty) {
+          watcher.evaluate()
+        }
+        if (Dep.target) {
+          watcher.depend()
+        }
+        return watcher.value
+      } else {
+        return getter()
+      }
+    },
+    set value(newVal) {
+      setter(newVal)
+    }
+  } as any
+
+  def(ref, RefFlag, true)
+  def(ref, ReactiveFlags.IS_READONLY, onlyGetter)
+
+  return ref
+}
+```
+
+形式上长得和Ref有些像，可实际上是两码事儿。底层依旧使用`Watcher`搞定，主要逻辑是：
+1. 获取getter和setter
+2. 创建Watcher
+3. 设置ref.value，完成依赖追踪
+4. 给ref打上特有标志属性
+
+注意，这里的watcher默认是 options.lazy = true。在第一次访问computed.value时，把watcher添加到响应式变量的依赖中；当关联的响应式变量第一次更新时，watcher.dirty会设置为true; 第二次访问computed.value时，才会激活watcher.evaluate计算最新的computed值。
+
 ### watch 
-待补充
+```ts 
+export function watch<T = any, Immediate extends Readonly<boolean> = false>(
+  source: T | WatchSource<T>,
+  cb: any,
+  options?: WatchOptions<Immediate>
+): WatchStopHandle {
+  return doWatch(source as any, cb, options)
+}
+
+function doWatch(
+  source: WatchSource | WatchSource[] | WatchEffect | object,
+  cb: WatchCallback | null,
+  {
+    immediate,
+    deep,
+    flush = 'pre',
+    onTrack,
+    onTrigger
+  }: WatchOptions = emptyObject
+): WatchStopHandle {
+  const instance = currentInstance
+  const call = (fn: Function, type: string, args: any[] | null = null) =>
+    invokeWithErrorHandling(fn, null, args, instance, type)
+
+  let getter: () => any
+  let forceTrigger = false
+  let isMultiSource = false
+
+  if (isRef(source)) {
+    getter = () => source.value
+    forceTrigger = isShallow(source)
+  } else if (isReactive(source)) {
+    getter = () => {
+      ;(source as any).__ob__.dep.depend()
+      return source
+    }
+    deep = true
+  } else if (isArray(source)) {
+    isMultiSource = true
+    forceTrigger = source.some(s => isReactive(s) || isShallow(s))
+    getter = () =>
+      source.map(s => {
+        if (isRef(s)) {
+          return s.value
+        } else if (isReactive(s)) {
+          return traverse(s)
+        } else if (isFunction(s)) {
+          return call(s, WATCHER_GETTER)
+        } else {
+          __DEV__ && warnInvalidSource(s)
+        }
+      })
+  } else if (isFunction(source)) {
+    if (cb) {
+      // getter with cb
+      getter = () => call(source, WATCHER_GETTER)
+    } else {
+      // no cb -> simple effect
+      getter = () => {
+        if (instance && instance._isDestroyed) {
+          return
+        }
+        if (cleanup) {
+          cleanup()
+        }
+        return call(source, WATCHER, [onCleanup])
+      }
+    }
+  } else {
+    getter = noop
+  }
+
+  if (cb && deep) {
+    const baseGetter = getter
+    getter = () => traverse(baseGetter())
+  }
+
+  let cleanup: () => void
+  let onCleanup: OnCleanup = (fn: () => void) => {
+    cleanup = watcher.onStop = () => {
+      call(fn, WATCHER_CLEANUP)
+    }
+  }
+
+  // in SSR there is no need to setup an actual effect, and it should be noop
+  // unless it's eager
+  if (isServerRendering()) {
+    // we will also not call the invalidate callback (+ runner is not set up)
+    onCleanup = noop
+    if (!cb) {
+      getter()
+    } else if (immediate) {
+      call(cb, WATCHER_CB, [
+        getter(),
+        isMultiSource ? [] : undefined,
+        onCleanup
+      ])
+    }
+    return noop
+  }
+
+  const watcher = new Watcher(currentInstance, getter, noop, {
+    lazy: true
+  })
+  watcher.noRecurse = !cb
+
+  let oldValue = isMultiSource ? [] : INITIAL_WATCHER_VALUE
+  // overwrite default run
+  watcher.run = () => {
+    if (!watcher.active) {
+      return
+    }
+    if (cb) {
+      // watch(source, cb)
+      const newValue = watcher.get()
+      if (
+        deep ||
+        forceTrigger ||
+        (isMultiSource
+          ? (newValue as any[]).some((v, i) =>
+              hasChanged(v, (oldValue as any[])[i])
+            )
+          : hasChanged(newValue, oldValue))
+      ) {
+        // cleanup before running cb again
+        if (cleanup) {
+          cleanup()
+        }
+        call(cb, WATCHER_CB, [
+          newValue,
+          // pass undefined as the old value when it's changed for the first time
+          oldValue === INITIAL_WATCHER_VALUE ? undefined : oldValue,
+          onCleanup
+        ])
+        oldValue = newValue
+      }
+    } else {
+      // watchEffect
+      watcher.get()
+    }
+  }
+
+  if (flush === 'sync') {
+    watcher.update = watcher.run
+  } else if (flush === 'post') {
+    watcher.post = true
+    watcher.update = () => queueWatcher(watcher)
+  } else {
+    // pre
+    watcher.update = () => {
+      if (instance && instance === currentInstance && !instance._isMounted) {
+        // pre-watcher triggered before
+        const buffer = instance._preWatchers || (instance._preWatchers = [])
+        if (buffer.indexOf(watcher) < 0) buffer.push(watcher)
+      } else {
+        queueWatcher(watcher)
+      }
+    }
+  }
+
+  // initial run
+  if (cb) {
+    if (immediate) {
+      watcher.run()
+    } else {
+      oldValue = watcher.get()
+    }
+  } else if (flush === 'post' && instance) {
+    instance.$once('hook:mounted', () => watcher.get())
+  } else {
+    watcher.get()
+  }
+
+  return () => {
+    watcher.teardown()
+  }
+}
+```
+watch做了封装，用`doWatch`实现。`doWatch`的逻辑思路很明确：
+1. 合成getter方法
+2. 创建Watcher对象
+3. 重写watcher.run和watcher.update
+4. 根据immediate,flush的配置，激活watcher.run 或 watcher.get 
+
+vue2版本中，watch的expOrFn只能支持一个表达式描述来观测一个响应式变量的变化，这次就不同了，你可以用一个数组去观测多个响应式变量，也可以观测一个函数执行时访问到的响应式变量，为此需要对getter方法做拓展，但本质不变，就是在getter方法中，把响应式变量执行一下读取操作即可。
+
+watcher.run方法做了统一，只去处理watch情形，不关心computed情形。watcher.update这层封装的意义，就是抽离了调度逻辑。watcher.run只不过是每次调度之后，要去执行的事情。如果是同步调度，watcher.update就直接调用watcher.run即可；如果是post调度，watcher.update就把watcher.run放到队列里在未来执行。
+
+尽管API的封装上有变化，但核心逻辑没变：watcher.get负责建立响应式联系，watcher.run负责唤醒callback，watcher.update负责调度。
 
 ### watchEffect 
-待补充
+```ts 
+function watchEffect(
+  effect: WatchEffect,
+  options?: WatchOptionsBase
+): WatchStopHandle {
+  return doWatch(effect, null, options)
+}
+```
+底层也是`doWatch`, 区别在于，不用定义callback，这样在响应式变量更新的时候，watcher.update从调度执行一次effect即可。watcher.update的调度是"pre" || "post"，取决于 watchEffect的调用时机，如果是在组件没有挂载的时候调用，调度策略就是"pre"，在组件挂载后调用，就是"post"；
+
+带`Effect`的，就意味着无需callback。
 
 ### watchPostEffect 
-待补充
+```ts
+function watchPostEffect(
+  effect: WatchEffect,
+  options?: DebuggerOptions
+) {
+  return doWatch(
+    effect,
+    null,
+    (__DEV__
+      ? { ...options, flush: 'post' }
+      : { flush: 'post' }) as WatchOptionsBase
+  )
+}
+```
+区别在于watcher.update的调度是post，其余和watchEffect没什么区别。
 
 ### onMounted
-待补充
+```ts 
+const onMounted = createLifeCycle('mounted')
+
+function createLifeCycle<T extends (...args: any[]) => any = () => void>(
+  hookName: string
+) {
+  return (fn: T, target: any = currentInstance) => {
+    return injectHook(target, hookName, fn)
+  }
+}
+
+function injectHook(instance: Component, hookName: string, fn: () => void) {
+  const options = instance.$options
+  options[hookName] = mergeLifecycleHook(options[hookName], fn)
+}
+```
+其他声明周期钩子也是如此实现的，不做赘述。因为vue使用全局变量currentInstance自动帮助我们跟踪vue component，在使用onMounted的时候，就和以前一样，只需要关心生命周期内发生了什么事情。以前生命周期函数是写在options内的（就是.vue文件内定义的js区域），vue创建实例时，会解析options，然后再注册所有生命周期函数，改成hook函数调用后，vue不需要解析options，直接注册单一的生命周期函数即可。
+
 
 ## 响应式变量更新后，怎么就自动重新渲染了？
 一步一步来，先从`响应式变量`和它的`依赖函数`出发

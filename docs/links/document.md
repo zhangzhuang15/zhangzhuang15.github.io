@@ -29,6 +29,10 @@ MDN可以查询到各个 Web API 的定义，但是这些定义有时候并不�
 
 javascript 语言的标准定义，当你不知道javascript某个语法或者API到底干了什么时，就可以阅读这个标准文档。
 
+## Firefox Doc
+[firefox | doc](https://firefox-source-docs.mozilla.org/devtools-user/debugger/how_to/use_a_source_map/index.html)
+
+火狐浏览器的文档官网，里面记录了很多website方面的技术细节，比如介绍了火狐浏览器的spiderMonkey引擎、website调试。值得一看。
 
 ## chromium
 [chromium | developers](https://www.chromium.org/developers/design-documents/multi-process-architecture/)
