@@ -44,9 +44,9 @@ aside: true
 
 [Web Development In Rust](https://www.arewewebyet.org/)
 
-[ Rust 学习资源](https://github.com/rcore-os/rCore/wiki/study-resource-of-system-programming-in-RUST)
+[Rust 学习资源](https://github.com/rcore-os/rCore/wiki/study-resource-of-system-programming-in-RUST)
 
-[ rust 官网](https://www.rust-lang.org/zh-CN/learn)
+[rust 官网](https://www.rust-lang.org/zh-CN/learn)
 
 [rust 中文社区](https://rustcc.cn/)
 
@@ -58,6 +58,9 @@ aside: true
 
 [Mini LSM By Rust](https://skyzh.github.io/mini-lsm/00-preface.html)
 > 用Rust实现LSM数据结构的指南
+
+[Rust编译器导引](https://rustc-dev-guide.rust-lang.org/getting-started.html)
+> 介绍Rust编译器工作细节
 
 ## 按需找链接
 
