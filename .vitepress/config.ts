@@ -393,6 +393,7 @@ export default defineConfig({
         { text: "首页", link: "/tool/index-page" },
         { text: 'Oh-my-zsh', link: '/tool/ohMyZsh' },
         { text: "homebrew tool", link: "/tool/brew-tool" },
+        { text: 'curl tool', link: '/tool/curl-tool' },
         { text: "rust CLI tool", link: "/tool/rust-tool" },
         { text: 'Github', link: '/tool/index-github'},
         { 
