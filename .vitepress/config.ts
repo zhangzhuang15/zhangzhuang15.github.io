@@ -453,7 +453,8 @@ export default defineConfig({
           link: '/tool/ansi-escape-control'
         },
         { text: 'software', link: '/tool/software' },
-        { text: 'misc', link: "/tool/misc"}
+        { text: 'misc', link: "/tool/misc"},
+        { text: 'arm指令清单', link: '/tool/arm' }
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
