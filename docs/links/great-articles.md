@@ -229,3 +229,14 @@ GitHub上的一个开源电子书，其中讲述了Linux内核是怎样启动、
 [阅读原文](https://http2-explained.haxx.se/en/part1)
 
 介绍http2的免费电子书
+
+## TCP流量控制可视化
+[阅读原文](https://www2.tkn.tu-berlin.de/teaching/rn/animations/flow/)
+
+## TCP滑动窗口可视化
+[阅读原文](https://www2.tkn.tu-berlin.de/teaching/rn/animations/gbn_sr/)
+
+## iptables详解
+[阅读原文](https://www.zsythink.net/archives/1544)
+
+介绍 iptables 命令是干什么用的，应该怎么用。

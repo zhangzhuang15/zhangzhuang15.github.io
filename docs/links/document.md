@@ -4,10 +4,29 @@ page: true
 aside: true
 ---
 
+## 查阅aarch64汇编指令集
+[A64 Base Instructions | ARM](https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions?lang=en)
+
+## 计算机方面的论文查询
+[arxiv.org](https://arxiv.org)
+
+你阅读源码的时候，会在注释中发现，作者是依据某个论文实现的算法，你很想知道算法的更多细节，于是你就想下载那篇论文看看。你就可以在这个网站上寻找论文，它会提供大多数论文的PDF。
+
+同类型网站还有：
+- [dl.acm.org](https://dl.acm.org): 论文很全，但能免费下载的没有arxiv.org多
+- [researchgate](https://www.researchgate.net/directory/publications): 专门用来搜索论文的
+- [semantic scholar](https://www.semanticscholar.org): 也是用来搜索论文的，AI搜索驱动
+- [dblp.org](https://dblp.org/search?q=database): 搜索论文用的
+- [papers with code](https://paperswithcode.com/sota): 搜索论文用的，这个网站搜索出来的论文都是带有源码的，也提供一些论文的下载，论文下载的地址指向 arxiv.org。
+
+
 ## datatracker.ietf.org
 [datatracker.ietf.org](https://datatracker.ietf.org/doc/html/draft-ietf-webpush-protocol)
 
 在这个网站，你可以查阅到各种协议的**RFC**文档，比如 http protocol, web push protocol 等等
+
+## RFC文档查询
+[rfc editor](https://www.rfc-editor.org)
 
 ## www.w3.org
 [www.w3.org](https://www.w3.org/)
@@ -17,6 +36,40 @@ aside: true
 从中你可以知道调用某个API的时候，浏览器具体做了什么；
 
 比如你不太懂 `Service Worker` 到底是怎么定义的，它的API实现中，浏览器具体要做哪些事情，就可以在这里搜索、查阅。
+
+## GNU C Library 手册PDF
+[gnu libc pdf](https://sourceware.org/glibc/manual/latest/pdf/libc.pdf)
+
+手册全面介绍了gnu libc中各个函数的用法，供我们查看。
+
+[GNU Operating system](https://www.gnu.org/savannah-checkouts/gnu/libc/index.html)
+
+## GDB手册
+[gdb manual](https://sourceware.org/gdb/current/onlinedocs/gdb.html/)
+
+如果你在用gdb调试程序，但对gdb不属性，可以查看这个手册，了解gdb的用法和细节。
+
+[GDB：The GNU Project Debugger](https://sourceware.org/gdb/documentation/)
+
+## GCC手册
+[gcc online documentation](https://gcc.gnu.org/onlinedocs/)
+
+## C 系统编程接口手册
+[前往](https://pubs.opengroup.org/onlinepubs/9699919799/functions/contents.html)
+
+当你使用C语言进行系统编程时，想知道哪些操作系统接口可以使用，或者想实现某个功能但不知道该用哪个系统接口，就可以查阅这个手册。
+
+## musl libc 
+[前往](https://musl.libc.org)
+
+## clang documentation
+[clang documentation](https://clang.llvm.org/docs/)
+
+## GNU make 手册
+[gnu make](https://www.gnu.org/software/make/manual/html_node/index.html)
+
+## binutils documentation
+[前往](https://sourceware.org/binutils/docs/)
 
 ## whatwg.org
 [whatwg.org](https://whatwg.org/)
@@ -39,6 +92,39 @@ javascript 语言的标准定义，当你不知道javascript某个语法或者AP
 
 如果你想知道 chromium 内核是如何设计的，学习google工程师是如何构建 chromium 的，可以阅读其官方文档。当然，如果
 对其它模块，比如渲染层面的实现，你比较好奇，也可以从这个网站中找到相关介绍的文档。这些文档读起来很干，但绝对是智慧所在。
+
+## jwt
+[jwt | introduction](https://jwt.io/introduction)
+
+介绍 json web token 的细节。主要讲解了什么是JWT，JWT由哪些部分组成，JWT是如何工作的，我们为什么要用JWT。
+
+## 北大编译实践在线文档
+[前往](https://pku-minic.github.io/online-doc/#/preface/lab)
+
+## 计算机教育中缺失的一课（中文版）
+[前往](https://missing-semester-cn.github.io)
+
+讲解计算机系学生应该掌握哪些计算机实用工具
+
+## 清华大学rCore指导书
+[rcore tutorial book v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/)
+
+讲解操作系统原理，并紧密结合rust代码，在讲解期间，串插讲解了一些非理论但很实用的知识，比如编译器工具。
+
+## 南京大学操作系统课
+[南京大学操作系统课](https://jyywiki.cn/OS/2022/index.html)
+
+南京大学蒋炎岩老师的课程，强烈推荐。蒋老师的课程真正做到了实践和理论紧密结合，配合B站上的视频一起看，效果更佳。你不单单能学习到操作系统的理论知识，更能学到开发操作系统或者系统编程的工具。
+
+## Write OS in Rust
+[前往](https://os.phil-opp.com/paging-implementation/)
+
+介绍了如何使用Rust开发OS的技术细节。
+
+## OS Dev
+[前往](https://wiki.osdev.org/Expanded_Main_Page)
+
+一个wiki专题网页，专门介绍了如何开发OS，需要用哪些工具，遵从哪些流程，并附带了一些资料，比如UEFI、PIC、PCI、BootLoader等等。
 
 ## Typescript Deep Dive
 
