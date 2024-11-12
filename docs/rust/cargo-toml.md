@@ -267,6 +267,15 @@ rustdoc-args = ["--cfg","docsrs",]
 
 [more details](https://docs.rs/about/metadata)
 
+## `package.metadata.deb`
+生成debian包时需要的元数据
+
+## `package.metadata.wix`
+生成windows安装包需要的元数据
+
+## `package.metadata.generate-rpm`
+生成RPM包时需要的元数据
+
 ## `[target]`
 ### `[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]`
 指定编译为目标对象时，哪些依赖包需要编译
@@ -275,8 +284,7 @@ rustdoc-args = ["--cfg","docsrs",]
 ## `[profile]`
 修改编译器优化和调试信息
 
-### fields
-#### opt-level
+### opt-level
 优化二进制产物
 
 - 0 无优化
@@ -286,7 +294,7 @@ rustdoc-args = ["--cfg","docsrs",]
 - "s" 优化二进制产物大小
 - "z" optimize for binary size, but also turn off loop vectorization.
 
-#### debug 
+### debug 
 二进制产物中包含多少调试信息
 
 - 0, false, "none" 不包含任何调试信息
@@ -295,14 +303,14 @@ rustdoc-args = ["--cfg","docsrs",]
 - 1, "limited"
 - 2, "full" 所有调试信息
 
-#### strip
+### strip
 从二进制产物中删除哪些信息
 
 - "none" 不删除
 - "debuginfo" 删除调试信息
 - "symbols" 删除符号信息
 
-#### lto
+### lto
 link time optimization
 
 - false
@@ -310,21 +318,46 @@ link time optimization
 - "thin"
 - "off"
 
-#### codegen-units
+### codegen-units
 number >= 0
 
 值越大，编译时间越短，但是生成的代码执行起来可能越慢
 
-#### incremental 
+### incremental 
 是否开启增量编译
 
 - true 
 - false
 
 
-#### panic
+### panic
 - "unwind" 程序在遇到panic!时会尝试清理堆栈并终止
 - "abort" 程序会立即终止，不进行任何堆栈清理
 
 ### `[profile.release]`
 配置 release 模式下的 profile
+
+### `[profile.profiling]`
+自定义的一些配置，`cargo run --profile profiling`的时候启用。
+
+### `[profile.dev.package."*"]`
+配置开发环境下所有依赖包的编译选项。通过配置这些选项，可以控制在开发环境中如何编译所有依赖包。
+
+## `[build-dependencies]`
+`build.rs`所依赖的包
+
+## `[dependencies]`
+开发、测试、发布都需要的包
+
+## `[dev-dependencies]`
+开发、测试需要，发布环节不需要的包
+
+## `[lints]`
+### `[lints.rust]`
+配置Rust编译器的lint设置，控制编译器在编译代码时如何处理特定的警告和错误
+
+### `[lints.clippy]`
+配置 Clippy（Rust 的一个 lint 工具）的 lint 设置.通过配置这些设置，可以控制 Clippy 在检查代码时如何处理特定的警告和错误.
+
+### `[lints.rustdoc]`
+配置 Rustdoc 工具的 lint 设置。Rustdoc 是 Rust 的文档生成工具，通过配置这些设置，可以控制 Rustdoc 在生成文档时如何处理特定的警告和错误。
