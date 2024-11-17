@@ -177,4 +177,22 @@ vue2/3 SFC 开发必备。
 
 > 个人观点：即便你用 vue2，也不要再使用 Vetur 了
 
+
+## clangd
+c/c++的插件，比 Microsoft 官方插件 C/C++ 更好。如果你使用过 rust analyzer 插件，在编写代码的时候，你会发现某些类型，你都没有声明，这个插件就能帮你推导出来，并且用浅色字体给你标出来。clangd插件也可以做到这点，你用 auto 声明的变量，它能把这种类型给你提示出来，函数入参名也能给你标注出来，开发体验上，要比 C/C++ 这款插件好。
+
+:::tip <TipIcon />
+温馨提示 
+
+在安装clangd插件后，cpp文件中的 `auto` 关键字会出现黄色的warning下划线，提示这个关键字是c++11开始支持的特性。原因是，默认情况下，clangd会用较低版本的c++标准对待cpp文件，你需要在项目根目录下创建一个 `.clangd` 文件，内容如下：
+
+```txt 
+CompileFlags:
+  # Treat code as C++, use C++17 standard, enable more warnings.
+  Add: [-xc++, -std=c++17, -Wall, -Wno-missing-prototypes]
+```
+
+重新加载一下vscode窗口即可。
+:::
+
 <Giscus />
