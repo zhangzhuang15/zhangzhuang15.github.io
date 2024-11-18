@@ -240,3 +240,12 @@ GitHub上的一个开源电子书，其中讲述了Linux内核是怎样启动、
 [阅读原文](https://www.zsythink.net/archives/1544)
 
 介绍 iptables 命令是干什么用的，应该怎么用。
+
+## Multiprocessor Support
+[阅读原文](https://yushuanhsieh.github.io/post/2021-04-23-life/)
+
+我们都知道CPU执行代码，但在现代CPU体系结构下，CPU拥有多个核心，那么问题来了，到底是哪个CPU在执行代码，是谁告诉某个CPU要执行代码的，PC接上电源启动后，所有的CPU核心都会工作么？操作系统是怎么让某些进程在特定的CPU核心上执行的？
+
+这篇文章就给出了比较好的介绍。里边牵扯到很多概念，比如BSP（Bootstrap Processor）, AP(Application Processor), SIPI(Startup IPI), APIC(Advanced Programmable Interrupt Controller)。
+
+另外，这篇文章的作者，是一个来自台湾的女性开发者（如果她的头像是本人的话），其经历很令人吃惊，她开始做的前端开发，一年后，做的后端开发，大概维持了两年，之后就很突然，她就从事硬件工程师的岗位，目前她就职台积电，硬件和软件通吃。

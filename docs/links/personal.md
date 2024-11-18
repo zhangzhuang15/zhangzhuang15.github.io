@@ -113,4 +113,11 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 
 `C++` `Python`
 
+## yushuanhsieh
+[前往](https://yushuanhsieh.github.io/)
+
+`operate system` `firmware` `embedded system` `c` `system programming` `go taibei`
+
+一个来自台湾的女性开发者（如果她的头像是本人的话），她开始做的前端开发，一年后，做的后端开发，大概维持了两年，之后就很突然，她就从事硬件工程师的岗位，目前她就职台积电，硬件和软件通吃。很难想象，一个女性开发者集硬件和软件于一体。
+
 <Giscus />
