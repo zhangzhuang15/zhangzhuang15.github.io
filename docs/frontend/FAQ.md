@@ -841,3 +841,87 @@ const Component = () => {
 如上，展示了在第三方组件 Input 中，使用 debounce 时，可能遇到的错误；
 
 原因是 debounce 采用了 `trailing: true` 的做法。当事件被触发的时候，由于我们指定了这个配置，导致不会立即执行onChange函数，在200ms后，才会执行，那这个时候就有问题了，执行时得到的e，是输入框改变的事件对象么？肯定不是。于是，就会有e.target.value获取不到输入框内容的错误。正确做法是，改用`leading: true`.
+
+
+## webview是ios特有的东西么
+最近，公司内部有人反馈，在安卓端App的长列表页面，迅速下滑的时候，列表页会出现短暂的空白，他不知道怎么回事儿。
+
+群里有大佬表示，这是webview异步光栅化造成的。哦？ webview, 异步光栅化，WTF？
+
+先说光栅化。光栅化是指将矢量图转化为位图的操作。异步光栅化就是在手机后台线程中完成这个事情，不在主线程去搞。好处就是，主线程不会被阻塞，页面表现流畅。坏处就是，光栅化耗时较大时，得不到位图数据，页面来不及显示内容，这种就叫做页面延迟，就是上边那个人反馈的情况。
+
+既然说到这里了，不得不提一嘴`矢量图`和`位图`。矢量图就是所有的像素点经过数学公式计算出来的图。当矢量图缩放时，新的尺寸会代入到公式，重新计算一遍新的像素点，这些像素点都是准确的，因此绘制出来的图像也是清晰的。位图的像素点是固定的，当放大位图时，多出来的像素点是通过插值算法计算得到的，因此这些新的像素点不太精准，导致最终绘制出来的结果模糊、不平滑。可无论怎样，它们都逃不过最终转化为像素点的事实。
+
+好了，既然异步光栅化发生在webview，那webview是什么东西呢？从最具体的角度讲，webview是平台封装好的组件，用来展示html，就如同在浏览器里查看网页一样。往深层次看，webview是技术的组合，一个是引擎技术（webkit, servo, chromium），一个是GUI技术（gtk）。平台提供的webview组件，就是组合了这两种技术。
+
+引擎技术用于解析html文件，得到 DOM Tree, CSS Tree, Layout, Render Tree。这些不是虚空的概念，是确切的数据结构。比如webkit引擎使用c++开发，上述概念就对应着webkit中的c++数据结构，可能是class，也可能是struct。
+
+只有引擎技术还不够，因为引擎只是负责解析，合成相应的数据结构，它不负责绘制到电脑界面上。这一部分需要依赖GUI技术，比如跨平台的gtk。gtk生态中，提供了相应的函数库，将webkit合成的数据结构转化为gtk识别的数据结构，然后gtk用这个数据结构，就可以绘制出画面。
+
+webkit是开源的，提供了c++ API。因此，你可以下载其源码，使用c++访问其API接口，手动编程处理html文件。
+
+给出一个例子，使用webkit处理html，然后用gtk渲染出画面。这个代码片段来自于GPT，可能无法正常执行，但足够反映出基本原理。
+```cpp
+#include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
+
+int main(int argc, char* argv[]) {
+    // 初始化GTK
+    gtk_init(&argc, &argv);
+
+    // 创建GTK窗口
+    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+
+    // 创建WebView
+    WebKitWebView *webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
+    gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(webView));
+
+    // 加载URL
+    webkit_web_view_load_uri(webView, "https://www.example.com");
+
+    // 显示窗口
+    gtk_widget_show_all(window);
+
+    // 连接信号处理函数
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
+    // 运行GTK事件循环
+    gtk_main();
+
+    return 0;
+}
+```
+
+这个例子展示如何使用webkit c++ API,也是GPT给出的，可能无法执行，但反映了基本概况：
+```cpp 
+#include <WebKit/WebKit.h>
+
+int main(int argc, char* argv[]) {
+    // 初始化WebKit
+    WebKitInitialize();
+
+    // 创建WebView配置
+    WKContextRef context = WKContextCreate();
+    WKPageConfigurationRef configuration = WKPageConfigurationCreate();
+    WKPageConfigurationSetContext(configuration, context);
+
+    // 创建WebView
+    WKViewRef webView = WKViewCreate(configuration);
+
+    // 加载URL
+    WKURLRef url = WKURLCreateWithUTF8CString("https://www.example.com");
+    WKPageLoadURL(WKViewGetPage(webView), url);
+
+    // 运行事件循环
+    RunEventLoop();
+
+    // 释放资源
+    WKRelease(url);
+    WKRelease(webView);
+    WKRelease(configuration);
+    WKRelease(context);
+
+    return 0;
+}
+```

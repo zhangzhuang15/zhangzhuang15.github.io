@@ -62,6 +62,9 @@ aside: true
 [Rust编译器导引](https://rustc-dev-guide.rust-lang.org/getting-started.html)
 > 介绍Rust编译器工作细节
 
+[Rust clippy docs](https://doc.rust-lang.org/clippy/index.html)
+> 介绍clippy如何使用，以及如何参与到clippy的开发、维护。
+
 ## 按需找链接
 
 ### 想找 crate?
