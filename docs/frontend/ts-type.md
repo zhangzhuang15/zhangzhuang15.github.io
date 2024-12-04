@@ -384,9 +384,9 @@ I extends `${infer L}${infer R}` ?
       : `${L}` extends '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ?
             R extends '' ?
               L 
-              : FilterOutNumberLiterature<R> extends never ? 
+              : FilterOutNumberLiterature2<R> extends never ? 
                   never
-                  : `${L}${FilterOutNumberLiterature<R>}`
+                  : `${L}${FilterOutNumberLiterature2<R>}`
               : never
             : never
 // never
