@@ -397,8 +397,7 @@ fn main() {
 
 
 ## NonNull
-使用 raw pointer 可能会出错，使用 `NonNull` 帮助你管理 raw pointer,
-实现 raw pointer 到 `&T` `&mut T` 的转化；
+直接使用 raw pointer 可能会出错，使用 `NonNull` 帮助你管理 raw pointer, 防止使用过程中，raw pointer变成一个悬空指针；它还可以实现 raw pointer 到 `&T` `&mut T` 的转化；NonNull不会拥有资源的所有权；
 
 ```rust 
 fn main() {

@@ -108,10 +108,12 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 
 传奇人物，著作有《Unix环境高级编程》、《Unix网络编程： 第一卷套接口API》、《TCP/IP详解卷1协议》等
 
-## Jeff Preshing‘s Blog
+## Jeff Preshing‘s Blog (Preshing Program)
 [前往](https://preshing.com/)
 
-`C++` `Python`
+`C++` `Python` `system programing` `assemble` `concurrent programing`
+
+介绍很多系统编程、汇编语言、cpu、并发方面的技术，关注于较底层的开发内容。如果你有相关方面的疑问，不妨去他的网站上看看，没准儿就找到答案了。
 
 ## yushuanhsieh
 [前往](https://yushuanhsieh.github.io/)
