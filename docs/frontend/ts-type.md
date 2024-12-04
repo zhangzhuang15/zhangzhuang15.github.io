@@ -343,6 +343,56 @@ type R9 = I<"helloaworld">;
 type R10 = A<"">;
 ```
 
+### 过滤出数字字符串
+索引号在对象的属性中，其实就是 `'0'` `'1'``'2'`这样的字符串，这个和`'length'` `'toString'` 有明显区别，如果将前者提取出来呢？
+
+```ts 
+type FilterOutNumberLiterature<I extends string> = 
+I extends `${infer L}${infer R}` ? 
+    `${L}` extends '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ?
+        R extends '' ?
+          L 
+          : FilterOutNumberLiterature<R> extends never ? 
+              never
+              : `${L}${FilterOutNumberLiterature<R>}`
+        : never
+  : never
+
+// '12'
+type A = FilterOutNumberLiterature<'12'>
+// never
+type B = FilterOutNumberLiterature<'1c2'>
+// never
+type C = FilterOutNumberLiterature<'12c'>
+// never
+type D = FilterOutNumberLiterature<'c12'>
+// '1'
+type E = FilterOutNumberLiterature<'1'>
+// never
+type F = FilterOutNumberLiterature<''>
+// nerver
+type G = FilterOutNumberLiterature<'c'>
+// 012
+type H = FilterOutNumberLiterature<'012'>
+
+
+// 对于最后一种情形，可以做如下调整
+type FilterOutNumberLiterature2<I extends string> = 
+I extends `${infer L}${infer R}` ? 
+    `${L}` extends '0' ?
+      never 
+      : `${L}` extends '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ?
+            R extends '' ?
+              L 
+              : FilterOutNumberLiterature2<R> extends never ? 
+                  never
+                  : `${L}${FilterOutNumberLiterature2<R>}`
+              : never
+            : never
+// never
+type I = FilterOutNumberLiterature2<'012'>
+```
+
 ### 推断函数参数
 
 ```ts
@@ -623,4 +673,41 @@ interface A {
 }
 
 type B = Required<A>
+```
+
+### 把对象数组中，对象的某个field提取出来，拼成联合类型
+```ts 
+const config = [{
+  label: '苹果',
+  id: 1
+}, {
+  label: '香蕉',
+  id: 2
+}] as const 
+
+// '苹果' | '香蕉'
+type Name = (typeof config)[number]['label']
+
+// 1 | 2
+type Id = (typeof config)[number]['id']
+
+
+// 如果把 id 提取出来，合成一个 [1,2] 的类型，该怎么做呢？
+
+type FilterOutNumberLiterature<I extends string> = 
+I extends `${infer L}${infer R}` ? 
+    `${L}` extends '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ?
+        R extends '' ?
+          L 
+          : FilterOutNumberLiterature<R> extends never ? 
+              never
+              : `${L}${FilterOutNumberLiterature<R>}`
+        : never
+  : never
+
+// { 0: 1, 1: 2}
+type IdArray = {[i in (keyof typeof config) & string as FilterOutNumberLiterature<i>]: (typeof config)[FilterOutNumberLiterature<i>]['id'] }
+
+// { 0: '苹果', 1: '香蕉' }
+type NameArray = {[i in (keyof typeof config) & string as FilterOutNumberLiterature<i>]: (typeof config)[FilterOutNumberLiterature<i>]['label'] }
 ```

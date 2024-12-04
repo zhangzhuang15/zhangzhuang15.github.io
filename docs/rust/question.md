@@ -1355,7 +1355,7 @@ match ::std::future::IntoFuture::into_future(<expr>) {
             ::std::task::Poll::Ready(result) => break result,
             ::std::task::Poll::Pending => {}
         }
-        task_context = yield ();sb
+        task_context = yield ();
     }
 }
 ```
@@ -1587,4 +1587,192 @@ Sync说的不是类型的所有权，说的是类型的不可变引用。如果�
 
 这里有一个比较有趣的关系描述。如果T是Sync的，只能说明&T是Send的，T不一定是Send的。比如`Rc<Mutex<T>>`是Sync的，但不是Send的。
 
+## `Cell` & `UnsafeCell` & `RefCell`
+它们都是为了让Rust可以执行内部可变的操作服务的。众所周知，如果你用关键字`let`声明一个变量，那么在此之后，你只能对该变量进行读操作，不能执行写操作，写操作会被编译器检测出来，导致编译失败。可是在一些场景下，我们很需要对`let`声明的变量执行写操作，这种就是内部可变性。举个例子：
+```rust 
+struct M {
+    a: i32
+}
+
+fn main() {
+    let m = M { a: 10 };
+
+    // 我们不想用另一个M类型的数据赋值给m，
+    // 我们只想修改 M 类型中的 a 属性，
+    // 为了达成这个目的，就要使用内部可变。
+    // 在没有使用内部可变的时候，a属性的读写权限和
+    // m是一样的，因此a属性无法被修改。
+    m.a = 11;
+}
+```
+
+用了`Cell` `UnsafeCell` 和 `RefCell` 就可以完成内部可变的操作了。
+
+其中，`Cell` 和 `RefCell` 是基于`UnsafeCell`实现的，如果你想自己实现内部可变性，就可以创造一个类型，内部封装一个`UnsafeCell`类型的属性，不过通常来讲，我们使用Rust封装好的`Cell` 和 `RefCell` 就足够了。
+
+`Cell`主要为那些实现`Copy Trait`的值提供内部可变服务，它会开辟一个内存，将值存入其中，当我们想要修改的时候，`Cell`会用同类型的一个值（调用者提供的）替换掉内存中的值，把以前的值返回。
+
+`RefCell`不会像`Cell`那样，将内存里的值替换，而是利用`运行时借用检查的机制`，返回指向内存的借用(&)和可变借用(&mut)。请注意，在编译阶段，借用检查如果不合格的话，编译会失败；在运行时阶段，借用检查不合格的话，会引发`panic`。换句话说，使用`RefCell`，程序员必须要为借用检查负责，确保编写出来的代码，不会违反Rust的借用规则（**借用可以有多个，但是可变借用只能有一个，而且不能同时存在可变借用和借用**）
+
+:::code-group
+```rust [how_to_use_cell]
+use std::cell::Cell;
+
+fn main() {
+    struct M {
+        val: Cell<i32>,
+    };
+
+    let m = M { val: 12.into() };
+    // m 是只读的，但是可以修改 val
+    m.val.set(10);
+
+    let old_val = m.val.replace(20);
+    print!("oldValue is {}", old_val);
+
+    let ptr = m.val.as_ptr();
+    unsafe {
+        *ptr = 70;
+    }
+    print!("value is {:?}", m.val);
+}
+```
+```rust [how_to_use_refcell_wrong_case1]
+use std::cell::RefCell;
+
+fn main() {
+    struct M {
+        val: RefCell<i32>,
+    };
+
+    let m = M { val: 12.into() };
+
+    let ptr = m.val.borrow_mut();
+    println!("value is {}", *ptr);
+    
+    // 上边已经“动态借用”了可变引用，这里
+    // 再次动态借用一个可变引用，违反借用
+    // 规则，程序 panic
+    let mut ptr = m.val.borrow_mut();
+    *ptr = 50;
+    println!("new value is {}", *ptr);
+}
+```
+```rust [how_to_use_refcell_wrong_case2]
+
+use std::cell::RefCell;
+
+fn main() {
+    struct M {
+        val: RefCell<i32>,
+    };
+
+    let m = M { val: 12.into() };
+
+    let ptr = m.val.borrow();
+    println!("value is {}", *ptr);
+    
+    // 上边已经“动态借用”了不可变引用，这里
+    // 再次动态借用一个可变引用，违反借用
+    // 规则，程序 panic
+    let mut ptr = m.val.borrow_mut();
+    *ptr = 50;
+    println!("new value is {}", *ptr);
+}
+```
+```rust [how_to_use_refcell_rightly_1]
+use std::cell::RefCell;
+
+fn main() {
+    struct M {
+        val: RefCell<i32>,
+    };
+
+    let m = M { val: 12.into() };
+
+    {
+        // 嘿嘿，放到一个局部作用域里，就不用
+        // 担心违反借用规则了
+        let ptr = m.val.borrow_mut();
+        println!("value is {}", *ptr);
+    }
+    
+    let mut ptr = m.val.borrow_mut();
+    *ptr = 50;
+    println!("new value is {}", *ptr);
+}
+```
+```rust [how_to_use_refcell_rightly_2]
+use std::cell::RefCell;
+
+fn main() {
+    struct M {
+        val: RefCell<i32>,
+    };
+
+    let m = M { val: 12.into() };
+
+    
+    let ptr = m.val.borrow();
+    println!("value is {}", *ptr);
+    
+    // 嘿嘿，两个不可变引用，不违反借用规则
+
+    let ptr = m.val.borrow();
+    println!("new value is {}", *ptr);
+}
+```
+```rust [how_to_use_unsafecell]
+use std::cell::UnsafeCell;
+
+fn main() {
+    struct M {
+        val: UnsafeCell<i32>,
+    }
+    impl M {
+        fn set_value(&self, val: i32) -> i32 {
+            let mut ptr = self.val.get();
+            unsafe {
+                std::mem::replace(&mut *ptr, val)
+            }
+        }
+        fn as_ptr(&self) -> *const Self {
+            self.val.get() as *const Self
+        }
+        fn as_mut(&self) -> *mut i32 {
+            self.val.get()
+        }
+        fn as_ref(&self) -> &i32 {
+            unsafe { &*self.val.get() }
+        }
+        fn as_mut_ref(&self) -> &mut i32 {
+            unsafe { &mut *self.val.get() }
+        }
+    }
+
+    let m = M { val: 12.into() };
+    let old = m.set_value(20);
+    println!("old value: {}", old);
+}
+```
+:::
+
+:::tip <TipIcon />
+`RefCell` 的 `borrow` `borrow_mut` 原理很简单，不涉及到编译器层面的借用检查，`RefCell` 内部拥有一个 isize 类型的数据，当调用 `borrow` 的时候，就给这个数据
+增1，调用`borrow_mut`的时候，就给这个数据减1，根据这个数据是否大于0，就可以判
+断是否违反了借用规则。 `borrow`的返回类型是一个 `Ref`，它在`drop`的时候，会将
+之前说的那个数据减1（当初是增1之后，生成的 `Ref`， `Ref`销毁的时候，就该反向计算
+回去）
+
+`UnsafeCell<T>`拥有类型T的所有权, 它可以返回*mut T的指针，采用的是这种方式：
+```rust 
+impl T for UnsafeCell<T> {
+    fn as_mut(&self) -> *mut T {
+        self as *const UnsafeCell<T> as *const T as *mut T
+    }
+}
+```
+这样做是可行的，因为在定义 `UnsafeCell` 的时候，就使用`#[repr(transparent)]`属性宏
+规定结构体的内存对齐和T类型保持一致。
+:::
 <Giscus />

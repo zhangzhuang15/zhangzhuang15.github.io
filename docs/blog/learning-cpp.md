@@ -971,4 +971,176 @@ world
 调用的是Derive定义的hello, 默认参数传的是Base的
 
 
+## 与现代编程特性接轨
+### std::tuple 
+
+```cpp{6}
+#include <tuple>
+#include <iostream>
+
+int main() {
+  std::tuple<int, float> p = { 10, 8.9f };
+  auto [a, b] = p;            
+  std::cout << a << std::endl;
+
+  auto m = std::make_tuple(10, 9.90f);
+  auto [c, d] = m;
+  std::cout << c << std::endl;
+  return 0;
+}
+```
+js的解构？
+
+### std::pair 
+```cpp 
+#include <iostream>
+#include <utility>
+
+int main() {
+    std::pair<int, float> p = {10, 4.02f};
+    auto [a, b] = p;
+    std::cout << a << std::endl;
+    std::cout << p.second << std::endl;
+
+    auto pp = std::make_pair("hello", 100);
+    std::cout << pp.first << std::endl;
+    return 0;
+}
+```
+
+### for iterator
+```cpp 
+#include <iostream>
+#include <unordered_map>
+
+int main() {
+    std::unordered_map<std::string, int> map;
+    map["hello"] = 10;
+    map["world"] = 20;
+    
+    for(auto item:map) {
+      std::cout << item.first << std::endl;
+      std::cout << item.second << std::endl;
+    }
+
+    for(auto [key, value]:map) {
+      std::cout << key << std::endl;
+      std::cout << value << std::endl;
+    }
+    return 0;
+}
+```
+
+### std::optional
+```cpp 
+#include <iostream>
+#include <optional>
+#include <utility>
+
+int main() {
+    auto val = std::make_optional(10);
+    auto r = val.value_or(10);
+    std::cout << r << std::endl;
+
+    if (val.has_value()) {
+      std::cout << "have value" << std::endl;
+    }
+
+    val.reset();
+    if (!val) {
+      std::cout << "dont have value" << std::endl;
+    }
+    
+    return 0;
+}
+```
+
+### std::async
+```cpp 
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <thread>
+
+
+int hello() {
+  std::cout << "child thread: " << std::this_thread::get_id() << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  return 10;
+}
+int main() {
+    std::cout << "main thread: " << std::this_thread::get_id() << std::endl;
+    auto p = std::async(hello);
+    auto m = std::async(hello);
+
+    // 阻塞并获取结果
+    auto result = p.get();
+    std::cout << result << std::endl;
+
+    m.wait();
+    return 0;
+}
+```
+
+与 nodejs， rust tokio 不同，cpp的async底层是多线程，而不是多路复用和协程。
+
+### std::promise
+```cpp 
+
+#include <future>
+#include <thread>
+#include <iostream>
+void hello(std::promise<std::string>& promise) {
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    // 相当于 nodejs 中的 promise.resolve()
+    promise.set_value_at_thread_exit("why not");
+    return;
+}
+int main() {
+    std::promise<std::string> promise;
+
+    // 1. 用lambda创建线程的
+    // std::thread p([&]() {
+    //     hello(promise);
+    //     return;
+    // });
+
+    // 2. 用bind创建线程
+    auto binded_fn = std::bind(hello, std::ref(promise));
+    std::thread p(binded_fn);
+
+    // 3. 用常规方法创线线程，但要注意，如果线程入口函数的参数是引用的话，
+    //    需要使用 std::ref
+    // std::thread p(hello, std::ref(promise));
+    
+    std::cout << "main thread " << std::endl;
+
+    // promise 负责写入数据，future负责读取数据，而在
+    // nodejs 中，二者都由 promise 完成；
+    auto future = promise.get_future();
+    auto result = future.get();
+    std::cout << result << std::endl;
+   
+    // 为了收集子线程的资源，否则会有libc++abi的报错
+    p.join();
+    return 0;
+}
+```
+
+
+## lvalue, rvalue and movable semantic
+lvalue: 有明确内存地址的数据；
+
+rvalue: 没有明确内存地址的数据，比如临时数据，字面量；
+
+```cpp 
+int main() {
+  int a = 10;
+  std::string s = "hello";
+
+  // a，s 就是左值， 10 和 "hello" 就是右值
+}
+
+```
+
 <Giscus />

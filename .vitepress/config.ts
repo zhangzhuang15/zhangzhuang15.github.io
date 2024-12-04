@@ -168,7 +168,14 @@ export default defineConfig({
             { text: "work thoughts", link: "/me/work-thoughts" },
             { text: "my life", link: "/me/my-life" },
             { text: "my travel", link: "/me/my-travel" },
-            { text: "第一次系列", link: "/me/first-time" }
+            { 
+              text: "第一次系列", 
+              items: [
+                { text: '第一次洗牙', link: "/me/first-time/wash-teeth" },
+                { text: '第一次学会投篮', link: '/me/first-time/shoot' },
+                { text: '第一次立案', link: '/me/first-time/take-law' }
+              ],
+            },
           ],
         },
       ],
@@ -247,10 +254,6 @@ export default defineConfig({
             {
               text: "浩叔语录",
               link: "/blog/learning-experience-chen-hao"
-            },
-            {
-              text: "第一次去法院",
-              link: "/blog/first-law"
             },
             {
               text: "十年后再看高考，大彻大悟",
@@ -351,6 +354,10 @@ export default defineConfig({
             {
               text: "使用vue遇到的一些坑",
               link: '/blog/vue-apply'
+            },
+            {
+              text: 'crossbeam 学习笔记',
+              link: '/blog/crossbeam-learning-notes'
             },
             {
               text: "博客文章阅读系列",
