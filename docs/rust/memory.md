@@ -306,6 +306,55 @@ m 来自动执行drop，你必须自己去负责执行drop，可能你需要主�
 或者使用 raw pointer 去释放内存。
 
 
+### mem::transmute
+涉及到一些底层的数据类型转化时，无法使用`as`这种方式搞定，就需要使用这个函数，你可以把这个函数类比为 cpp 的`reinterpret_cast`。在使用这个方法的时候，使用不当，就会带来 UB(undefined behaviour), 要格外小心。下面，给出几个使用场景。
+
+```rust 
+struct Foo {
+    a: u8,
+    b: u8,
+}
+
+struct Bar {
+    x: u16,
+}
+
+fn main() {
+    let foo = Foo { a: 1, b: 2 };
+    let bar: Bar = unsafe { std::mem::transmute(foo) };
+    println!("{}", bar.x);
+}
+```
+
+```rust 
+union MyUnion {
+    f1: u8,
+    f2: i8,
+}
+
+fn main() {
+    let u = MyUnion { f2: -1 };
+    let f: u8 = unsafe { std::mem::transmute(u.f2) };
+    println!("{}", f);
+}
+
+// 你也可以这么写
+// fn main() {
+//     let u = MyUnion { f2: -1 };
+//     println!("{}", unsafe{u.f1});
+// }
+```
+
+指针到usize的转化，不要使用 `mem::transmute`, 要这样写:
+```rust 
+fn main() {
+    let a: i32 = 12;
+    let ptr = &i32 as *const i32 as usize;
+}
+```
+
+使用 `mem::transmute`将其中一个类型解释为另外一个类型，一定要保证两种类型的内存布局兼容，内存大小相等。
+
 
 ## cell 
 ### Cell 
