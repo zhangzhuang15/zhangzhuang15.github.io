@@ -813,4 +813,49 @@ function download(url) {
 `URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件是存储在blob的，只有blob对象被垃圾回收后，文件才会被删除。如果没有调用 `URL.revokeObjectURL` ，$url 就会持有 blob 的引用，导致 blob 对象无法被垃圾回收，造成内存泄漏，也导致文件占据内容，无法被释放。
 
 
+## react custom hooks
+```ts 
+function useAdvancedEffect(effect, deps) {
+  const cache = useRef(deps.map(dep => ({
+    prevValue: dep,
+    currentValue: dep,
+    changed: false
+  })))
+  cache.current = deps.map((dep ,index) => {
+    const cachedValue = cache.current[index]
+    return {
+      prevValue: cachedValue.currentValue,
+      currentValue: dep,
+      changed: cachedValue.currentValue !== dep
+    }
+  })
+  const useChanged = useCallback(() => {
+    return cache.current.map(c => c.changed)
+  }, [])
+  const useChangedValue = useCallback(() => {
+    return cache.current
+  }, [])
+  useEffect(() => {
+    return effect({ useChanged, useChangedValue})
+  }, deps)
+}
+
+
+const component = () => {
+  const [userId, setUserId] = useState(1)
+  const [score, setScore] = useState(50)
+
+  useAdvancedEffect(({ useChanged }) => {
+    const [userIdChanged, scoreChanged] = useChanged()
+    if (userIdChanged) {
+      console.log("userId Change")
+    }
+
+    if (scoreChanged) {
+      console.log("score Change")
+    }
+  }, [ userId, score])
+}
+```
+
 <Giscus />

@@ -157,3 +157,27 @@ Release/Acquire的内存顺序，在落实到汇编代码层面的时候，根�
 
 但是，aarch64体系就不同了，它是弱内存顺序的类型，会有单独的汇编指令实现Release/Acquire的内存顺序要求，比如读取数据的时候会用ldar（load-accquire）指令，写入数据用stlr(store-release)指令。
 :::
+
+
+## sync tool 
+### WaitGroup
+WaitGroup提供一个wait方法，当所有的线程都执行到wait的时候，就会唤醒所有线程继续往下执行。
+
+WaitGroup内部用`Arc`包含了一个Inner，Inner由 `Mutex<usize>`和`CondVar`构成。在 wait 方法被调用时，会修改 `Mutex<usize>`, 令其内部的数据减1，如果不等于0，意味着还有其他的线程没有执行wait方法呢，于是当前线程会利用`CondVar.wait`进入阻塞状态；如果等于0，意味着所有的线程都执行过wait方法了，于是当前线程使用`CondVar.notify_all`唤醒所有线程。WaitGroup在多线程之间传送时，必须在当前线程内，调用WaitGroup.clone创造一个副本，将副本发送给另一个线程，也就是在创建副本的时候，`Mutex<usize>`内部的数据增1.
+
+### Parker 
+Parker是阻塞线程和恢复线程的工具，当调用`parker.park`的时候，就会把当前线程挂起，当调用`parker.unpark`的时候，就会使得某个线程从挂起中恢复。
+
+做到这些也不难。Parker内部有一个原子数据，一个Mutex, 一个CondVar。阻塞和恢复线程，就是通过Mutex和CondVar完成的。原子数据用来标记当前现场的情况，是刚从挂起中恢复，还是空闲。
+
+
+## channel
+Channel的实现原理并不难。按照Channel的使用形式来看，它应该有一个东西，让用户写入数据，这就是Sender；它还要有一个东西，让用户读取数据，这就是Receiver。而作为数据的存储地，Channel应该有一个数据容器，比如数组或者列表。数组的容量是有限的，这样的Channel就是 bounded Channel。列表的容量是无没有限制的，这取决于操作系统的内存，这样的Channel就是 unbounded Channel。后边，我们把这种数据容器称为channel。这样，Channel就等同于 Sender + Receiver + channel。
+
+Sender和Receiver共享channel的引用，这样就可以做到一个发送数据，一个接受数据。如果发送方和接收方不是操作同一个channel，那么它们之间无法达成数据交流。
+
+你定会好奇，channel什么时候被drop呢？别担心，在 Sender 和 Recevier 内部，拥有计数器。当Sender或者Receiver被drop的时候，计数器会减1，当计数器为0的时候，它们就会触发 channel 的 drop。
+
+还有一个问题是，如果channel满了，如何阻塞Sender? 如果channel空了，如何阻塞Receiver呢？秘密在channel身上，它除了封装读、写数据的操作外，还拥有Senders属性和Receivers属性，分别记录被阻塞的Sender和Receiver。要阻塞Sender的时候，只需要将Sender写入到channel.Senders，然后调用上一节中提到的Parker.park，就能实现阻塞，当然也可以使用Rust标准库的thread::park，也可以使用上一节提到的Mutex+CondVar的方法。Receiver的情况同理，写入到Receviers。
+
+crossbeam在实现的时候做了优化，比如用无锁技术去实现写入和读取，在正式阻塞线程之前，会用自旋锁的方法反复尝试争取资源，阻塞和恢复线程的封装在Context里实现，而Context放在了thread_local里，Senders和Receivers会持有Context的引用。
