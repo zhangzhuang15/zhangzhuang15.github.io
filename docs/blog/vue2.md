@@ -297,6 +297,11 @@ Vue.prototype._init = function (options) {
 - 生成组件的vnode( vm._render() )
 - 根据新、旧vnode，更新DOM节点( vm.\__patch__() )
 
+:::tip <TipIcon />
+vm 并不是响应式对象，我们在组件内定义的data，实际绑定在 vm._data，也就是说
+vm._data 是响应式的。在 `beforeCreate` `created` `mounted`中，如果你使用`this.a = 10` 的方式增加一个新的属性a，那么a不是响应式的，只是一个挂载到vm的普通变量。
+:::
+
 ## 响应式系统中的概念
 ### Dep 和 DepTarget
 定义的位置：`src/core/observer/dep.ts`
@@ -757,62 +762,85 @@ watch在使用Watcher的时候，`expOrFn`就是要watch的属性，比如上边
 ### Observer 
 定义位置：`src/core/observer/index.ts`
 
-有了响应式变量，Dep，DepTarget，感觉响应式系统已经完备了，为什么还有个 Observer ?
-
+一开始我不太明白为什么会有这个东西，因为如果让一个对象变成响应式的，只需要按照下面的简化代码操作：
 ```ts 
-const reactiveObj = {
-  count: 10,
-  score: {
-    math: 50,
-    physics: 60,
-  }
+function defineReactive(obj, key) {
+  const dep = new Dep()
+  let value = obj[key]
+  Object.defineProperty(obj, key, {
+    get() {
+      if (Dep.target) {
+        dep.depend()
+      }
+      return value
+    },
+    set(val) {
+      value = val 
+      dep.notify()
+    }
+  })
 }
 
-// 对于响应式变量 reactiveObj 来说，
-//  reactiveObj.count ->  Dep 
-//  reactiveObj.score.math -> Dep 
-//  reactiveObj.score.physics -> Dep 
-
-const effect1 = () => {
-  // 引发 Dep.notify
-  reactiveObj.count += 1;
+function reactiveObj(obj) {
+  Object.keys(obj).forEach(key => {
+    defineReactive(obj, key)
+  })
 }
-
-const effect2 = () => {
-  // 引发 Dep.notify
-  reactiveObj.score.math += 10;
-}
-
-const effect3 = () => {
-  // 尴尬了，没办法引发 Dep.notify,
-  // 因为 score 没有绑定 Dep
-  reactiveObj.score = {
-    math: 17
-  };
-};
 ```
 
-为了解决 `effect3`的问题，就出现了 `Observer`；
+上面这套逻辑里，dep 是以闭包变量存在的，一旦将一个对象转化为响应式后，你无法透过这个对象访问到每个属性绑定的dep。在下面的情形中，就会遇到问题。
 
+我们知道，向一个已经响应式处理过的对象增加新属性，这个属性不会自动响应式化，你必须要使用vue提供的set方法。假设我们有如下的响应式变量：
+```ts 
+const reactivedObj = {
+  count: 10,
+  score: {
+    math: 100
+  }
+}
+```
+我们用set方法增加 `reactivedObj.score.art = 90` 后，我们很有必要让访问 `reactivedObj.score` 的 DepTarget 更新一下，但很遗憾，我们无法访问`reactivedObj.score`绑定的 dep, 也就无法做到让 DepTarget 更新。
+
+怎么办呢？Observer不就来了吗。
+
+vue将一个普通对象响应式化，就是为这个对象创建一个Observer对象，在创建的过程中，会按照上面的方式把对象的每个属性响应式化，但不同之处在于，我们得到了如下的内容：
 ```ts 
 const plainObj = {
-  count: 1,
+  count: 10,
   score: {
     math: 100
   }
 }
 
-const observer = new Observer(plainObj);
+const observer = new Observer(plainObj)
 
-// plainObj.__ob__ === observer 
-// observer.value === plainObj
-//
-// plainObj.score.__ob__ === observer2
-// observer2.value === plainObj.score
-//
-// 当 plainObj.score = {} 发生时，
-// plainObj.score.__ob__.dep 里的 DepTarget 就会执行
+// plainObj 已经是响应式对象了
+
+observer.value === plainObj // true
+
+plainObj.__ob__ === observer // true 
+
+// plainObj 对应的 dep, 在用 set 方法给
+// plainObj 增加新的响应式属性后，就可以用
+// 它让访问 plainObj 的 DepTarget 更新
+observer.dep; 
+
+// plainObj.score 对应的 dep, 在用 set 方法给
+// plainObj.score 增加新的响应式属性后，就可以用
+// 它让访问 plainObj.score 的 DepTarget 更新
+plainObj.score.__ob__.dep
 ```
+
+归纳一下Observer:
+1. 令一个对象响应式化的入口
+2. 为 set 和 del 追加/删除 响应式属性提供支持
+
+
+顺便可以提一下vue2基于Object.defineProperty的响应式实现的缺陷：
+1. 无法对新增或删除属性的情形，施加响应式
+2. 需要增加很多边界代码，比如判断有没有setter，getter,导致逻辑不干净
+3. 内存开销大，有内存泄漏风险，每个响应式属性都要用闭包的方式绑定一个Dep对象，每一个响应式对象都要建立一个Observer对象
+4. 无法解决数组索引号访问的响应式问题，当数组非常大的时候，建立响应式的开销非常大
 
 ### EffectScope
 定义位置：`src/v3/reactivity/effectScope.ts`
