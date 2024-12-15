@@ -5,7 +5,7 @@ aside: true
 ---
 
 ## Description 
-我是一个很痴迷Rust的人，就是因为它里边有个叫做类型模式匹配的东西，表达能力极强。偶然的时候，我发现Swift里边也有，又看了下其他语法，感觉Swift也很不错，想深入了解一下。我是写前端的，要想写起来一个前端项目，npm/pnpm/yarn这样的工具必不可少，webpack/rollup/vite这样的工具也不能丢。在Rust, 这些功能由统一的工具cargo实现，非常方便。那么，我要了解swift，自然而然就想到了它有没有包管理工具，它是如何拆分模块的。
+我是一个很痴迷Rust的人，因为它里边有个叫做类型模式匹配的东西，表达能力极强。我发现Swift里边也有，又看了下这门语言的语法，感觉Swift也很不错，想深入了解一下。我是写前端的，要想写一个前端项目，npm/pnpm/yarn这样的工具必不可少，webpack/rollup/vite这样的工具也不能丢。在Rust, 这些功能由统一的工具cargo实现，非常方便。那么，我要了解swift，自然而然就想到了它有没有包管理工具，它是如何拆分模块的。
 
 ## Fucking Module
 在夸swift之前，我必须要喷它，它的module管理太垃圾了。在前端，你如果想使用一个模块，你需要：
@@ -14,8 +14,8 @@ import { hello } from "../hello.js"
 ```
 Good：
 - 能看到我要使用的函数是什么
-- 能看到这个函数在哪个地方
-- 即便是自定义的模块，只需按照文件路径引入即可
+- 能看到这个函数定义在哪个地方
+- 自定义的模块，只需按照文件路径引入即可
 
 但是，swift就不一样：
 ```swift
@@ -24,13 +24,13 @@ import Foundation
 
 Bad:
 - Foundation 在哪里我不知道
-- 用什么函数不知道
+- 什么函数可以用，我不知道
 - 如果是自定义的模块，该怎么引入也不知道
 
 问了GPT，也没告诉我什么有效信息。我决定自己趟一次浑水。
 
 ## swift package manager 
-swift据说由若干个包管理工具，我只尝试了官方的工具。
+swift据说有多个包管理工具，我只尝试了官方的工具。
 
 创建个项目看看吧。
 ```shell
@@ -419,6 +419,58 @@ let package = Package(
     ]
 )
 ```
+
+## 入口文件
+在上边的例子中，`Sources/Main`里边，只有一个`main.swift`，如果我增加一个swift文件行不行，如果把`main.swift`换成另一个文件名，行不行呢？
+
+::code-group
+```swift [Package.swift]
+// swift-tools-version: 6.0
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
+import PackageDescription
+
+let package = Package(
+    name: "module-demo",
+    targets: [
+        // Targets are the basic building blocks of a package, defining a module or a test suite.
+        // Targets can depend on other targets in this package and products from dependencies.
+        .executableTarget(
+            name: "hello",
+            path: "Sources/Main"
+        ) 
+    ]
+)
+```
+```swift [Sources/Main/b.swift]
+func hello() {
+    print("hello peter")
+}
+```
+```swift [Sources/Main/a.swift]
+func main() {
+    hello()
+}
+hello()
+```
+:::
+
+执行:
+```shell 
+swift run hello
+```
+很遗憾，无法执行。因为swift无法知道a.swift和b.swift到底谁才是入口文件。
+
+给出swift入口文件的方法有两种，第一种就是给出`main.swift`，也就是说将`a.swift`改为`main.swift`。另外一种是将`a.swift`的内容调整为：
+```swift 
+@main 
+struct App {
+    static func main() throws {
+        hello()
+    }
+}
+```
+
 
 
 ## 感受
