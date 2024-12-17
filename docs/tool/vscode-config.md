@@ -109,4 +109,14 @@ aside: true
 
 > 确保 code 已经安装在 PATH!
 
+## 查看vscode内置node版本号
+插件的代码是在vscode内置的node里执行的。如果你使用`nvm`将本地切换到node14, 这并不会影响到插件的工作。
+
+我在使用 `@stylistics` package配置`eslint.config.js`的时候，发现当保存.js文件之后，eslint插件可以按照`eslint.config.js`的配置将.js文件修复。但是，当我使用`npx eslint --fix` 手动修复时，终端报错，说是找不到`Object.hasOwn`，这个API在node16才开始支持。这个现象促使我思索道，vscode应该有个内置的node。
+
+查看vscode内置的node版本号的方法：
+1. 在vscode中， `command+shift+P` 呼唤出命令面板
+2. 在面板中输入`Developer: Toggle Developer Tools`, 打开控制台（就是浏览器里的那个玩意儿）
+3. 切换到`console` tab，输入`globalThis.vscode.process.versions.node`
+
 <Giscus />

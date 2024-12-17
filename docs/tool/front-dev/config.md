@@ -325,3 +325,267 @@ export default (commandLineArgs: any) => {
   }
 }
 ```
+
+## 一个完整monorepo的配置
+:::code-group
+```json [package.json]
+{
+  "name": "",
+  "version": "",
+  "author": {},
+  "description": "",
+  "keywords": [],
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "type": "module",
+  "packageManager": "pnpm@7.33.7",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "postinstall": "simple-git-hooks",
+    "typecheck": "",
+    "lint": "eslint --cache .",
+    "format": "eslint --cache --fix .",
+    "format:json": "prettier --cache --write *.json"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged --concurrent false"
+  },
+  "lint-staged": {
+    "packages/*/{src,types}/**/*.ts": [
+      "eslint --cache --fix"
+    ],
+    "packages/**/*.d.ts": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.tsx": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.jsx": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.js": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.vue": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.json": [
+      "prettier --cache --write"
+    ],
+    "playground/**/__tests__/**/*.ts": [
+      "eslint --cache --fix"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@stylistic/eslint-plugin": "^2.12.1",
+    "@typescript-eslint/parser": "^5.1.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-json": "^4.0.1",
+    "eslint-plugin-vue": "^9.32.0",
+    "globals": "^15.13.0",
+    "lint-staged": "^15.2.10",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "prettier": "^3.4.2"
+  }
+}
+```
+```yaml [pnpm-workspace.yaml]
+packages:
+  - "packages/*"
+```
+
+```txt [.npmrc]
+
+```
+
+```js [eslint.config.js]
+import globals from "globals"
+import typescriptParser from "@typescript-eslint/parser"
+import js from "@eslint/js"
+import stylistic from "@stylistic/eslint-plugin"
+import vue from "eslint-plugin-vue"
+import json from "eslint-plugin-json"
+
+// migration from eslintrc.json to eslint.config.js:
+// https://eslint.org/docs/latest/use/configure/migration-guide#processors
+
+// rules reference:
+// https://eslint.org/docs/v8.x/rules/
+
+// stylistics reference:
+// https://eslint.style/rules/default/semi-style
+
+const rulesForJsOrTsSnippet = {
+  "no-use-before-define": "error",
+  "no-unused-vars": "off",
+  "no-constant-condition": "off",
+  "arrow-body-style": ["error", "as-needed"],
+  "block-scoped-var": "error",
+  "default-case-last": "error",
+  "default-param-last": "error",
+  "eqeqeq": "error",
+  "prefer-const": "warn",
+  "prefer-destructuring": "warn",
+  "prefer-object-spread": "warn",
+  "prefer-spread": "warn",
+  "prefer-rest-params": "warn",
+  "prefer-template": "warn",
+  "sort-imports": ["error", {
+    "ignoreCase": false,
+    "ignoreDeclarationSort": true,
+    "ignoreMemberSort": false,
+    "memberSyntaxSortOrder": ["none", "all", "single", "multiple"],
+    "allowSeparatedGroups": false
+  }],
+  "require-await": "warn",
+  "@stylistic/semi": ["error", "never"],
+  "@stylistic/semi-spacing": "error",
+  "@stylistic/member-delimiter-style": "error",
+  "@stylistic/indent": ["error", 2],
+  "@stylistic/indent-binary-ops": ["error", 2],
+  "@stylistic/block-spacing": "error",
+  "@stylistic/function-call-spacing": "error",
+  "@stylistic/arrow-spacing": "error",
+  "@stylistic/brace-style": ["error", "1tbs"],
+  "@stylistic/comma-spacing": "error",
+  "@stylistic/computed-property-spacing": "error",
+  "@stylistic/dot-location": ["error", "object"],
+  "@stylistic/key-spacing": ["error", { 
+    afterColon: true, 
+    beforeColon: false,
+  }],
+  "@stylistic/keyword-spacing": "error",
+  "@stylistic/lines-between-class-members": "error",
+  "@stylistic/max-len": ["error", { 
+    code: 90,
+    ignoreUrls: true,
+    ignoreRegExpLiterals: true
+  }],
+  "@stylistic/new-parens": "error",
+  "@stylistic/newline-per-chained-call": ["error", { "ignoreChainWithDepth": 1 }],
+  "@stylistic/no-confusing-arrow": "error",
+  "@stylistic/no-floating-decimal": "error",
+  "@stylistic/no-mixed-operators": "error",
+  "@stylistic/no-multi-spaces": "error",
+  "@stylistic/no-whitespace-before-property": "error",
+  "@stylistic/operator-linebreak": ["error", "before"],
+  "@stylistic/rest-spread-spacing": "error",
+  "@stylistic/space-in-parens": "error",
+  "@stylistic/space-infix-ops": "error",
+  "@stylistic/space-unary-ops": "error",
+  "@stylistic/space-before-blocks": "error",
+  "@stylistic/switch-colon-spacing": "error",
+  "@stylistic/template-tag-spacing": "error",
+  "@stylistic/type-annotation-spacing": "error",
+  "@stylistic/type-generic-spacing": "error",
+  "@stylistic/type-named-tuple-spacing": "error",
+  "@stylistic/wrap-iife": ["error", "inside"],
+  "@stylistic/yield-star-spacing": "error",
+
+  "@stylistic/jsx-closing-bracket-location": "error",
+  "@stylistic/jsx-closing-tag-location": "error",
+  "@stylistic/jsx-equals-spacing": "error",
+  "@stylistic/jsx-indent": ["error", 2],
+  "@stylistic/jsx-indent-props": ["error", 2],
+  "@stylistic/jsx-tag-spacing": ["error", { "beforeSelfClosing": "always" }],
+  "@stylistic/jsx-wrap-multilines": ["error", {
+    declaration: "parens-new-line",
+    assignment: "parens-new-line",
+    return: "parens-new-line",
+    arrow: "parens-new-line",
+    logical: "parens-new-line",
+    prop: "parens-new-line"
+  }],
+  
+}
+
+export default [
+  js.configs.recommended,
+  ...vue.configs["flat/recommended"],
+  {
+    files: ["**/*.vue"],
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true
+        }
+      }
+    },
+    rules: {
+      ...rulesForJsOrTsSnippet,
+      "vue/no-unused-vars": "off",
+    }
+  },
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    files: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+          tsx: 'true'
+        }
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      }
+    },
+    rules: rulesForJsOrTsSnippet
+  },
+]
+```
+
+```txt [.eslintignore]
+node_modules
+**/node_modules
+```
+```txt [.prettierignore]
+node_modules
+**/node_modules
+```
+```txt [.gitignore]
+node_modules
+**/node_modules
+```
+
+```js [vite.config.js]
+
+```
+```json [.vscode/settings.json]
+{
+    "[json]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}
+```
+
+```json [.vscode/extensions.json]
+{
+    "recommendations": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "vue.volar",
+        "pucelle.vscode-css-navigation",
+        "dsznajder.es7-react-js-snippets"
+    ]
+}
+```
+:::
