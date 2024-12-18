@@ -415,6 +415,9 @@ import js from "@eslint/js"
 import stylistic from "@stylistic/eslint-plugin"
 import vue from "eslint-plugin-vue"
 import json from "eslint-plugin-json"
+import vue_eslint_parser from "vue-eslint-parser"
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
 
 // migration from eslintrc.json to eslint.config.js:
 // https://eslint.org/docs/latest/use/configure/migration-guide#processors
@@ -516,17 +519,22 @@ export default [
     files: ["**/*.vue"],
     plugins: {
       '@stylistic': stylistic,
+      vue
     },
     languageOptions: {
+      parser: vue_eslint_parser,
+      // fix the conflicts between vue-eslint-parser and typescript-eslint-parser
+      // refer: https://eslint.vuejs.org/user-guide/#what-is-the-use-the-latest-vue-eslint-parser-error
       parserOptions: {
-        ecmaFeatures: {
-          jsx: true
-        }
-      }
+        parser: "@typescript-eslint/parser",
+        ecmaVersion: 2020,
+        sourceType: "module"
+      },
     },
     rules: {
       ...rulesForJsOrTsSnippet,
       "vue/no-unused-vars": "off",
+      "react/react-in-jsx-scope": "off"
     }
   },
   {
@@ -547,7 +555,14 @@ export default [
         ...globals.node,
       }
     },
-    rules: rulesForJsOrTsSnippet
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+      ...rulesForJsOrTsSnippet
+    }
   },
 ]
 ```
