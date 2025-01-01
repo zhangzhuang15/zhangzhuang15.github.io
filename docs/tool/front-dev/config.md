@@ -392,7 +392,8 @@ export default (commandLineArgs: any) => {
     "globals": "^15.13.0",
     "lint-staged": "^15.2.10",
     "simple-git-hooks": "^2.11.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "@types/node": "^22.10.2"
   },
   "dependencies": {
     "prettier": "^3.4.2"
@@ -580,7 +581,74 @@ node_modules
 **/node_modules
 ```
 
-```js [vite.config.js]
+```ts [vite.config.ts]
+import { defineConfig, UserConfig } from 'vite';
+import { join } from "node:path";
+import react from '@vitejs/plugin-react';
+import { env } from "node:process";   
+
+function resolveEntries() {
+  return {
+    main: join(import.meta.dirname, "apps/main.html")
+  }
+}
+
+// https://vite.dev/config/
+export default defineConfig(({ command }) => {
+  const baseConfig: UserConfig = {
+    plugins: [react()],
+    resolve: {
+      alias: [
+        { 
+          find: /^@pages/, 
+          replacement: join(import.meta.dirname, 'src/pages')
+        },
+        {
+          find: /^@utils/,
+          replacement: join(import.meta.dirname, 'src/utils')
+        },
+        {
+          find: /^@components/,
+          replacement: join(import.meta.dirname, 'src/components')
+        },
+        {
+          find: /^@api/,
+          replacement: join(import.meta.dirname, 'src/api')
+        },
+        {
+          find: /^@assets/,
+          replacement: join(import.meta.dirname, 'src/assets')
+        }
+      ]
+    },
+    build: {
+      cssMinify: 'esbuild',
+      minify: 'esbuild',
+    },
+    server: {
+      // 设置接口路由代理，如此一来，就不需要用nginx做转发了
+      proxy: {
+        '/api': 'http://localhost:6007'
+      },
+      host: "local.toy.com",
+      port: 8007
+    }
+  }; 
+
+  if (command === 'build') {
+    const entries = resolveEntries();
+    const oldRollupOptions = baseConfig.build?.rollupOptions;
+    baseConfig.build!.rollupOptions = {
+      ...oldRollupOptions,
+       // 修改 build 时的入口点
+      input: entries,
+    };
+    baseConfig.build!.emptyOutDir = eval(env['emptyOutDir'] ?? "true");
+  }
+
+  return baseConfig;
+});
+
 
 ```
 ```json [.vscode/settings.json]
@@ -603,4 +671,56 @@ node_modules
     ]
 }
 ```
+
+```json [tsconfig.node.json]
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+```
+
+```json [tsconfig.json]
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+```
+
+```js [scripts/help.js]
+#!/usr/bin/env node 
+
+import { env,argv } from "node:process"
+
+console.log(env)
+console.log(argv)
+```
 :::
+
+### `tsconfig.node.json` ?
+我们通常编写js文件完成一些基本功能，然后使用node执行，但是随着typescript的普及，我们就想使用typescript编写脚本，为了在编写的时候，获得类型提示这些帮助，我们必须为之设置好ts config，因此就会有 `tsconfig.node.json`。
+
+在编写前端页面时，我们的组件也基本上用typescript编写，对于这些ts, tsx文件，为了在编写代码的时候，获得类型提示的帮助，也要为之设置好ts config, 因此就会有`tsconfig.app.json`。
+
+默认情况下，tsc识别的是`tsconfig.json`，因此就会在这个文件中，使用`"references"` 将上述 `tsconfig.node.json` 和 `tsconfig.app.json` 连接进去，完成整体上的支持。
