@@ -115,6 +115,11 @@ aside: true
 
 [cheats of rust](https://cheats.rs)
 
+### 不知道怎么定义 unsafe 的数据结构或者操作
+keywords: `Unsafe` `drop` `PhantomData` `covariant` `invariant` `contravariant` `memory layout` `repr`
+
+[<<Rust 中的 Unsafe\>\> ](https://doc.rust-lang.org/nightly/nomicon/)
+
 ## 推荐的 github 项目
 
 [rustlings](https://github.com/rust-lang/rustlings.git)

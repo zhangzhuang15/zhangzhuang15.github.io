@@ -360,6 +360,10 @@ export default defineConfig({
               link: '/blog/crossbeam-learning-notes'
             },
             {
+              text: 'GPU介绍',
+              link: '/blog/gpu'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [

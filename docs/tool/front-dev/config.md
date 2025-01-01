@@ -325,3 +325,402 @@ export default (commandLineArgs: any) => {
   }
 }
 ```
+
+## 一个完整monorepo的配置
+:::code-group
+```json [package.json]
+{
+  "name": "",
+  "version": "",
+  "author": {},
+  "description": "",
+  "keywords": [],
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "type": "module",
+  "packageManager": "pnpm@7.33.7",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "postinstall": "simple-git-hooks",
+    "typecheck": "",
+    "lint": "eslint --cache .",
+    "format": "eslint --cache --fix .",
+    "format:json": "prettier --cache --write *.json"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged --concurrent false"
+  },
+  "lint-staged": {
+    "packages/*/{src,types}/**/*.ts": [
+      "eslint --cache --fix"
+    ],
+    "packages/**/*.d.ts": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.tsx": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.jsx": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.js": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.vue": [
+      "eslint --cache --fix"
+    ],
+    "packages/*/src/**/*.json": [
+      "prettier --cache --write"
+    ],
+    "playground/**/__tests__/**/*.ts": [
+      "eslint --cache --fix"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@stylistic/eslint-plugin": "^2.12.1",
+    "@typescript-eslint/parser": "^5.1.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-json": "^4.0.1",
+    "eslint-plugin-vue": "^9.32.0",
+    "globals": "^15.13.0",
+    "lint-staged": "^15.2.10",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "^4.8.4",
+    "@types/node": "^22.10.2"
+  },
+  "dependencies": {
+    "prettier": "^3.4.2"
+  }
+}
+```
+```yaml [pnpm-workspace.yaml]
+packages:
+  - "packages/*"
+```
+
+```txt [.npmrc]
+
+```
+
+```js [eslint.config.js]
+import globals from "globals"
+import typescriptParser from "@typescript-eslint/parser"
+import js from "@eslint/js"
+import stylistic from "@stylistic/eslint-plugin"
+import vue from "eslint-plugin-vue"
+import json from "eslint-plugin-json"
+import vue_eslint_parser from "vue-eslint-parser"
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+
+// migration from eslintrc.json to eslint.config.js:
+// https://eslint.org/docs/latest/use/configure/migration-guide#processors
+
+// rules reference:
+// https://eslint.org/docs/v8.x/rules/
+
+// stylistics reference:
+// https://eslint.style/rules/default/semi-style
+
+const rulesForJsOrTsSnippet = {
+  "no-use-before-define": "error",
+  "no-unused-vars": "off",
+  "no-constant-condition": "off",
+  "arrow-body-style": ["error", "as-needed"],
+  "block-scoped-var": "error",
+  "default-case-last": "error",
+  "default-param-last": "error",
+  "eqeqeq": "error",
+  "prefer-const": "warn",
+  "prefer-destructuring": "warn",
+  "prefer-object-spread": "warn",
+  "prefer-spread": "warn",
+  "prefer-rest-params": "warn",
+  "prefer-template": "warn",
+  "sort-imports": ["error", {
+    "ignoreCase": false,
+    "ignoreDeclarationSort": true,
+    "ignoreMemberSort": false,
+    "memberSyntaxSortOrder": ["none", "all", "single", "multiple"],
+    "allowSeparatedGroups": false
+  }],
+  "require-await": "warn",
+  "@stylistic/semi": ["error", "never"],
+  "@stylistic/semi-spacing": "error",
+  "@stylistic/member-delimiter-style": "error",
+  "@stylistic/indent": ["error", 2],
+  "@stylistic/indent-binary-ops": ["error", 2],
+  "@stylistic/block-spacing": "error",
+  "@stylistic/function-call-spacing": "error",
+  "@stylistic/arrow-spacing": "error",
+  "@stylistic/brace-style": ["error", "1tbs"],
+  "@stylistic/comma-spacing": "error",
+  "@stylistic/computed-property-spacing": "error",
+  "@stylistic/dot-location": ["error", "object"],
+  "@stylistic/key-spacing": ["error", { 
+    afterColon: true, 
+    beforeColon: false,
+  }],
+  "@stylistic/keyword-spacing": "error",
+  "@stylistic/lines-between-class-members": "error",
+  "@stylistic/max-len": ["error", { 
+    code: 90,
+    ignoreUrls: true,
+    ignoreRegExpLiterals: true
+  }],
+  "@stylistic/new-parens": "error",
+  "@stylistic/newline-per-chained-call": ["error", { "ignoreChainWithDepth": 1 }],
+  "@stylistic/no-confusing-arrow": "error",
+  "@stylistic/no-floating-decimal": "error",
+  "@stylistic/no-mixed-operators": "error",
+  "@stylistic/no-multi-spaces": "error",
+  "@stylistic/no-whitespace-before-property": "error",
+  "@stylistic/operator-linebreak": ["error", "before"],
+  "@stylistic/rest-spread-spacing": "error",
+  "@stylistic/space-in-parens": "error",
+  "@stylistic/space-infix-ops": "error",
+  "@stylistic/space-unary-ops": "error",
+  "@stylistic/space-before-blocks": "error",
+  "@stylistic/switch-colon-spacing": "error",
+  "@stylistic/template-tag-spacing": "error",
+  "@stylistic/type-annotation-spacing": "error",
+  "@stylistic/type-generic-spacing": "error",
+  "@stylistic/type-named-tuple-spacing": "error",
+  "@stylistic/wrap-iife": ["error", "inside"],
+  "@stylistic/yield-star-spacing": "error",
+
+  "@stylistic/jsx-closing-bracket-location": "error",
+  "@stylistic/jsx-closing-tag-location": "error",
+  "@stylistic/jsx-equals-spacing": "error",
+  "@stylistic/jsx-indent": ["error", 2],
+  "@stylistic/jsx-indent-props": ["error", 2],
+  "@stylistic/jsx-tag-spacing": ["error", { "beforeSelfClosing": "always" }],
+  "@stylistic/jsx-wrap-multilines": ["error", {
+    declaration: "parens-new-line",
+    assignment: "parens-new-line",
+    return: "parens-new-line",
+    arrow: "parens-new-line",
+    logical: "parens-new-line",
+    prop: "parens-new-line"
+  }],
+  
+}
+
+export default [
+  js.configs.recommended,
+  ...vue.configs["flat/recommended"],
+  {
+    files: ["**/*.vue"],
+    plugins: {
+      '@stylistic': stylistic,
+      vue
+    },
+    languageOptions: {
+      parser: vue_eslint_parser,
+      // fix the conflicts between vue-eslint-parser and typescript-eslint-parser
+      // refer: https://eslint.vuejs.org/user-guide/#what-is-the-use-the-latest-vue-eslint-parser-error
+      parserOptions: {
+        parser: "@typescript-eslint/parser",
+        ecmaVersion: 2020,
+        sourceType: "module"
+      },
+    },
+    rules: {
+      ...rulesForJsOrTsSnippet,
+      "vue/no-unused-vars": "off",
+      "react/react-in-jsx-scope": "off"
+    }
+  },
+  {
+    plugins: {
+      '@stylistic': stylistic,
+    },
+    files: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+          tsx: 'true'
+        }
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      }
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+      ...rulesForJsOrTsSnippet
+    }
+  },
+]
+```
+
+```txt [.eslintignore]
+node_modules
+**/node_modules
+```
+```txt [.prettierignore]
+node_modules
+**/node_modules
+```
+```txt [.gitignore]
+node_modules
+**/node_modules
+```
+
+```ts [vite.config.ts]
+import { defineConfig, UserConfig } from 'vite';
+import { join } from "node:path";
+import react from '@vitejs/plugin-react';
+import { env } from "node:process";   
+
+function resolveEntries() {
+  return {
+    main: join(import.meta.dirname, "apps/main.html")
+  }
+}
+
+// https://vite.dev/config/
+export default defineConfig(({ command }) => {
+  const baseConfig: UserConfig = {
+    plugins: [react()],
+    resolve: {
+      alias: [
+        { 
+          find: /^@pages/, 
+          replacement: join(import.meta.dirname, 'src/pages')
+        },
+        {
+          find: /^@utils/,
+          replacement: join(import.meta.dirname, 'src/utils')
+        },
+        {
+          find: /^@components/,
+          replacement: join(import.meta.dirname, 'src/components')
+        },
+        {
+          find: /^@api/,
+          replacement: join(import.meta.dirname, 'src/api')
+        },
+        {
+          find: /^@assets/,
+          replacement: join(import.meta.dirname, 'src/assets')
+        }
+      ]
+    },
+    build: {
+      cssMinify: 'esbuild',
+      minify: 'esbuild',
+    },
+    server: {
+      // 设置接口路由代理，如此一来，就不需要用nginx做转发了
+      proxy: {
+        '/api': 'http://localhost:6007'
+      },
+      host: "local.toy.com",
+      port: 8007
+    }
+  }; 
+
+  if (command === 'build') {
+    const entries = resolveEntries();
+    const oldRollupOptions = baseConfig.build?.rollupOptions;
+    baseConfig.build!.rollupOptions = {
+      ...oldRollupOptions,
+       // 修改 build 时的入口点
+      input: entries,
+    };
+    baseConfig.build!.emptyOutDir = eval(env['emptyOutDir'] ?? "true");
+  }
+
+  return baseConfig;
+});
+
+
+```
+```json [.vscode/settings.json]
+{
+    "[json]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}
+```
+
+```json [.vscode/extensions.json]
+{
+    "recommendations": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "vue.volar",
+        "pucelle.vscode-css-navigation",
+        "dsznajder.es7-react-js-snippets"
+    ]
+}
+```
+
+```json [tsconfig.node.json]
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+```
+
+```json [tsconfig.json]
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+```
+
+```js [scripts/help.js]
+#!/usr/bin/env node 
+
+import { env,argv } from "node:process"
+
+console.log(env)
+console.log(argv)
+```
+:::
+
+### `tsconfig.node.json` ?
+我们通常编写js文件完成一些基本功能，然后使用node执行，但是随着typescript的普及，我们就想使用typescript编写脚本，为了在编写的时候，获得类型提示这些帮助，我们必须为之设置好ts config，因此就会有 `tsconfig.node.json`。
+
+在编写前端页面时，我们的组件也基本上用typescript编写，对于这些ts, tsx文件，为了在编写代码的时候，获得类型提示的帮助，也要为之设置好ts config, 因此就会有`tsconfig.app.json`。
+
+默认情况下，tsc识别的是`tsconfig.json`，因此就会在这个文件中，使用`"references"` 将上述 `tsconfig.node.json` 和 `tsconfig.app.json` 连接进去，完成整体上的支持。

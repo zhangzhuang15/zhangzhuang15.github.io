@@ -1127,6 +1127,138 @@ int main() {
 }
 ```
 
+### module
+C++20支持Module，代码编写单元是Module，不再是 `.h` + `.cpp` 的组合。
+
+`.h`有着缺陷：
+1. 拖慢编译速度
+2. 符号污染
+3. 重复声明
+
+在开始介绍如何使用之前，请确保c++编译器支持C++20标准。我这里以macOS平台的Clang为例，Clang版本号是19.1.5, 安装方法是 `brew install llvm`。虽然Clang官网文档里说，Clang15已经支持C++20 module的很多特性，但是经我实验，发现`global module` `module partition` 支持的有问题。
+
+:::code-group
+```cpp [src/util/util.cppm]
+export module util;
+export import :math;
+export import :console;
+```
+
+```cpp [src/util/console.cppm]
+module;
+#include <string>
+export module util:console;
+
+export namespace util {
+ void error_toast(std::string s);
+}
+```
+
+```cpp [src/util/console.cpp]
+module;
+#include <iostream>
+#include <string>
+module util:console;
+
+namespace util {
+void error_toast(std::string s) {
+    std::cout << "error: " << s << std::endl;
+}
+}
+```
+
+```cpp [src/util/math.cppm]
+export module util:math;
+
+namespace util {
+int add(int a, int b);
+}
+```
+
+```cpp [src/util/math.cpp]
+module util:math;
+
+namespace util {
+int add(int a, int b) {
+    return a + b;
+}
+}
+```
+
+```cpp [src/main.cpp]
+import util;
+
+int main() {
+    util::error_toast("help me");
+    return 0;
+}
+```
+
+```makefile [src/makefile]
+CC = /opt/homebrew/opt/llvm/bin/clang++
+Flags = -std=c++20
+
+
+version:
+	$(CC) --version 
+
+clear:
+	rm -f *.o
+	rm -f *.pcm
+	rm -rf util/*.o
+
+build-util:
+	$(CC) $(Flags) --precompile util/console.cppm -o util-console.pcm 
+	$(CC) $(Flags) -c util/console.cpp -fmodule-file=util:console=util-console.pcm  -o util.console.impl.o
+	$(CC) $(Flags) --precompile util/math.cppm -o util-math.pcm 
+	$(CC) $(Flags) -c util/math.cpp -fmodule-file=util:math=util-math.pcm -o util.math.impl.o 
+	$(CC) $(Flags) --precompile util/util.cppm -fmodule-file=util:console=util-console.pcm \
+	-fmodule-file=util:math=util-math.pcm -o util.pcm
+	
+build: build-util
+	$(CC) $(Flags) -c main.cpp -fmodule-file=util=util.pcm  \
+	-fmodule-file=util:console=util-console.pcm \
+	-fmodule-file=util:math=util-math.pcm \
+	-o main.o
+	$(CC) $(Flags) main.o util.console.impl.o  util.math.impl.o \
+	-o main
+
+run: clear build
+	@./main 
+	make clear
+
+.PHONY: clear build-util build run version
+```
+:::
+
+编译：
+```shell 
+make build
+```
+
+运行：
+```shell 
+./main
+```
+
+`.cppm`就是采取模块化的cpp文件扩展名，一般来讲，我们只在这个文件里编写函数、类、结构体等等声明，但是也能给出实现。考虑到扩展，不建议在`.cppm`中给出实现。而`.cppm`里的声明，我们放在`.cpp`里实现。
+
+你可以看到，`src/util/console.cppm`里写的是声明，`src/util/console.cpp`是模块的实现。二者的区别在于，声明的一方，用 `export module` 交代模块名；实现的一方没有`export`。无论是哪一个，如果想要引入`.h`，必须放在`module;`后边， 本模块名的前边（`export module util:console`, `module util:console`）.
+
+`util:console`令你很奇怪吧？这个就是`module partition`, 标识它是 `module util`的一部分，因此你在 `src/util/util.cppm` 里看到 `export import :console;`，意思就是把 `util:console`声明的东西引入进来，并且暴露出去，供上层调用。
+
+module最麻烦的地方就是编译逻辑。你可以这样理解，`.cppm`要编译为`.pcm`，这个`.pcm`的作用是：
+1. 在编译`.cpp`的时候，遇到`import <module_name>`了，告诉编译器到哪里找到`<module_name>`的符号信息
+2. 在编译另外一个`.cppm`的时候，遇到`import <module_name>`了，告诉编译器到哪里找到`<module_name>`的符号信息
+
+所以，你看到了，在编译`util.cppm`的时候，我们用到了`util-console.pcm`和`util-math.pcm`。在编译`main.cpp`的时候，我们用到了`util.pcm`,`util-console.pcm`和`util-math.pcm`。
+
+但最终，是`.o`文件编译为最终的可执行文件，和`.pcm`无关了。值得注意的是，如果`.cppm`你不仅声明了，还给出定义了，你除了将这个文件编译为`.pcm`，还要编译为`.o`，毕竟你给出了实现。
+
+`util-console.pcm`的名字是有讲究的，对于声明了`export module A`的`.cppm`文件，我们编译的结果应命名为`A.pcm`，对于声明了`export module A:B`的`.cppm`文件，我们编译的结果应命名为`A-B.pcm`。
+
+更详细的指引，请看[Clang 15.0.0 | Standard C++ Modules](https://releases.llvm.org/15.0.0/tools/clang/docs/StandardCPlusPlusModules.html#quick-start)
+
 
 ## lvalue, rvalue and movable semantic
 lvalue: 有明确内存地址的数据；

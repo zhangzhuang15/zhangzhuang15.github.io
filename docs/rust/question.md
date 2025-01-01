@@ -1775,4 +1775,137 @@ impl T for UnsafeCell<T> {
 这样做是可行的，因为在定义 `UnsafeCell` 的时候，就使用`#[repr(transparent)]`属性宏
 规定结构体的内存对齐和T类型保持一致。
 :::
+
+## 协变、逆变、不变
+协变（covariant），逆变（contravariant），不变（invariant）是Rust对生命周期制定的一套规则，Rust使用这种规则检查生命周期是否合法，或者放宽生命周期的限制（不是安全的情况下，让生命周期的处理更灵活）。
+
+在具体说明三者的含义之前，先看个例子感受下：
+```rust 
+fn compare<'a>(left: &'a i32, right: &'a i32) -> &'a i32 {
+    if left > right {
+        return left;
+    }
+    right
+}
+
+fn main() {
+    let left: i32 = 100;
+    let left_ref = &left;
+    {
+        let right: i32 = 50;
+        let right_ref = &right;
+        let n = compare(left_ref, right_ref);
+        println!("{}", n);
+    }
+    println!("{}", left_ref);
+}
+```
+根据函数`compare`的签名来看，`left`和`right`的生命周期是一样的。但在`main`函数中，我们传给`compare`的参数却不满足。`left_ref`要比`right_ref`生命周期更长，但程序依旧可以执行成功。原因就是函数入参是可以协变的，意思就是实际参数的生命周期可以被当作更短的生命周期使用，这样`left_ref`的生命周期可以被当成`right_ref`一样的生命周期。如果没有这种机制，生命周期的检查就会过于严格，编译器会给出很多警告，不单单编译器觉得很麻烦，开发者也会觉得麻烦。
+
+有了这种认识，我们可以继续介绍。
+
+`'a:'b`，表示生命周期a大于生命周期b。
+
+协变就是说，生命周期较长的，可以当成更短的生命周期使用。
+
+逆变就是说，生命周期短的，可以当成更长的生命周期使用。
+
+不变就是说，生命周期是固定的，不能灵活缩放。
+
+我们用一个表格具体说明下，表格[出处](https://nomicon.purewhite.io/subtyping.html)
+
+||'a|T|U|
+|:--:|:--:|:--:|:--:|
+| `&'a T` | 协变 | 协变 | |
+| `&'a mut T` | 协变 | 不变 | |
+| `Box<T>` | | 协变 | |
+| `Vec<T>` | | 协变	 |
+| `UnsafeCell<T>`| | 不变 |
+|`Cell<T>`| | 不变 |
+|`fn(T) -> U`| | 逆变 | 协变 |
+| `*const T`| | 协变 |
+| `*mut T`| | 不变 |
+
+`&'a T` 的 `'a` 是协变的，意味着：
+```rust 
+fn main() {
+    let a:&'static i32 = &32;
+    let b:&'a i32 = a;
+}
+// 代码只是示例，不一定对，当作伪代码理解即可。
+
+```
+`&'a T` 的`T` 是协变的，意味着：
+```rust 
+fn main() {
+    let a:&'static i32 = &32;
+    let a_ref:&'a &'static i32 = &a;
+
+    let b:&'a &'a i32 = a_ref;
+}
+
+// T类型一定是引用类型，只有引用类型才会有协变这种概念，
+// 在本例子中，T就是指 &'static i32 和 &'a i32,
+// T 是协变，意味着生命周期长的，可以作为短的来使用，
+// 即 &'static i32 可以赋值给 &'a i32 的变量.
+```
+
+`&'a mut T`的`T`是不变的，意味着：
+```rust 
+fn main() {
+    let a:&'static i32 = &32;
+    let mut a:&'a mut &'static i32 = &mut a;
+
+    // 不允许这样！必须严格是 &'a mut &'static i32
+    let mut b:&'a mut &'a i32 = a;
+}
+```
+
+`fn(T)->U`的`T`是逆变的，意味着：
+```rust 
+fn compare<'a>(val: &'a i32) {}
+
+fn main() {
+    let a:&'a i32 = &32;
+    let b:&'static i32 = &32;
+
+    // ok
+    compare(a);
+    // ok
+    compare(b);
+}
+
+// &‘a i32 是逆变的，意味着 val 可以接受更长
+// 生命周期的入参 &'static i32
+```
+
+`fn(T)->U`的`U`是协变的，意味着：
+```rust 
+fn compare<'a>(val: &'a i32) -> &'static i32 {
+    &100
+}
+
+fn main() {
+    let b: &'a i32 = &32;
+    let a: &'static i32 = compare(b);
+    // ok
+    // U 是协变的，意味着 U 可以赋值给一个生命周期更短的变量，
+    // 这里的返回值是 &'static，就可以赋值给c, 而 c 是
+    // &'a，生命周期更短
+    let c: &'a i32 = compare(b);
+}
+```
+
+`*const T`的`T`是协变的，意味着：
+```rust 
+fn main() {
+    let a: &'static i32 = &32;
+    let b: *const &'static i32 = &a;
+    // ok
+    let c: *const &'a i32 = b;
+}
+```
+
+
+
 <Giscus />
