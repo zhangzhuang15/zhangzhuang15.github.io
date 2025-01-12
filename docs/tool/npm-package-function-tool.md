@@ -51,13 +51,19 @@ typescript-first validator
 
 ## js-big-decimal
 
-遇到了`0.1 + 0.2 != 0.3` 的问题？使用这个库解决吧
+遇到了`0.1 + 0.2 != 0.3` 的问题？
+
+遇到了`0.0028 * 100 != 0.28`的问题？
+
+使用这个库解决吧！
 
 ```js
 const jb = require("js-big-decimal").default;
 
 console.log(jb.add('0.1', '0.2'))
 ```
+
+同功能的包还有`big.js` 和 `bignumber.js`
 
 ## p-map
 功能和Promise.all一样，但创新式地加入了并发数量限制；

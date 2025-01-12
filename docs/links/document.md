@@ -192,3 +192,12 @@ C代码库，GLib 提供了许多有用的功能，包括但不限于：
 C代码库，用于加密、解密运算，https中就是使用了它。
 
 [OpenSSL官网](https://docs.openssl.org/master/)
+
+## spidermonkey
+介绍浏览器引擎——spidermonkey，帮助你理解什么是浏览器引擎，开发一个浏览器引擎需要知道哪些知识。
+
+[spidermonkey文档官网](https://spidermonkey.dev/docs/)
+
+:::tip <TipIcon />
+[mozilla浏览器js引擎的源代码](https://searchfox.org/mozilla-central/source/js)
+:::
