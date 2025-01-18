@@ -104,6 +104,7 @@ export default defineConfig({
           { text: "Cargo Toml", link: "/rust/cargo-toml" },
           { text: 'Rust内存操作', link: '/rust/memory'},
           { text: "FAQ", link: "/rust/question" },
+          { text: '编写宏', link: '/rust/write-macro'}
         ],
       },
       {
@@ -190,7 +191,8 @@ export default defineConfig({
         { text: "Cargo Toml", link: "/rust/cargo-toml" },
         { text: 'Rust内存操作', link: '/rust/memory'},
         { text: "FAQ", link: "/rust/question" },
-        { text: "code-snippet", link: "/rust/code-snippet"}
+        { text: "code-snippet", link: "/rust/code-snippet"},
+        { text: '编写宏', link: '/rust/write-macro' }
       ],
       "/blog": [
         {
