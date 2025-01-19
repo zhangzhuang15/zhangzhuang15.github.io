@@ -145,4 +145,54 @@ C++不可被替代，绝不是它语言层面有什么优越性，开发效率�
 > -- 左耳听风
 
 
+在析构函数调用方面，二者也有不同，Rust更精确。
+
+```rs  
+struct M;
+
+impl Drop for M {
+    fn drop(&mut self) {
+        println!("dropping M");
+    }
+}
+
+fn main() {
+    let m = M;
+    {
+        m;
+    }
+    println!("hello");
+}
+```
+结果：
+```txt
+dropping M 
+hello
+```
+
+如果是cpp:
+```cpp 
+class M {
+    public:
+    ~H() {
+        std::cout << "dropping M" << std::endl;
+    }
+};
+
+int main() {
+    M m = {};
+    {
+        m;
+    }
+    std::cout << "hello" << std::endl;
+    return 0;
+}
+```
+结果是：
+```txt 
+hello 
+dropping M
+```
+
+足见，Rust的生命周期追踪得更细致。
 
