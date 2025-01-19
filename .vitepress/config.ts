@@ -192,7 +192,13 @@ export default defineConfig({
         { text: 'Rust内存操作', link: '/rust/memory'},
         { text: "FAQ", link: "/rust/question" },
         { text: "code-snippet", link: "/rust/code-snippet"},
-        { text: '编写宏', link: '/rust/write-macro' }
+        { text: '编写宏', link: '/rust/write-macro' },
+        { 
+          text: '开源代码阅读',
+          items: [
+            { text: 'mio', link: '/rust/readings/mio'}
+          ]
+        }
       ],
       "/blog": [
         {
