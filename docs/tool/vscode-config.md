@@ -119,4 +119,11 @@ aside: true
 2. 在面板中输入`Developer: Toggle Developer Tools`, 打开控制台（就是浏览器里的那个玩意儿）
 3. 切换到`console` tab，输入`globalThis.vscode.process.versions.node`
 
+## 切换vscode内置typescript版本号
+1. 打开一个ts文件
+2. 打开命令面板
+3. 输入`Typescript`
+4. 选中`Typescript: select typescript version`
+
+
 <Giscus />
