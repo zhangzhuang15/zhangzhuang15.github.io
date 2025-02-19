@@ -204,6 +204,7 @@ export default defineConfig({
         {
           items: [
             { text: "首页", link: "/blog/index-page" },
+            { text: '程序员和英语', link: '/blog/programer-and-english'},
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
             {
