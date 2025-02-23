@@ -80,4 +80,10 @@ console.log(jb.add('0.1', '0.2'))
 ## immutable
 不可变的集合数据类型的工具库
 
+
+## haiku
+[website](https://www.reacthaiku.dev/docs/intro)
+
+提供 hooks and utilities 的react工具库，类似于ahooks库。
+
 <Giscus />

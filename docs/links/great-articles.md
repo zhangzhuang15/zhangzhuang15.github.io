@@ -4,6 +4,8 @@ page: true
 aside: true
 ---
 
+# 精彩好文
+
 ## rcore 操作系统教程
 [阅读原文](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/index.html)
 
@@ -249,3 +251,10 @@ GitHub上的一个开源电子书，其中讲述了Linux内核是怎样启动、
 这篇文章就给出了比较好的介绍。里边牵扯到很多概念，比如BSP（Bootstrap Processor）, AP(Application Processor), SIPI(Startup IPI), APIC(Advanced Programmable Interrupt Controller)。
 
 另外，这篇文章的作者，是一个来自台湾的女性开发者（如果她的头像是本人的话），其经历很令人吃惊，她开始做的前端开发，一年后，做的后端开发，大概维持了两年，之后就很突然，她就从事硬件工程师的岗位，目前她就职台积电，硬件和软件通吃。
+
+## create your own nodejs
+[youtube地址](https://www.youtube.com/watch?v=ynNDmp7hBdo)
+
+介绍了如何使用 v8, libuv 制作一个简易的nodejs。在这个视频中，你会了解到nodejs的最小原理，也是最本质的原理。简单来概括下，nodejs本质是对v8的拓展，是一个cpp程序。nodejs使用v8读取js代码，将其转化为cpp中的数据结构。v8提供了一种接口，将js中的函数、模块转化为cpp的函数、对象，比如js中的setTimeout就可以映射为cpp中的实现，即调用libuv，向eventloop中注册一个timer，由libuv来负责唤醒回调函数，而在setTimeout中传入的回调函数，也会被v8转化为cpp侧的数据结构，这样libuv就可以无缝运行了。由此可见，nodejs是在v8的基础上，使用cpp定义了本地文件系统、事件循环、多线程、多进程、http等模块，扩展了v8。nodejs最麻烦的地方，就是如何用cpp实现这些模块，如何跨端支持这些模块。
+
+[视频中的源码链接](https://github.com/ErickWendel/myownnode)

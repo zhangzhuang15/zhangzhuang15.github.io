@@ -72,3 +72,17 @@ aside: true
 **indexed by number**， 按整数索引。在你提到数组、集合的时候，会用到。
 
 **there's a few pieces here**, 当你想给出几点解释/说明，你可以用这个表达开头，后边罗列你的解释/说明。
+
+**stay up-to-date with the latest techniques**, 紧跟最新的技术。
+
+**identify performance bottlenecks**，锁定性能瓶颈。
+
+**let's dig deeper into ...**, 更详细地讨论....。
+
+**supercharge your app**, 强化你的应用，助力你的应用。
+
+**cause a stir**，引发骚动。比如某个公司发布了什么技术言论，引发了骚动。
+
+**smashing performance**，炸裂的性能。
+
+**it's worth nothing that**, 值得注意的是。当你想要特别强调什么的时候，可以用上。
