@@ -936,3 +936,21 @@ SSR，服务端渲染，服务器动态生成html的内容，将html返回给前
 SSG，由服务器提前生成html文件，放在一个地方，前端请求直接拿，不需要服务器做额外的处理；
 
 渐进式应用，利用web API打造的应用，支持离线使用、通知推送，本质就是使用了浏览器高级API打造的接近主机原生应用的网页；
+
+
+## 更改font-weight后，容器的宽度变了，怎么解决？
+使用`font-variation-settings`设置字重：
+```css
+.option {
+  font-variation-settings: 'wght' 500;
+}
+```
+
+## 明明使用sticky position, 为什么没有固定住？
+[stackoverflow同样的问题](https://stackoverflow.com/questions/50954630/position-sticky-scroll-still-moving-element/50954998#50954998)
+
+问题描述：元素A定宽，内部可以滚动，元素B是元素A的子元素。元素B内部拥有元素C、元素D、元素E...元素C和元素D使用sticky position固定在元素A的最左侧。滚动条往右继续滚动，快要滚动到头的时候，元素D没有定住，往左滚动了一点。
+
+原因：当sticky position元素接触到父元素的右边框或者下边框，会失去 sticky 特性。
+
+解决方法：采取适当的方法增大sticky position元素的父元素宽度或者高度，让滚动到尽头的时候，元素都碰不到父元素的右边框或者下边框。
