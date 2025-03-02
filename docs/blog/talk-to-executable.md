@@ -222,19 +222,31 @@ gcc -I "src/dyn-util" -L "src/dyn-util" -lutil -Wl,-rpath,$PWD/src/dyn-util -o m
 ```
 > -Wl, -rpath, $PWD/src/dyn-util 指定动态连接器的搜索路径，可以阅读[rust编译出来的executable file比cpp大](/blog/rust-binary-is-big)了解更多
 
-如果你将上边生成的main文件移动到别的目录下，并在该目录下执行，就会报错，错误大致的意思是找不到动态链接库：
+如果你将上边生成的main文件移动到别的目录下，并在该目录下执行：
 ```shell 
 cp main src/main 
 cd src 
 ./main
 ```
+结果是会报错。错误大致的意思是找不到动态链接库。
+
 解决方法是，改用下边的指令生成之前的动态链接库：
 ```shell 
 gcc -install_name @rpath/libutil.dylib -fPIC -shared -o src/dyn-util/libutil.dylib src/dyn-util/util.c
 ```
 
-生成动态链接库时，默认的注册名是`./libutil.dylib`, 但不知道为什么，macOS平台中，dyld使用可执行程序的当前工作目录或者`DYLD_LIBRARY_PATH`环境变量指定的目录，作为这个相对路径的参考目录，使用`gcc -Wl.-rpath`设置的动态链接库搜索目录将无效。为了解决这个问题，你要设置 `-install_name`, 告诉dyld，动链接库是rpath目录下的libutil.dylib文件.
+`-install_name` 是修改动态链接库的注册名。
+
+默认情况下，动态链接库的注册名是`./libutil.dylib`。在macOS平台，你可以这样简单理解：当你连接这个库的时候，`gcc -Lsrc/dyn-util -lutil`, 链接器会找到这个文件，将文件的注册名记录在生成的可执行文件里。
+
+当可执行文件执行的时候，dyld 程序就会根据这个名字加载动态链接库，而 dyld 发现这是相对路径，就会参考可执行程序的当前工作目录或者`DYLD_LIBRARY_PATH`环境变量指定的目录，寻找动态链接库。显然，可执行文件变更位置后，肯定影响到了动态链接库的定位了。
+
+为了解决这个问题，你要设置 `-install_name`, 告诉dyld，动链接库是rpath目录下的libutil.dylib文件。
 > dyld是动态链接器。编译程序的最后一步是链接，这个工作由静态链接器 ld 完成。而 dyld 是在操作系统加载可执行程序时，调用的一个程序，它由操作系统给出，不是编译器工具的一部分。
+
+dyld 读取注册名`@rpath/libutil.dylib`, 发现有个 `@rpath`，就会确定rpath都有哪些路径，于是，我们在链接动态库时，`gcc -Wl,-rpath,$PWD/src/dyn-util`，设置的rpath才会派上用场。
+
+像 cmake 生成的构建命令，不会搞的如此复杂，而是将动态链接库的注册名直接设置为它的绝对文件路径，而链接它的时候，`-L`也是设置为动态连结库所在目录的绝对路径。好处是生成的二进制文件可以随便移动，执行不会有问题。不好的地方就是，动态链接库的位置不能动。
 
 `-install_name`是macOS特有的配置项，在 Linux 上，类似的功能可以通过 `-soname` 选项来实现：
 ```shell
