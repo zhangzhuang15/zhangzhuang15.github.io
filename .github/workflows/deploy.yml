@@ -29,7 +29,7 @@ jobs:
       - name: Build
         run: pnpm run docs:build
       - uses: actions/configure-pages@v2
-      - uses: actions/upload-pages-artifact@v1
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: ./.vitepress/dist
       - name: Deploy
