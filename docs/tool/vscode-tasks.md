@@ -85,7 +85,7 @@ tasks 生效范围：
 
 在 command 里，你可以使用 vscode variable，variable 可以是 vscode 内置的，也可以是你定义的。
 
-如果是你定义的 variable，要在 `inputs`中定义出来，command 中以`${input:id}`方式使用。
+如果是你定义的 variable，要在 `inputs`中定义出来，command 中以`${input:id}`方式使用。**input和id之间不能有空格**
 
 如果是 vscode 内置变量:
 
@@ -141,7 +141,7 @@ task 所在分组，一般设置 'none' 即可
         "|",
         "awk '{print \"branch.\"$1\".description\"}'",
         "|",
-        "xargs -J % git config --add % ${input: gitBranchDescription}"
+        "xargs -J % git config --add % ${input:gitBranchDescription}"
       ]
     }
   ],

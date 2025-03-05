@@ -29,4 +29,15 @@ css pre-defined class name library
 
 icon library for react app
 
+## planby
+[github home](https://github.com/karolkozer/planby)
+
+一个实现 timeline or scheduler 的react组件库。
+
+
+## react-resizable
+[website](https://react-grid-layout.github.io/react-resizable/index.html)
+
+一个实现可拖拽变宽、变高的容器组件，采用react实现。用这个组件可以实现 split views。
+
 <Giscus />

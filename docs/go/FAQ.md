@@ -202,3 +202,64 @@ func main() {
     //    Hobby Data 字段不受影响，依旧可以反序列化
 }
 ```
+
+## 继承方式
+go采用了一种组合的方式完成继承机制。
+
+```go 
+type M struct {
+    value int
+}
+func (m *M) hello(msg string) {
+    m.value = len(msg)
+}
+
+type N struct {
+    M 
+    value float32
+}
+
+func main() {
+    n := N { value: 20.0 }
+    // 0
+    println(n.M.value)
+    n.hello("Peter")
+    // 5
+    println(n.M.value)
+}
+```
+
+## 结构体的方法
+```go 
+type M struct {
+    value int
+}
+
+func (m *M) hello(msg string) {
+    m.value = len(msg)
+}
+
+func (m M) change(msg string) {
+    m.value = len(msg)
+}
+
+func main() {
+    m := M{}
+    m.change("P")
+    // 0
+    println(m.value)
+    m.hello("P")
+    // 1
+    println(m.value)
+
+    n := &M{}
+    n.change("P")
+     // 0
+    println(n.value)
+    n.hello("P")
+    // 1
+    println(n.value)
+}
+```
+
+go 会自动处理结构体，在适当的时候，为变量增加解引用或者引用，调用相应的结构体方法。`(m M)` 这种形式定义的方法，不会修改结构体本身；`(m *M)`这种形式定义的方法，才会修改结构体自身。

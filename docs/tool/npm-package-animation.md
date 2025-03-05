@@ -38,4 +38,14 @@ js 动画库，让我们使用 svg 制作动画
 
 拖拽库
 
+## React DnD 
+[website](https://react-dnd.github.io/react-dnd/about)
+
+react生态下的拖拽库
+
+## cursify
+[website](https://cursify.vercel.app)
+
+react+canvas实现的鼠标动画库，比如在鼠标所在处展示向上飘的的气泡。
+
 <Giscus />

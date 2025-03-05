@@ -104,6 +104,7 @@ export default defineConfig({
           { text: "Cargo Toml", link: "/rust/cargo-toml" },
           { text: 'Rust内存操作', link: '/rust/memory'},
           { text: "FAQ", link: "/rust/question" },
+          { text: '编写宏', link: '/rust/write-macro'}
         ],
       },
       {
@@ -190,12 +191,20 @@ export default defineConfig({
         { text: "Cargo Toml", link: "/rust/cargo-toml" },
         { text: 'Rust内存操作', link: '/rust/memory'},
         { text: "FAQ", link: "/rust/question" },
-        { text: "code-snippet", link: "/rust/code-snippet"}
+        { text: "code-snippet", link: "/rust/code-snippet"},
+        { text: '编写宏', link: '/rust/write-macro' },
+        { 
+          text: '开源代码阅读',
+          items: [
+            { text: 'mio', link: '/rust/readings/mio'}
+          ]
+        }
       ],
       "/blog": [
         {
           items: [
             { text: "首页", link: "/blog/index-page" },
+            { text: '程序员和英语', link: '/blog/programer-and-english'},
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
             {

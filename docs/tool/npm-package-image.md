@@ -32,4 +32,9 @@ aside: true
 
 图片编辑器
 
+## react-advanced-cropper
+[website](https://advanced-cropper.github.io/react-advanced-cropper/#default-cropper)
+
+react生态下的一个组件，支持用户裁剪图片，旋转图片，翻折图片，缩放图片。
+
 <Giscus />

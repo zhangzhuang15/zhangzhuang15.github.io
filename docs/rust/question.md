@@ -1906,6 +1906,66 @@ fn main() {
 }
 ```
 
+## struct 的可见性
+```rs 
+struct M {
+    value: i32,
+}
+
+fn main() {
+    // it's ok
+    let m = M { value: 20 };
+}
+```
+
+
+```rs 
+mod Mine {
+    struct M {
+        value: i32,
+    }
+}
+
+fn main() {
+    // wrong! Mine::M is not public
+    let m = Mine::M { value: 30 };
+}
+```
+
+```rs 
+mod Mine {
+    pub struct M {
+        value: i32,
+    }
+}
+
+fn main() {
+    // wrong! Mine::M is public, but Mine::M::value not public
+    let m = Mine::M { value: 34 };
+}
+```
+
+```rs 
+mod Mine {
+    pub struct M {
+        pub value: i32,
+    }
+}
+
+fn main() {
+    // it's ok
+    let m = Mine::M { value: 11 };
+    // wrong! m is readonly
+    m.value = 20;
+
+    let mut m = Mine::M { value: 0 };
+    // it's ok
+    m.value = 87;
+}
+```
+
+struct 是值类型，内部成员是否可变，要看struct自身是否可变。如果想要实现内部可变性，需要使用Rust标准库提供的 Cell 这类工具。
+
 
 
 <Giscus />
