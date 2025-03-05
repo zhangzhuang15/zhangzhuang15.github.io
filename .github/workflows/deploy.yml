@@ -23,7 +23,7 @@ jobs:
           version: 7.9.3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
           cache: pnpm
       - run: pnpm install
       - name: Build
