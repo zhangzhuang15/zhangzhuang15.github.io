@@ -15,7 +15,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: pnpm/action-setup@v2
@@ -29,10 +29,10 @@ jobs:
       - name: Build
         run: pnpm run docs:build
       - uses: actions/configure-pages@v2
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./.vitepress/dist
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
 # # more information about github workflow .yml file, visit https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
