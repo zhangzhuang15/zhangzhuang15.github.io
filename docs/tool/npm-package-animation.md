@@ -1,51 +1,40 @@
 ---
-title: "动画"
+title: "Animation"
 page: true
 aside: true
 ---
 
-## Description
+# Animation
 
 ## driver.js
-
-页面引导动画库
+An animation tour library.
 
 ## animate.css
-
-跨浏览器 css3 动画库
+Cross platform css animation library.
 
 ## animejs
-
-js 动画库
+A js animation library.
 
 ## vivus
-
-js 动画库，让我们使用 svg 制作动画
+A js animation library based on svg.
 
 ## gsap
-
-绘制动画库
-
-苹果官网跟随滚动的页面动画，就可以用这个库实现
+An advanced and powerful js animation library.
 
 ## framer-motion
-
-过渡动画库
-
-比如一段文字由消失到浮现的渐变
+A transition animation library.
 
 ## SortableJS
-
-拖拽库
+A library that help you drag element.
 
 ## React DnD 
 [website](https://react-dnd.github.io/react-dnd/about)
 
-react生态下的拖拽库
+A react library that help you drag element.
 
 ## cursify
 [website](https://cursify.vercel.app)
 
-react+canvas实现的鼠标动画库，比如在鼠标所在处展示向上飘的的气泡。
+A cursor animation library based on react and canvas.
 
 <Giscus />

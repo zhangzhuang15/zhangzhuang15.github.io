@@ -261,3 +261,9 @@ Explore the evolution of top websites like Google and Amazon.
 [website](https://picsum.photos/)
 
 A go-to tool for generating placeholder image.
+
+
+## AI Image Generator
+[website](https://deepai.org/machine-learning-model/text2img)
+
+Create a picture following your prompts.
