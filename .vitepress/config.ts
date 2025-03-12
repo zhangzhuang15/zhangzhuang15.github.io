@@ -361,6 +361,10 @@ export default defineConfig({
               link: '/blog/coroutine'
             },
             {
+              text: 'Talk about pthread',
+              link: '/blog/pthread'
+            },
+            {
               text: "使用vue遇到的一些坑",
               link: '/blog/vue-apply'
             },
