@@ -4,6 +4,9 @@
   "private": true,
   "version": "0.4.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "docs:init": "vitepress init",
     "docs:dev": "vitepress dev",
@@ -13,13 +16,16 @@
   "dependencies": {
     "@algolia/client-search": "^4.9.1",
     "@giscus/vue": "^2.3.0",
+    "ammo.js": "^0.0.10",
     "ky": "^0.33.3",
     "markdown-it-container": "^4.0.0",
     "search-insights": "^1.0.0",
+    "three": "0.153.0",
     "vue": "^3.2.47",
     "vue-router": "^4.2.2"
   },
   "devDependencies": {
+    "@types/three": "0.153.0",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "@vicons/fluent": "^0.12.0",

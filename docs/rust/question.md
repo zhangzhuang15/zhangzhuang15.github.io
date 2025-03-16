@@ -563,6 +563,57 @@ use crate::a::*;
 ```
 :::
 
+## 模块组织风格
+老风格是建立一个文件夹，将功能的实现划分为若干个rs文件，最后在一个mod.rs文件里导出，类似于js生态里的index.js，比如：
+
+:::code-group 
+```rs [src/util/hello.rs]   
+pub fn say_hello() {
+    println!("hello");
+}
+```
+
+```rs  [src/util/mod.rs] 
+mod hello;
+pub use hello::*;
+```
+
+```rs  [src/main.rs] 
+
+mod util;
+
+fn main() {
+    util::say_hello();
+}
+```
+:::
+
+> `mod.rs` 里如果声明了`mod hello;`, hello 指代的就是mod.rs同目录下的
+> `hello.rs` 或者 `hello/mod.rs`.
+
+
+新的风格是建立一个文件夹，将实现功能的代码划分到多个rs文件中，但最后不是从mod.rs文件导出的，而是从与该文件夹同目录下的同名文件导出的，比如：
+:::code-group 
+```rs  [src/util/hello.rs]
+pub fn say_hello() {
+    println!("hello");
+}
+```
+
+```rs [src/util.rs]
+mod hello;
+pub use hello::*;
+```
+
+```rs [src/main.rs]
+mod util;
+
+fn main() {
+    util::say_hello();
+}
+```
+:::
+
 ## tests 文件夹里的 mod 规则
 
 tests 文件夹下放置的是集成测试文件，而单元测试的代码是写在 src 下的源代码里的。
