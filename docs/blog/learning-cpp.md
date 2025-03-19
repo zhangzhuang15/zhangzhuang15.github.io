@@ -4,6 +4,8 @@ page: true
 aside: true
 ---
 
+# 接触cpp
+
 ## 模版
 :::code-group
 ```cpp [type_trait.cpp]
@@ -1274,5 +1276,27 @@ int main() {
 }
 
 ```
+
+## 与c兼容——c语言的宏
+```c  
+#define Map(xx) xx(Peter)
+#define Peter 100
+
+int main() {
+  #define xx(a) hello_#a = #a;
+  int Map(xx)
+  #undef xx
+  return 0;
+}
+```
+等效于：
+```c  
+
+int main() {
+  int hello_Peter = 100;
+  return 0;
+}
+```
+
 
 <Giscus />
