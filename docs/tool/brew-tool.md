@@ -47,6 +47,46 @@ brew tap --custom-remote --force-auto-update homebrew/command-not-found https://
 brew update
 ```
 
+### 切换回官方镜像
+```shell 
+cd "$(brew --repo)"
+git remote set-url origin git@github.com:Homebrew/brew.git
+brew update
+```
+
+### 切换到中科大镜像
+```shell 
+export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.ustc.edu.cn/homebrew-core.git"
+brew tap --custom-remote --force-auto-update homebrew/core https://mirrors.ustc.edu.cn/homebrew-core.git
+brew tap --custom-remote --force-auto-update homebrew/cask https://mirrors.ustc.edu.cn/homebrew-cask.git
+brew tap --custom-remote --force-auto-update homebrew/cask-versions https://mirrors.ustc.edu.cn/homebrew-cask-versions.git
+
+# 更换后测试工作是否正常
+brew update
+```
+
+### 切换到阿里镜像
+```shell
+cd "$(brew --repo)"
+git remote set-url origin https://mirrors.aliyun.com/homebrew/brew.git
+brew update
+```
+
+### 切换到腾讯镜像
+```shell 
+export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.cloud.tencent.com/homebrew/brew.git"
+brew tap --custom-remote --force-auto-update homebrew/core https://mirrors.cloud.tencent.com/homebrew/homebrew-core.git
+brew tap --custom-remote --force-auto-update homebrew/cask https://mirrors.cloud.tencent.com/homebrew/homebrew-cask.git
+brew tap --custom-remote --force-auto-update homebrew/cask-fonts https://mirrors.cloud.tencent.com/homebrew/homebrew-cask-fonts.git
+brew tap --custom-remote --force-auto-update homebrew/cask-drivers https://mirrors.cloud.tencent.com/homebrew/homebrew-cask-drivers.git
+
+# 更换后测试工作是否正常
+brew update
+```
+
+### homebrew 镜像源的操作
+[read more](https://frankindev.com/2020/05/15/replace-homebrew-source/)
+
 ## asciinema
 
 这款工具可以录制你的终端，将其转化为本地的动态图或者视频，也可以上传到其官网平台，拿到资源链接，
