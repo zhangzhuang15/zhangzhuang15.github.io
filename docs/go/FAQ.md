@@ -263,3 +263,53 @@ func main() {
 ```
 
 go 会自动处理结构体，在适当的时候，为变量增加解引用或者引用，调用相应的结构体方法。`(m M)` 这种形式定义的方法，不会修改结构体本身；`(m *M)`这种形式定义的方法，才会修改结构体自身。
+
+
+## 与C互通
+[可以阅读这篇文章](https://dev.to/metal3d/understand-how-to-use-c-libraries-in-go-with-cgo-3dbn)
+
+### example 1
+```go  
+// main.go 
+
+// #include <stdio.h>
+// void hello() {
+//   printf("hello world");
+// }
+import "C"
+
+func main() {
+    C.hello()
+}
+```
+`go run main.go`
+
+
+### example 2
+
+```go 
+// main.go 
+
+// #include "hello.h"
+import "C"
+
+func main() {
+    C.hello()
+}
+```
+```h 
+// hello.h
+#ifndef __HELLO__
+#define __HELLO__
+void hello();
+#endif
+```
+```c  
+// hello.c 
+#include <stdio.h>
+void hello() {
+    printf("hello world");
+}
+```
+`go run main.go` 
+
