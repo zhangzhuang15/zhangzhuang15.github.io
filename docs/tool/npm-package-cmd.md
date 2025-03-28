@@ -1,106 +1,91 @@
 ---
-title: "开发cmd"
+title: "Command Line"
 page: true
 aside: true
 ---
 
-## Description
-
-开发 cmd 这种类型的 app，常用到的 package;
-
-比如要开发 http 服务器的 cmd，http 相关的库不会列举在此处，此处只聚焦原汁原味的 cmd 开发场景；
+# Command Line 
+There are some powerful libraries help you develop command line application.
 
 ## commander
+A library that helps you parse command line args.
 
-命令行参数解析库
-
-使用者： vue-cli
+use case： vue-cli.
 
 ## yargs
+A library that helps you parse command line args.
 
-命令行参数解析库；
-
-使用者： mocha
+use case： mocha
 
 ## cac
+A library that helps you simply create command line app.
 
-实现命令行 app 的工具库
-
-使用者: vuepress vitest create-nuxt-app bumpp
+use case: vuepress vitest create-nuxt-app bumpp
 
 ## minimist
-
-解析命令行参数
+A library that helps you parse command line args.
 
 ## chalk
-
-终端彩色文字输出库
+A library that helps you print colorful letters in your terminal.
 
 ## picocolors
+A library that helps you print colorful letters in your terminal.
 
-终端彩色文字输出库
-
-使用者：vitepress
+use case：vitepress
 
 ## ansi-color
+A library that helps you print colorful letters in your terminal.
 
-终端彩色文字输出库
-
-使用者： mocha
+use case： mocha
 
 ## progress
-
-实现终端进度条
+A library that helps you create progress bar in your terminal.
 
 ## ora
-
-实现终端 spinner 提示
+A library that helps you create loading spinner in your terminal.
 
 ## figures
-
-终端 Unicode 图标
+Unicode icons.
 
 ## inquirer
-
-终端用户输入交互
+A library that helps you interact with users, ask them some questions and get their answers.
 
 ## prompts
-终端的提示词交互
+A library that helps you ask users some prompts.
 
-使用者：vitepress
+use case：vitepress
 
 ## cli-highlight
+A library that makes string colorful.
 
-将字符串高亮处理。
+For example, if you print c source code, it's white in your terminal. With help of cli-highlight,
+you can print colorful c source code in your terminal, which means c keywords is highlight and other 
+letters are white.
 
-比如一段字符串的内容是 c 语言代码，直接输出到终端或者文件中时，字符串就是白色的，使用这个库处理后，这段字符串就会按照 c 语言进行高亮处理，变成彩色的。处理之后的字符串可以送入终端输出，也可存入文件。
-
-> 这个库既可以在 node.js 代码中使用，也可以直接在终端作为 cli 程序使用。
+You can use cli-highlight as a dependency of your nodejs project as well as install cli-highlight,
+use it as a command line program.
 
 ## execa
-
-更加人性化的进程 exec 工具
+A library that makes exec more simple, friendly, intuitive.
 
 ## cross-port-killer
-
-跨平台的进程信号推送器，实现向某个进程发送信号
+A cross platform library that helps you send signal to processes simply.
 
 ## concurrently
-
 Run commands concurrently
 
 ## tree-kill
-
-给一个进程以及它的后代进程发送信号
+A library that sends signal to a process and its children.
 
 ## portfinder
-
-获取空闲 port 号
+A library that gives you an unused port number.
 
 ## pkg-dir
+A library that gets absolute path of your project root.
 
-搜索根目录的绝对路径
+Let's say you develop a nodejs project, and you want to known where your project root is,
+you can use pkg-dir. Project root is the directory including `package.json`.
 
-当你开发一个前端项目，编写一些工具脚本时，你有一种情形，想要知道当前前端项目的根目录是什么，就可以用这个库解决。这个库的原理就是在执行脚本的时候，从进程的工作目录开始往父目录的方向遍历，找到第一个拥有package.json文件的目录。
+As you can imagine, pkg-dir looks for the first `package.json` from current directory to parent directory.
 
 <Giscus />

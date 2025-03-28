@@ -4,6 +4,8 @@ page: true
 aside: true
 ---
 
+# 接触cpp
+
 ## 模版
 :::code-group
 ```cpp [type_trait.cpp]
@@ -1273,6 +1275,87 @@ int main() {
   // a，s 就是左值， 10 和 "hello" 就是右值
 }
 
+```
+
+## CMAKE
+CMAKE你可以这样理解：它提供了一套内置的变量、函数，让你可以设置链接库、链接库位置、声明文件位置、声明位置、要编译的源码等等，然后它读取这些设置，生成makefile，之后，你只需执行这个makefile，就能编译出executable file or library。
+
+CMAKE一定程度上，简化了整个编译的难度。没有CMAKE的话，你要手写make，手动编写`gcc`或者`clang`的指令，完成编译工作，但是有了CMAKE，你不需要这样做了，你只需要给出要编译的c/cpp文件，CMAKE会帮你生成那些指令。这也降低了一些心智负担，比如编写动态库生成的指令，没有经验的人编出来的指令就有诸多缺陷，导致程序执行的时候，找不到动态库，或者可执行文件更改保存地址后，找不到动态库，等等。
+
+## 与c兼容——c语言的宏
+### 介绍 
+宏是C语言的一部分，你可以使用这些关键字：
+- `#define` 
+- `#ifdef`
+- `#endif` 
+- `#elif` 
+- `#ifndef`
+- `#undef`
+- `#ifndef` 
+- `#if defined(__APPLE__)`
+- `#else`
+- `#endif`
+
+定义自己的宏。但是，宏也是C语言编译器的一部分，不同的C语言编译器会提供一些默认的宏，比如`__APPLE__`, 提供一些内置的函数，比如`__builtin_elementwise_abs`, 提供一些内置的关键字，比如`__signed__`, `__attribute__`。并不是所有的C语言编译器都提供同样的默认宏，你要查看编译器手册。用C语言编写跨平台的软件时，利用编译器的宏识别操作系统完成条件编译，利用编译器特殊的工具函数、关键字优化代码，是比较难的技术点。
+
+[GNU gcc 预处理系统](https://gcc.gnu.org/onlinedocs/cpp/index.html#SEC_Contents)，给出了GCC的预处理系统，具体介绍了预处理系统的概述，头文件，宏，条件编译等细节。
+
+[c/c++ 常用宏清单](https://sourceforge.net/p/predef/wiki/Home/)，列举了编写跨平台c程序需要的常见宏。
+
+[clang内置关键字](https://clang.llvm.org/docs/LanguageExtensions.html#builtin-macros)。clang里边提供了很多工具性质的关键字，你可以利用它们简化一些编码工作，帮助编译器生成更好的代码。
+
+[GNU gcc内置编译器函数](https://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html)。和上边提供的clang相似，GCC提供了很多工具性质的内置函数，这些函数是由编译器识别，在编译期内处理的。
+
+### 宏的一些例子
+#### `#define`基本应用
+```c  
+#define Map(xx) xx(Peter)
+#define Peter 100
+
+int main() {
+  #define xx(a) hello_#a = #a;
+  int Map(xx)
+  #undef xx
+  return 0;
+}
+```
+等效于：
+```c  
+
+int main() {
+  int hello_Peter = 100;
+  return 0;
+}
+```
+
+#### 按平台条件编译
+```c   
+#if defined(__APPLE__)
+// apple平台的代码
+#endif
+
+
+#if defined(_AIX) || defined(__DragonFly__)
+// AIX/DragonFly 的代码
+#endif
+```
+
+#### `#pragma once`
+防止声明文件重复
+
+Old way:
+```h 
+// hello.h
+#ifndef __HELLO__
+#define __HELLO__ 
+void hello();
+#endif
+```
+
+New way:
+```h  
+#pragma once 
+void hello(); 
 ```
 
 <Giscus />

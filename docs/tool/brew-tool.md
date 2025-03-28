@@ -47,6 +47,54 @@ brew tap --custom-remote --force-auto-update homebrew/command-not-found https://
 brew update
 ```
 
+### 切换回官方镜像
+```shell 
+cd "$(brew --repo)"
+git remote set-url origin git@github.com:Homebrew/brew.git
+brew update
+```
+
+### 切换到中科大镜像
+```shell 
+export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.ustc.edu.cn/homebrew-core.git"
+brew tap --custom-remote --force-auto-update homebrew/core https://mirrors.ustc.edu.cn/homebrew-core.git
+brew tap --custom-remote --force-auto-update homebrew/cask https://mirrors.ustc.edu.cn/homebrew-cask.git
+brew tap --custom-remote --force-auto-update homebrew/cask-versions https://mirrors.ustc.edu.cn/homebrew-cask-versions.git
+
+# 更换后测试工作是否正常
+brew update
+```
+
+### 切换到阿里镜像
+```shell
+cd "$(brew --repo)"
+git remote set-url origin https://mirrors.aliyun.com/homebrew/brew.git
+brew update
+```
+
+### 切换到腾讯镜像
+```shell 
+export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.cloud.tencent.com/homebrew/brew.git"
+brew tap --custom-remote --force-auto-update homebrew/core https://mirrors.cloud.tencent.com/homebrew/homebrew-core.git
+brew tap --custom-remote --force-auto-update homebrew/cask https://mirrors.cloud.tencent.com/homebrew/homebrew-cask.git
+brew tap --custom-remote --force-auto-update homebrew/cask-fonts https://mirrors.cloud.tencent.com/homebrew/homebrew-cask-fonts.git
+brew tap --custom-remote --force-auto-update homebrew/cask-drivers https://mirrors.cloud.tencent.com/homebrew/homebrew-cask-drivers.git
+
+# 更换后测试工作是否正常
+brew update
+```
+
+### homebrew 镜像源的操作
+[read more](https://frankindev.com/2020/05/15/replace-homebrew-source/)
+
+### Downloading https://formulae.brew.sh/api/formula.json
+使用brew install 安装软件的时候，终端会输出这样的内容，然后就一直卡着不动了，解决方法：
+1. 先执行`export HOMEBREW_API_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles/api`，再安装。原理是使用国内镜像源下载。这里列举的例子是阿里的链接，你也可以使用清华的、腾讯的、中科大的，或者其他国内的。具体链接不在这里列举了，自己去查。
+2. 先执行`export HOMEBREW_NO_INSTALL_FROM_API=1`，再安装。这个做法是禁止homebrew走API的方式安装软件。
+
+[上述方法来自这里](https://coderpan.com/tools/brew-no-install-from-api.html)
+
+
 ## asciinema
 
 这款工具可以录制你的终端，将其转化为本地的动态图或者视频，也可以上传到其官网平台，拿到资源链接，

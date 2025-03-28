@@ -178,8 +178,10 @@ typescript的AST生成器
 
 在unity, unreal, blender搞出来的项目中，比如游戏、AR/VR、甚至是网站，你想引入一些可交互的任务，需要使用一些框架驱动来驱动模型，模型的开发比较麻烦，需要美术设计功底，开发者不一定都具备这种素质，那么就可以从这个网站里下载好对应的模型。
 
-## 在线whiteboard
+## virtual online whiteboard
 [excalidraw](https://excalidraw.com)
+
+Draw graph as you like in a human friendly and artificial way.
 
 ## 在线工具大全
 [tool lu](https://tool.lu)
@@ -198,3 +200,70 @@ typescript的AST生成器
 
 ## 税后工资在线计算
 [前往](https://upup.li/tools/salary/city/beijing)
+
+## freetube
+[website](https://freetubeapp.io/)
+
+## responsively.app
+[website](https://responsively.app/)
+
+A fantastic tool for making pixel-perfect responsive websites.
+
+## handlebrake
+[website](https://handbrake.fr/)
+
+An open-source tool for converting video 
+
+
+## unused css
+[website](https://unused-css.com/)
+
+Remove unused css of your website.
+
+## shape divider
+[website](https://www.shapedivider.app/)
+
+A free tool to make it easier for designers and developers to export a beautiful SVG shape divider for their latest project.
+
+
+## get waves
+[website](https://getwaves.io/)
+
+Make waves you want.
+
+## web gradients
+[website](https://webgradients.com/)
+
+A free collection of 180 linear gradients that you can use as
+content backdrops in any part of your website.
+
+## spline design
+[website](https://spline.design/)
+
+A free 3D design tool for creating interactive web experiences.
+
+## animista
+[website](https://animista.net/)
+
+A playground of ready-made CSS animations for quick implementation.
+
+## google fonts
+[website](https://fonts.google.com/)
+
+A comprehensive collection of free and easy-to-use web fonts.
+
+## websites museum
+[website](https://www.kapwing.com/museum-of-websites)
+
+Explore the evolution of top websites like Google and Amazon.
+
+## Lorem Picsum
+[website](https://picsum.photos/)
+
+A go-to tool for generating placeholder image.
+
+
+## AI Image Generator
+[website](https://deepai.org/machine-learning-model/text2img)
+
+Create a picture following your prompts.

@@ -4,26 +4,18 @@ page: true
 aside: true
 ---
 
-## Description
-
-UI 方面的工具库！
+# UI 
+There are some libraries of UI.
 
 ## tailwindcss
 
 css pre-defined class name library
 
-优点：复用度超高，不用重复定义相同的 css；可定制；可扩展
-缺陷：学习成本较高
-
 ## clsx
-
-条件式地生成 css class 名。
-
-比如 class 是 'flex block', 在某种条件下，block 不应该作为类名的一部分，对于这种需求，就可以用 clsx 处理，按照条件去生成 'flex block' 还是 'flex'
+Generate css classname conditionaly.
 
 ## classnames
-
-和 clsx 功能一样
+Same as clsx.
 
 ## lucide-react
 
@@ -32,12 +24,29 @@ icon library for react app
 ## planby
 [github home](https://github.com/karolkozer/planby)
 
-一个实现 timeline or scheduler 的react组件库。
+A react component implementing timeline or scheduler.
 
 
 ## react-resizable
 [website](https://react-grid-layout.github.io/react-resizable/index.html)
 
-一个实现可拖拽变宽、变高的容器组件，采用react实现。用这个组件可以实现 split views。
+A react component providing draggable container. You can create split views using this library.
+
+
+## react-big-calendar
+[website](https://jquense.github.io/react-big-calendar/examples/index.html?path=/docs/addons-drag-and-drop-props--on-drag-over)
+
+A calendar component.
+
+## react-confetti
+[website](https://alampros.github.io/react-confetti/?path=/docs/reactconfetti--docs)
+
+A componet that gives you celebrating animation like 🎉.
+
+
+## react-joyride
+[website](https://react-joyride.com)
+
+A component that provides tutorial interaction.
 
 <Giscus />

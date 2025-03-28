@@ -345,6 +345,10 @@ export default defineConfig({
               link: '/blog/learning-cpp'
             },
             {
+              text: 'learn zig',
+              link: '/blog/learning-zig'
+            },
+            {
               text: 'rust编译出来的executable file比cpp大？',
               link: '/blog/rust-binary-is-big'
             },
@@ -359,6 +363,10 @@ export default defineConfig({
             {
               text: '协程-用C语言实现',
               link: '/blog/coroutine'
+            },
+            {
+              text: 'Talk about pthread',
+              link: '/blog/pthread'
             },
             {
               text: "使用vue遇到的一些坑",

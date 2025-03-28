@@ -4,6 +4,7 @@ import { useData, useRouter } from "vitepress";
 import { computed } from "vue";
 import MusicIconButton from "./MusicIconButton.vue";
 import MemoryBoard from "./MemoryBoard.vue";
+import CharacterModel from "./CharacterModel.vue";
 
 const { isDark } = useData();
 
@@ -47,6 +48,10 @@ const visitBlog = () => go("/blog/index-page");
             <cite>Don't hesitate here and there, take a try.</cite>
         </h3>
     </section>
+
+    <!-- <section class="gap-space">
+        <CharacterModel />
+    </section> -->
 
     <section class="gap-space flex flex-evenly">
         <NButton 

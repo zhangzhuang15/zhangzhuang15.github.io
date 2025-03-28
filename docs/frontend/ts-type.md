@@ -711,3 +711,11 @@ type IdArray = {[i in (keyof typeof config) & string as FilterOutNumberLiteratur
 // { 0: '苹果', 1: '香蕉' }
 type NameArray = {[i in (keyof typeof config) & string as FilterOutNumberLiterature<i>]: (typeof config)[FilterOutNumberLiterature<i>]['label'] }
 ```
+
+### 入参的值作为返回项的键
+```ts
+function prompt<const A extends Record<string, any>>(value: { name: Extract<keyof A, string>}[]): {[k in keyof A]: any}
+
+// { fdfsd: any, '43rewr': any }
+const m = prompt([{ name: 'fdfsd'}, { name: '43rewr'}])
+```

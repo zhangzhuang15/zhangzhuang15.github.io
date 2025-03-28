@@ -86,3 +86,35 @@ aside: true
 **smashing performance**，炸裂的性能。
 
 **it's worth nothing that**, 值得注意的是。当你想要特别强调什么的时候，可以用上。
+
+**fine-grained reactivity**, 细粒度的响应式系统。
+
+**granular update**, 颗粒化更新。
+
+**simplify and optimize state management**, 简化和优化状态管理。
+
+**eliminate dependency array**, 消除依赖数组。
+
+**improve developer experience**, 优化开发体验。
+
+**look deeper into...**, 深入地考虑。
+
+**flexible, scalable and maintainable project**, 灵活、可扩展、可维护的项目。
+
+**extensive documentation, frequent meetings, continuous refinements**, 不断变长的文档，频繁的会议，持续的计划变更。
+
+**clear folder hierarchy, naming conventions, separation of concerns**, 整洁的目录划分, 命名规范，关注点划分。
+
+**bombard cpp**, 狂喷c++
+
+**add some scum on top of C**, 给C语言添加糟粕
+
+**I‘m incomprehensive**, 我很不理解，不明白
+
+**It's been put on the table**, 被提上日程
+
+**cause heated discussion**, 引发热议
+
+**It's made from scratch**, 不是一蹴而就的
+
+**become a loophole**, 变成无底洞
