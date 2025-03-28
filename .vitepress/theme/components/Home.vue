@@ -49,9 +49,9 @@ const visitBlog = () => go("/blog/index-page");
         </h3>
     </section>
 
-    <section class="gap-space">
+    <!-- <section class="gap-space">
         <CharacterModel />
-    </section>
+    </section> -->
 
     <section class="gap-space flex flex-evenly">
         <NButton 
