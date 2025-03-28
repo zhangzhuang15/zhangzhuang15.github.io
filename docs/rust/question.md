@@ -7,8 +7,7 @@ aside: true
 # 🤔️🤔️🤔️
 
 ## Rust std 和 Rust core 的区别
-Rust std 是让Rust语言开发的软件具备可移植性，提供了核心类型（Rust core），如 Vec， 还提供了标准宏、IO、多线程
-原语操作（如原子指令）。但 Rust std 要提供这些功能，必须要依赖操作系统。因此在裸机开发中，不能用 Rust std。
+Rust std 是让Rust语言开发的软件具备可移植性，提供了核心类型（Rust core），如 Vec， 还提供了标准宏、IO、多线程原语操作（如原子指令）。但 Rust std 要提供这些功能，必须要依赖操作系统。因此在裸机开发中，不能用 Rust std。
 
 Rust core 是Rust语言核心库，提供了很多基础功能，比如指针操作，它不依赖任何操作系统，可以在裸机使用。
 
@@ -59,6 +58,19 @@ C 拓展：提供压缩指令拓展。
 - 经编译后，适用于CPU A类型的程序，无法在CPU B类型的硬件上跑起来
 - 经编译后，适用于windows系统的程序，无法在macOS上运行，尽管它们的CPU类型都是一样的
 - 经编译后，尽管操作系统、CPU类型相同，采用运行时库A可以执行，采用运行时库B可能无法执行，因为有些符号可能在运行时库B中找不到
+
+## rust工具链包含什么
+- rustc
+- cargo
+- clippy
+- rust-std 
+- rust-docs
+
+可以用 `rustup` 更新上述工具。
+
+执行一下`rustup default nightly`, 你就知道了。
+
+`rustup` 相当于 nodejs 里的 `nvm`。
 
 ## 默认情况下，闭包会获取所有权么？
 
@@ -735,6 +747,35 @@ src
 
 上述的参数，在 `cargo bench` 也支持，只不过执行的是压力测试函数，这些函数被`#[bench]`修饰；
 
+
+## cargo项目默认结构
+```txt 
+|- Cargo.toml 
+|- Cargo.lock
+|- benches
+     |- bench_one.rs  
+     |- bench_two
+          |- bench_two_one.rs  
+          |- main.rs
+|- examples 
+     |- example_one.rs 
+     |- example_two 
+           |- main.rs  
+           |- depend.rs
+|- tests 
+     |- test_one.rs 
+     |- test_two 
+           |- test_two_one.rs
+           |- main.rs
+|- src 
+    |- bin 
+        |- hello_world.rs 
+        |- hello 
+            |- main.rs  
+            |- depend.rs  
+    |- main.rs   
+    |- lib.rs
+```
 
 ## 如何理解 `*x` 和 `Deref` 
 ```rust 
