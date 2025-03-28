@@ -104,3 +104,17 @@ aside: true
 **extensive documentation, frequent meetings, continuous refinements**, 不断变长的文档，频繁的会议，持续的计划变更。
 
 **clear folder hierarchy, naming conventions, separation of concerns**, 整洁的目录划分, 命名规范，关注点划分。
+
+**bombard cpp**, 狂喷c++
+
+**add some scum on top of C**, 给C语言添加糟粕
+
+**I‘m incomprehensive**, 我很不理解，不明白
+
+**It's been put on the table**, 被提上日程
+
+**cause heated discussion**, 引发热议
+
+**It's made from scratch**, 不是一蹴而就的
+
+**become a loophole**, 变成无底洞
