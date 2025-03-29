@@ -9,7 +9,7 @@ Zig 是一个系统级编程语言，是C语言的有力替代品。与C语言�
 
 目前看，比较出色的Zig项目只有Bunjs。
 
-## How to debug zig in vscode 
+## Debug Zig with Vscode
 确保安装 codeLLDB 的vscode 插件。
 
 ```shell 

@@ -118,3 +118,9 @@ aside: true
 **It's made from scratch**, 不是一蹴而就的
 
 **become a loophole**, 变成无底洞
+
+**It doesnt seem to be the case**, 看来不太符合预期
+
+**I would expect that**, 我预期是...
+
+**keep code more understandable and self-evident**, 令代码更好理解、更直观

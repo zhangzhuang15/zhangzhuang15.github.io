@@ -289,6 +289,10 @@ export default defineConfig({
               link: "/blog/terminal-io"
             },
             {
+              text: 'Kilo, Text Editor',
+              link: '/blog/terminal-kilo',
+            },
+            {
               text: "对立统一的一点看法",
               link: "/blog/conflict-thought"
             },
@@ -363,6 +367,10 @@ export default defineConfig({
             {
               text: '协程-用C语言实现',
               link: '/blog/coroutine'
+            },
+            {
+              text: 'System Program with C',
+              link: '/blog/system-program-with-c'
             },
             {
               text: 'Talk about pthread',
