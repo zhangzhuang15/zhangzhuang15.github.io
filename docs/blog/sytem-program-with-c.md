@@ -8,12 +8,16 @@ aside: true
 I talk about learning to write system program with c language.
 
 ## Overview
+System programming with C is different from normal programming with other languages.Today, popular operating system is created by C, e.g. Windows, MacOS and Linux.As default, operating system provides wrappers of systemcalls in C language out of box. In other words, using C is considered as communicating with operating system directly, bringing your program high performance and minimist runtime.
 
+Other languages, provide wrappers of systemcalls on their own. They might wrap systemcalls with asm, e.g. Go language. They might wrap systemcalls based on C library. They give you more human-friendly way to write program, but it's not direct, simple and performant. You cannot communicate with operating system directy, and have to burden unignored runtime.
+
+Of course, you can write system program in C++ or Rust languages. It seems to be more friendly, readable than C. But it's still important to know how to write system program in C.
 
 ## Header File
-You should know some c header files, which of them belong to C standard and which of them belong to system, so that you can write portable c program.
+You should know some c header files, some of them belong to C standard and some of them belong to operating system, so that you can write portable c program.
 
-Every operating system that supports using c developing software, has to implement C standard, promise that people can include c standart header files out of box.
+Every operating system that supports using c developing software, has to implement C standard, promise that people can include c standard header files out of box.
 
 
 ### C Standard Library Header File
@@ -97,3 +101,116 @@ These header files are implemented by operating system, there might be different
 - `<sys/ioctl.h>`
 - `<sys/time.h>`
 - `<termios.h>`
+
+## How to Use C Standard Library
+Now you haved learned that what these header files look like. I don't tend to put a list of c functions from these header files, and introduce how to use them one by one.
+
+I just introduce these functions based on practical background.
+
+### Get Random Number 
+```c  
+#include <stdlib.h>
+#include <time.h>
+
+int main() {
+    srand(time(NULL));
+    int random_number_one = rand();
+    int random_number_two = rand();
+    return 0;
+}
+```
+`srand` and `rand` from: `<stdlib.h>`;
+`time` from: `<time.h>`
+
+### Clear Your Array 
+```c  
+#include <string.h>
+
+int main() {
+    int arr[100];
+    memset(arr, 0, sizeof(arr));
+    return 0;
+}
+```
+
+### Copy Your Array 
+```c  
+#include <string.h>
+int main() {
+    int arr[5] = { 1, 2, 3, 4, 5 };
+    int yrr[5];
+    memcpy(yrr, arr, sizeof(arr));
+    return 0;
+}
+```
+
+### Extract Value from Formatted String 
+```c   
+#include <stdio.h>
+int main() {
+    char* s = "hello,20 and peter";
+    int age;
+    char name[10];
+
+    int nums_parsed = sscanf(s, "hello,%d and %s", &age, name);
+
+    if (nums_parsed != 2) {
+        printf("cannot parse age and name");
+        return 1;
+    }
+
+    printf("age is %d, and name is %s", age, name);
+    return 0;
+}
+```
+
+### Exit Process Hooking
+```c  
+#include <stdlib.h>
+
+void exit_handler() {
+
+};
+int main() {
+    int registered_ok = atexit(exit_handler);
+    if (registered_ok != 0) {
+        return -1;
+    }
+    return 0;
+}
+```
+
+### Variable Function Pramaters
+```c   
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int putting(const char* s, int** result, ...) {
+    va_list args;
+    va_start(args, s);
+
+    int value = va_arg(args, int);
+    char c = va_arg(args, char);
+    va_end(args);
+
+    int* arr = malloc(2*sizeof(int));
+    arr[0] = value;
+    arr[1] = (int)c;
+    *result = arr;
+    return 2;
+}
+
+int main() {
+    int* result;
+    int nums = putting("hello", &result, 10, 'c');
+    for (int i = 0; i < nums; i++) {
+        printf("%d", result[i]);
+    }
+    return 0;
+}
+```
+
+`va_start`, `va_end`, `va_arg` from: `<stdarg.h>`;
+`malloc` from: `<stdlib.h>`;
+`printf` from: `<stdio.h>`;
