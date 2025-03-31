@@ -258,3 +258,11 @@ GitHub上的一个开源电子书，其中讲述了Linux内核是怎样启动、
 介绍了如何使用 v8, libuv 制作一个简易的nodejs。在这个视频中，你会了解到nodejs的最小原理，也是最本质的原理。简单来概括下，nodejs本质是对v8的拓展，是一个cpp程序。nodejs使用v8读取js代码，将其转化为cpp中的数据结构。v8提供了一种接口，将js中的函数、模块转化为cpp的函数、对象，比如js中的setTimeout就可以映射为cpp中的实现，即调用libuv，向eventloop中注册一个timer，由libuv来负责唤醒回调函数，而在setTimeout中传入的回调函数，也会被v8转化为cpp侧的数据结构，这样libuv就可以无缝运行了。由此可见，nodejs是在v8的基础上，使用cpp定义了本地文件系统、事件循环、多线程、多进程、http等模块，扩展了v8。nodejs最麻烦的地方，就是如何用cpp实现这些模块，如何跨端支持这些模块。
 
 [视频中的源码链接](https://github.com/ErickWendel/myownnode)
+
+
+## Back Propagation（梯度反向传播）实例讲解
+[原文](https://zhuanlan.zhihu.com/p/40378224)
+
+介绍神经网络里的前向传播和后向传播，特别是后向传播，解释得非常直观、清楚、非常好理解。
+
+在阅读上述文章后，看看redis之父手写的一个3层神经网络小游戏c语言代码，会理解得更好，[Tic Tac Toe | Github](https://github.com/antirez/ttt-rl)
