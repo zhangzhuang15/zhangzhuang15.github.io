@@ -377,6 +377,10 @@ export default defineConfig({
               link: '/blog/pthread'
             },
             {
+              text: 'How to Write Interpreter',
+              link: '/blog/interpreter'
+            },
+            {
               text: "使用vue遇到的一些坑",
               link: '/blog/vue-apply'
             },

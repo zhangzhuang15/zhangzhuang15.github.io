@@ -203,6 +203,49 @@ func main() {
 }
 ```
 
+再看一个例子：
+```go  
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+type Cmd struct {
+    Name string
+    Value interface{}
+}
+
+type Data struct {
+    Name string
+    Val []int
+}
+
+func main() {
+    cmd := Cmd{
+        Name: "hello",
+        Value: Data{
+            Name: "world",
+            Val: []int{20, 30},
+        },
+    }
+
+    if bytes, err := json.Marshal(cmd); err == nil {
+        fmt.Println(string(bytes))
+
+        var value Cmd
+        if err = json.Unmarshal(bytes, &value); err == nil {
+            // 尽管 Cmd.Value是 interface{}, 但在反序列化的时候，
+            // 会转化为 map 类型，而不是Data类型，这种动态处理虽然
+            // unsafe，但很棒
+            fmt.Println(value.Value.(map[string]any).Val)
+        }
+    }
+}
+
+```
+
 ## 继承方式
 go采用了一种组合的方式完成继承机制。
 
