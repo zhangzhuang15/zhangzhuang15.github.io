@@ -393,6 +393,10 @@ export default defineConfig({
               link: '/blog/gpu'
             },
             {
+              text: 'Never Confused: Rust, Zig and Go',
+              link: '/blog/rust-zig-go'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
