@@ -498,7 +498,8 @@ export default defineConfig({
         },
         { text: 'software', link: '/tool/software' },
         { text: 'misc', link: "/tool/misc"},
-        { text: 'arm指令清单', link: '/tool/arm' }
+        { text: 'arm指令清单', link: '/tool/arm' },
+        { text: 'CMake', link: '/tool/cmake-tool'}
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },

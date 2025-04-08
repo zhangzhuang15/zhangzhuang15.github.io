@@ -214,3 +214,44 @@ int main() {
 `va_start`, `va_end`, `va_arg` from: `<stdarg.h>`;
 `malloc` from: `<stdlib.h>`;
 `printf` from: `<stdio.h>`;
+
+### Copy String 
+```c  
+#include <string.h>
+
+int main() {
+    char *hello = "hello, world";
+    char *copy = strdup(hello);
+
+    // dont forget to release
+    free(copy);
+
+    return 0;
+}
+```
+
+### Write Formatted String to Buffer
+```c   
+#include <stdio.h>
+
+int main() {
+    char buffer[1024];
+    int year = 2025;
+    snprintf(buffer, 1024, "hello world, %d", year);
+    return 0;
+}
+```
+
+### See if Two String are Same 
+```c   
+#include <string.h>
+
+int main() {
+    char *s = "hell";
+    char *b = "helt";
+    if (strcmp(s, b) == 0) {
+        // s == b
+    }
+    return 0;
+}
+```
