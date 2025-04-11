@@ -719,3 +719,52 @@ function prompt<const A extends Record<string, any>>(value: { name: Extract<keyo
 // { fdfsd: any, '43rewr': any }
 const m = prompt([{ name: 'fdfsd'}, { name: '43rewr'}])
 ```
+
+## FAQ
+### 如何拓展window原本的类型
+新建一个.d.ts文件，内容如下，并在tsconfig.json中include到这个文件。
+```ts
+declare global {
+  interface Window {
+    Hello: string;
+  }
+}
+```
+
+### 如何解决ts不识别.js名称的module
+```ts
+import { hello } from "./utils/hello.js";
+```
+上述代码ts不识别`"./utils/hello.js"`, 可以这样解决。
+首先，确认 tsconfig.json 打开这个选项：
+```json 
+"compilerOptions": {
+  "allowJs": true
+}
+```
+
+然后在项目中创建一个.d.ts文件，内容如下：
+```ts
+declare module "./utils/hello.js" {
+  export function hello(): void;
+}
+
+export {};
+```
+
+最后，确保ts编译器include这个声明文件（否则，需要修改tsconfig.json的 include 选项）。
+
+### 为什么ts不识别.vue
+有个ts文件，里边引入vue文件：
+```ts
+import App from "./app.vue"
+```
+
+如果ts提示你，它不能识别.vue文件。解决方法是，建立一个.d.ts文件，内容如下：
+```ts 
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue';
+  const component: DefineComponent<{}, {}, any>;
+  export default component;
+} 
+```
