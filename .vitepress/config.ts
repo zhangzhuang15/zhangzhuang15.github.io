@@ -183,7 +183,8 @@ export default defineConfig({
       "/go": [
         { text: "how to learn", link: "/go/how-to-learn" },
         { text: "FAQ", link: '/go/FAQ'},
-        { text: "Module recommend", link: "/go/recommend-module"}
+        { text: "Module recommend", link: "/go/recommend-module"},
+        { text: "code snippet", link: "/go/code-snippet" }
       ],
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
