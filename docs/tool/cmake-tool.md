@@ -114,6 +114,14 @@ else()
 endif()
 ```
 
+### `foreach`
+```txt 
+set(fruits apple watermelon banana)
+foreach(fruit ${fruits})
+  message(STATUS ${fruit})
+endforeach()
+```
+
 ### `EXISTS`
 Make sure if a file path is existed.
 
@@ -178,6 +186,55 @@ add_library(tool SHARED tool.c helper.c)
 ```
 Generate dynamic library `tool`.
 
+### `target_include_directories`
+Define where to search header files.
+
+```txt 
+target_include_directories(hello PRIVATE
+  ${CWD}/includes
+)
+```
+
+PRIVATE: The include directories are only used by the target itself.
+
+PUBLIC: The include directories are used by the target and propagated to other targets that link against it.
+
+INTERFACE: The include directories are not used by the target itself but are propagated to other targets that link against it.
+
+### `include_directories`
+Define where to search header files for all targets.
+
+### `target_compile_definitions`
+Define C/C++ macro for compiling target.
+
+```txt 
+target_compile_definitions(hello PRIVATE WELL=0)
+```
+
+Define a macro `WELL=1` when compile source code and build target `hello`.
+
+### `target_compile_options`
+Define compiling-stage flags of compiler such as `gcc` `g++` `clang`.
+
+```txt 
+target_compile_options(hello PRIVATE
+ -fno-pie
+ -Werror=move
+ -fsanitize=null
+)
+```
+
+### `target_link_options`
+Define linking-stage flags of compiler.
+
+```txt 
+target_link_options(hello PRIVATE
+  -dead_strip
+  -dead_strip_dylibs
+  -Wl,-ld_new
+)
+```
+
 ### `ENV`
 Access environment variable.
 
@@ -185,3 +242,9 @@ Access environment variable.
 set(path $ENV{PATH})
 ```
 Set path the value of `PATH` environment variable.
+
+### `configure_file`
+```txt 
+configure_file(hello.txt yes.txt COPYONLY)
+```
+Copy file `hello.txt` to file `yes.txt`
