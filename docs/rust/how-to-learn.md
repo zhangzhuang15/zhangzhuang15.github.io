@@ -238,4 +238,42 @@ wasm解释器，速度快，兼容性好
 比如说是 io 的Error，还是 core 的Error。使用 anyhow, 你不用费心思在Error类型上，直接
 往上传递即可。
 
+
+### regex
+提供正则表达式
+
+```shell 
+cargo add regex
+```
+
+### chrono
+相当于 javascript 的 dayjs 
+
+```shell 
+cargo add chrono
+```
+
+### env_logger
+日志打印工具，与标准库的打印相比，它会携带日志时间戳
+
+```shell 
+cargo add env_logger log
+```
+
+`env_logger` 是实现， `log` 是 API 声明。
+
+### reqwest
+Http 请求库，帮你发出http请求
+
+```shell 
+cargo add reqwest
+```
+
+### tokio 
+相当于 nodejs 中的事件循环，帮你编写async Rust代码，线程池化处理请求。
+
+```shell 
+cargo add tokio
+```
+
 <Giscus />
