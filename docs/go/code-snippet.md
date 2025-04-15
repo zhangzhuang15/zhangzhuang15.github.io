@@ -176,7 +176,7 @@ func main() {
 }
 ```
 
-## Write File 
+## Write File with Buffer
 ```go 
 import (
     "os"
@@ -193,6 +193,8 @@ func main() {
     }
 }
 ```
+
+You can use io helpers to simplify your io operation and these helpers are offered by package `io`. For example, you make a http get request and want to write response body to a file. You have to prepare a buffer, and read response body data patch by patch in a loop statement, when it comes to EOF, you finish writing file. Instead, you can use helpers from package `io`, in this way, you don't need to care about above details.
 
 ## Read File Content as String
 ```go 
@@ -277,5 +279,4 @@ func main() {
         }
     }
 }
-
 ```

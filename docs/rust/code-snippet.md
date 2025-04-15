@@ -412,6 +412,28 @@ fn main() {
 }
 ```
 
+## read user input from stdin
+```rs 
+fn main() {
+    print!("would you like to remove a.txt?(y/n)");
+    std::io::stdio().flush();
+
+    let mut user_input = String::new();
+
+    std::io::stdio().read_line(&mut user_input);
+    if user_input.len() > 0 && user_input.starts_with("y") {
+        // remove a.txt
+    }
+
+    print!("would you like to do other things?(y/n)");
+    user_input.clear();
+    std::io::stdio().read_line(&mut user_input);
+    if user_input.len() > 0 && user_input.starts_with("y") {
+        // do other things
+    }
+}
+```
+
 ## 开启子进程
 ```rust 
 fn main() {
