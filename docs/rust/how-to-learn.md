@@ -276,4 +276,11 @@ cargo add reqwest
 cargo add tokio
 ```
 
+### rand 
+生成伪随机数 
+
+```shell  
+cargo add rand
+```
+
 <Giscus />

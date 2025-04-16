@@ -262,6 +262,55 @@ int main() {
 ```
 
 ### Convert String to Number
+```c  
+#include <stdlib.h>
+
+int main() {
+    int val = atoi("-1234");
+    float val_f = atof("-34.56");
+    long val_l = atol("123");
+    long long val_ll = atoll("23134");
+    return 0;
+}
+```
+
+```c 
+#include <stdlib.h>
+
+int main() {
+    long val = strtol("023", NULL, 8);
+    val = strtol("0x13", NULL, 16);
+    return 0;
+}
+```
+
+Get more details, `man atoi`.
+
+### Get Error Message
+```c   
+#include <stdio.h>
+
+int main() {
+    // if there's an error and errno is set,
+    // perror will println error message corresponding to errno
+    perror();
+    return 0;
+}
+```
+
+```c  
+#include <stdio.h>
+#include <errno.h>
+
+int main() {
+    // message is error message corresponding to errno.
+    char* message = strerror(errno);
+    printf("error message: %s", message);
+    return 0;
+}
+```
+
+Get more details, `man perror`.
 
 ### Create File
 ```c 
@@ -285,28 +334,217 @@ int main() {
 
 O_ prefix is flag, S_ prefiex is mode. Flag is how you access file, read or write ? Mode decides who can access file.
 
-
 Get more details:
 - `open`: `man 2 open`.
 - mode: `man 2 chmod`.
 
+```c   
+#include <stdio.h>
+
+int main() {
+    // if hello.txt existed, fopen will be failed,
+    // avoid this behaviour, remove x from "w+x"
+    FILE* file = fopen("hello.txt", "w+x");
+    if (file == NULL) {
+        // failed
+    }
+    return 0;
+}
+```
+`fopen` creates file which has default mode `0666`.
+
+Get more details, `man fopen`.
+
 ### Read and Write File
+Write:
+```c  
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int fd = open("hello.txt", O_WRONLY | O_CREAT, 0766);
+    char message[] = "hello";
+    // don't write '\0' to hello.txt
+    write(fd, message, sizeof(message) - 1);
+    close(fd);
+    return 0;
+}
+```
+
+Read:
+```c  
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+    int fd = open("hello.txt", O_RDONLY);
+
+    char buff[10];
+
+    int bytes = read(fd, buff, sizeof(buff));
+
+    if (bytes == -1) {
+        // failed
+    } else {
+        for (int i = 0; i < bytes; i++) {
+            printf("%c", buff[i]);
+        }
+    }
+
+    close(fd);
+    return 0;
+}
+```
+
+`read` and `write` are from `unistd.h`. `open` is from `fcntl.h`.
+
+Get more details:
+- `read`: `man 2 read`.
+- `write`: `man 2 write`.
+
+
+Read:
+```c  
+#include <stdio.h>
+
+int main() {
+    FILE* file = fopen("hello.txt", "r+");
+
+    char buff[10];
+
+    int bytes = fread(buff, 1, 4, file);
+
+    for (int i = 0; i < bytes; i++) {
+        printf("%c", buff[i]);
+    }
+
+    fclose(file);
+    return 0;
+}
+```
+
+Write:
+```c  
+#include <stdio.h>
+
+int main() {
+    FILE* file = fopen("hello.txt", "a+");
+
+    char buff[5] = {'w','o','r','l','d'};
+
+    int bytes = fwrite(buff, 1, 5, file);
+
+    fclose(file);
+    return 0;
+}
+```
+
+Get more details, `man fread`.
 
 ### Modify File Flags and Mode
 
 ### Set File Nonblocking
 
 ### See it is File or Directory
+```c  
+#include <sys/stat.h>
+#include <stdio.h>
+
+int main() {
+    struct stat s;
+    int r = stat("hello.txt", &s);
+    if (r == -1) {
+        // failed
+    } else {
+        if ((s.st_mode & S_IFMT) == S_IFDIR) { // or S_ISDIR(s.st_mode) 
+            printf("is directory");
+        } else if ((s.st_mode & S_IFMT) == S_IFREG) {
+            printf("is file");
+        } else if ((s.st_mode & S_IFMT) == S_IFSOCK ) {
+            printf("is socket");
+        } else if ((s.st_mode & S_IFMT) == S_IFLNK) {
+            printf("is symbolic link");
+        }
+    }
+    return 0;
+}
+```
+
+Get more details, `man 2 stat`.
 
 ### Get File Meta
+```c  
+#include <sys/stat.h>
+
+int main() {
+    struct stat s;
+    int r = stat("hello.txt", &s);
+    if (r == -1) {
+        // failed
+    } else { 
+        // s is file meta data.
+    }
+    return 0;
+}
+```
+
+if you have `fd`, you can use `fstat`.
 
 ### Remove File
+```c  
+#include <stdio.h>
+
+int main() {
+    int r = remove("hello.txt");
+    if (r == -1) {
+        // failed
+    }
+    return 0;
+}
+```
 
 ### Create Directory
+```c  
+#include <sys/stat.h>
+
+int main() {
+    int r = mkdir("hello", 0766);
+    if (r == -1) {
+        // failed
+    }
+    return 0;
+}
+```
 
 ### Create Temp Directory
 
 ### See what Directory Includes
+```c  
+#include <dirent.h>
+#include <string.h>
+#include <stdio.h>
+
+int main() {
+    DIR* d = opendir("hello");
+    struct dirent* p;
+    
+    char buff[512];
+    do {
+        p = readdir(d);
+        if (p == NULL) break;
+        memcpy(buff, p->d_name, p->d_namlen);
+        buff[p->d_namlen] = '\0';
+        // print file or subdirectory name,
+        // there must be '.' and '..'
+        printf("name: %s\n", buff);
+    } while(1);
+
+    closedir(d);
+
+    return 0;
+}
+```
 
 ### Remove Directory
 
