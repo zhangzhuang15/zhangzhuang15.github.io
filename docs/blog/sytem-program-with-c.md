@@ -102,7 +102,7 @@ These header files are implemented by operating system, there might be different
 - `<sys/time.h>`
 - `<termios.h>`
 
-## How to Use C Standard Library
+## How to Use C Standard Library and System Library
 Now you haved learned that what these header files look like. I don't tend to put a list of c functions from these header files, and introduce how to use them one by one.
 
 I just introduce these functions based on practical background.
@@ -121,6 +121,11 @@ int main() {
 ```
 `srand` and `rand` from: `<stdlib.h>`;
 `time` from: `<time.h>`
+
+### Get Current Time
+
+
+### Get User Input
 
 ### Clear Your Array 
 ```c  
@@ -164,7 +169,7 @@ int main() {
 }
 ```
 
-### Exit Process Hooking
+### Exit Process Hook
 ```c  
 #include <stdlib.h>
 
@@ -255,3 +260,98 @@ int main() {
     return 0;
 }
 ```
+
+### Convert String to Number
+
+### Create File
+```c 
+#include <fcntl.h>
+#include <errno.h>
+
+int main() {
+    // S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH
+    // is equal to 0766.
+    int err_or_fd = open("hello.world", O_CREATE | O_RDWR,  S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    if (err_or_fd == -1) {
+        // error
+    } else {
+        // valid fd, which is >= 0
+        int fd = err_or_fd;
+        int error_value_no = errno;
+    }
+    return 0;
+}
+```
+
+O_ prefix is flag, S_ prefiex is mode. Flag is how you access file, read or write ? Mode decides who can access file.
+
+
+Get more details:
+- `open`: `man 2 open`.
+- mode: `man 2 chmod`.
+
+### Read and Write File
+
+### Modify File Flags and Mode
+
+### Set File Nonblocking
+
+### See it is File or Directory
+
+### Get File Meta
+
+### Remove File
+
+### Create Directory
+
+### Create Temp Directory
+
+### See what Directory Includes
+
+### Remove Directory
+
+### Use `poll` 
+
+### Use `epoll`
+
+### Use `select`
+
+### Use `pselect`
+
+### Use `kqueue`
+
+### TCP client and Server
+
+### Terminal IO and Raw mode
+
+### Create Child Process
+
+### Create Daemon Process
+
+### Suspend Process
+
+### Kill Process
+
+### Sync Processes with Pipe
+
+### Signal Interception and Resolving
+
+### Create Thread
+
+### Suspend Thread
+
+### Kill Thread
+
+### Sync Thread with Lock
+
+### Sync Thread with Semphore
+
+### Sync Thread with Condition Var
+
+### Use ThreadLocal Var
+
+
+
+
+
+
