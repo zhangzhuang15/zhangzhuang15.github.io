@@ -123,9 +123,55 @@ int main() {
 `time` from: `<time.h>`
 
 ### Get Current Time
+```c  
+#include <sys/time.h>
+#include <stdio.h>
 
+int main() {
+    struct timeval tp;
+    struct timezone tz;
+    int r = gettimeofday(&tp, &tz);
+    if (r == 0) {
+        // tv_sec is seconds relative to 1970.1.1 00:00:00;
+        printf("%ld seconds %d microseconds\n", tp.tv_sec, tp.tv_usec);
+        // tz_minutewest is minutes offset which Greenwich zone is relative to local zone.
+        // if it's -480, local zone is earlier than Greenwich 8 hours.
+        printf("%d %d", tz.tz_minuteswest, tz.tz_dsttime);
+    }
+    return 0;
+}
+```
 
 ### Get User Input
+```c  
+#include <stdio.h>
+
+int main() {
+    char answer = 'a';
+    printf("remove this file?(y/n)");
+    scanf("%c", &answer);
+    if (answer == 'y') {
+        printf("remove\n");
+    }
+
+    return 0;
+}
+```
+
+Get more details, `man scanf`
+
+### Extract Value from String 
+```c  
+#include <stdio.h>
+
+int main() {
+    char s[50];
+    int age;
+    sscanf("hello peter, 20", "hello %s %d", s, &age);
+    printf("name: %s, age: %d\n", s, age);
+    return 0;
+}
+```
 
 ### Clear Your Array 
 ```c  
