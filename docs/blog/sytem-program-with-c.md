@@ -397,12 +397,14 @@ int main() {
 }
 ```
 
-`read` and `write` are from `unistd.h`. `open` is from `fcntl.h`.
+`read` and `write` are from `unistd.h`. `open` is from `fcntl.h`. `read` and `write` are unbuffered.
 
 Get more details:
 - `read`: `man 2 read`.
 - `write`: `man 2 write`.
 
+
+if you want to read or write with buffer, take a look at `fread` or `fwrite` below.
 
 Read:
 ```c  
@@ -433,7 +435,11 @@ int main() {
 
     char buff[5] = {'w','o','r','l','d'};
 
+    // fwrite, write to terminal fd in line-buffered way,
+    // write to regular file in full-buffered way.
+    // you can change default behaviour with `setvbuf` function.
     int bytes = fwrite(buff, 1, 5, file);
+    fflush(file);
 
     fclose(file);
     return 0;
@@ -442,9 +448,60 @@ int main() {
 
 Get more details, `man fread`.
 
-### Modify File Flags and Mode
+### Modify File Flags
+```c  
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+   int fd = open("hello.txt", O_APPEND);
+
+   // use F_GETFL getting old flags
+   int old_flags = fcntl(fd, F_GETFL);
+
+   int new_flags = O_RDONLY;
+   // use F_SETFL setting new flags
+   fcntl(fd, F_SETFL, new_flags);
+   
+   close(fd);
+   return 0;
+}
+```
 
 ### Set File Nonblocking
+```c  
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+   int fd = open("hello.txt", O_APPEND);
+   int old_flags = fcntl(fd, F_GETFL);
+   if (old_flags != -1) {
+    int r = fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
+    if (r != -1) {
+        // success, fd is nonblocking
+    }
+   }
+   
+   close(fd);
+   return 0;
+}
+```
+
+### Set File Mode
+```c 
+#include <sys/stat.h>
+
+int main() {
+    int r = chmod("hello.txt", 0776);
+    if (r == 0) { 
+        // success
+    }
+    return 0;
+}
+```
+
+Get more details, `man 2 chmod`
 
 ### See it is File or Directory
 ```c  
@@ -517,7 +574,42 @@ int main() {
 }
 ```
 
+Get more details, `man 2 mkdir`
+
 ### Create Temp Directory
+```c 
+#include <unistd.h>
+
+int main() {
+    // create a temp directory and return its name;
+    // X is replaced with random number or letter.
+    char* directory_name = mkdtemp("XXhelloXX");
+    if (directory_name != NULL) {
+        // success
+    }
+    return 0;
+}
+```
+
+Get more details, `man mkdtemp`
+
+
+### Create Temp File
+```c 
+#include <unistd.h>
+
+int main() {
+    // create a temp file and return its name;
+    // X is replaced with random number or letter.
+    char* file_name = mkstemp("helloXX.mp4");
+    if (file_name != NULL) {
+        // success
+    }
+    return 0;
+}
+```
+
+Get more details, `man mkstemp`
 
 ### See what Directory Includes
 ```c  
@@ -547,6 +639,17 @@ int main() {
 ```
 
 ### Remove Directory
+```c 
+#include <unistd.h>
+
+int main() {
+    // hello must be an empty directory.
+    rmdir("hello");
+    return 0;
+}
+```
+
+if you want to delete non-empty directory, you should walk directory, remove its every child file using `remove` and remove its every subdirectory recursively, finally remove this directory using `rmdir`.
 
 ### Use `poll` 
 
