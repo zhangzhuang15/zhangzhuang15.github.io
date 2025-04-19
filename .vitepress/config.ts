@@ -374,6 +374,10 @@ export default defineConfig({
               link: '/blog/system-program-with-c'
             },
             {
+              text: 'Hardware you should Know',
+              link: "/blog/hardware"
+            },
+            {
               text: 'Talk about pthread',
               link: '/blog/pthread'
             },

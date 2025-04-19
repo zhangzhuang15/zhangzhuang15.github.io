@@ -697,6 +697,292 @@ int main() {
 
 if you want to delete non-empty directory, you should walk directory, remove its every child file using `remove` and remove its every subdirectory recursively, finally remove this directory using `rmdir`.
 
+### TCP client and Server
+When we write tcp client and server, we usually print messages to stdout so that we know client/server works well.There's a pitfall you should know: our terminal is line-buffer mode as default. In other words, if you take `printf("hello")` in server, nothing is puted into terminal. To see `"hello"` in terminal, you should use `printf("hello\n")`.
+
+TCP Client:
+```c
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+
+// you should promise that port 6000 is not taken up by other active process!
+#define SERVER_PORT 6000
+#define SERVER_ADDR "127.0.0.1"
+
+int main() {
+    // create socket fd 
+    int fd = socket(AF_INET, SOCK_STREAM, 0); 
+
+    // create server address option
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+    sa.sin_port = htons(SERVER_PORT);
+
+    // connect to server
+    int r = connect(fd, &sa, sizeof(sa));
+    if (r == -1) {
+       perror("cannot connect to server");
+       close(fd);
+       return;
+    }
+
+    // we don't use `select` `poll` `epoll` here,
+    // so we don't need to set fd non-block.
+
+    // take 128byte buffer for receiving message from
+    // server and vice versa.
+    char buffer[128];
+    memset(buffer, 0, sizeof(buffer));
+
+    // message sent to server
+    char message[] = "hello world";
+
+    // send message. we don't want to send '\0'
+    // to server, so we assign sizeof(message) - 1 to len
+    for (int i = 0, len = sizeof(messge) - 1; i < len;) {
+        if (i + 128 - 1 > len) {
+            memcpy(buffer, message, len - i + 1);
+            write(fd, buffer, len - i + 1);
+            break;
+        }
+        memcpy(buffer, message, 128);
+        i += 128;
+        write(fd, buffer, 128);
+    }
+
+    // clear buffer, get ready for receiving from server
+    memset(buffer, 0, sizeof(buffer));
+
+    // receive from server
+    char receiving = 'n';
+    while(1) {
+      int bytes = read(fd, buffer, sizeof(buffer));
+
+      // Error caused by `read`
+      if (bytes == -1) {
+        perror("cannot read from server");
+        break;
+      }
+
+      // corresponding server-side fd might be closed
+      if (bytes == 0) {
+        printf("read 0 bytes from server\n");
+        break;
+      }
+
+      // start to receive
+      if (receiving == 'n') {
+        receiving = 'y';
+        printf("receive from server:\n");
+      }
+
+      // if server sends message which ends with "bye",
+      // we think this message is completely received.
+      // in effect, it's decided by application protocol
+      // over tcp protocol. here, we make it easy.
+      int end = -1;
+      for (int i = 0; i < bytes; i++) {
+        if (buffer[i] == 'b' && i + 2 == bytes - 1) {
+            if (strncmp(buffer + i, "bye", 3) == 0) {
+                end = i;
+                break;
+            }
+        }
+      }
+
+      // we receive a part of server message
+      if (end == -1) {
+        char buff[129];
+        memcpy(buff, buffer, bytes);
+        buff[bytes] = '\0';
+        printf("%s\n", buff);
+      } else {
+        // we receive all of server message
+        char buff[129];
+        memcpy(buff, buffer, end);
+        buff[end] = '\0';
+        printf("%s\n", buff);
+        break;
+      }
+    };
+
+    // release
+    close(fd);
+}
+```
+
+- `socket`, `connect`, `htons`: `<sys/socket.h>`
+- `sockaddr_in`: `<netinet/in.h>`
+- `inet_addr`:`<arpa/inet.h> `
+- `read`, `write`, `close`: `<unistd.h>`
+
+if process exits before you close fd, don't worry, os will help you release.
+
+TCP Server:
+```c  
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+
+// you should promise that port 6000 is not taken up by other active process!
+#define SERVER_PORT 6000
+#define SERVER_ADDR "127.0.0.1"
+
+int main() {
+    // create server socket fd 
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // create server address option
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+    sa.sin_port = htons(PORT);
+
+    // bind address to server socket fd
+    bind(fd, (struct sockaddr*)&sa, sizeof(sa));
+
+    // make server socket fd reuse address and port
+    int yes = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
+    // server is running in LISTEN status.
+    // allow 10 pending connections.
+    // note that process won't be blocked at this point.
+    listen(fd, 10);
+    printf("server is running...\n");
+
+    while(1) {
+        // get ready for receiving client's address info
+        struct sockaddr_in client_sa;
+        socklen_t slen = sizeof(client_sa);
+
+        // waiting for client connecting, if no client connects,
+        // process will be blocked here. if client connects,
+        // client_sa will save client address info.
+        int client_fd = accept(fd, (struct sockaddr*)&client_sa, &slen);
+
+        // Error caused by `accept`
+        if (client_fd == -1) {
+            perror("accep failed");
+            printf("do you want to keep server active?(y/n)");
+            char b[2];
+            scanf("%s", b);
+            if (b[0] == 'n') {
+                break;
+            }
+            continue;
+        }
+
+        // before we receive/send message with client_fd,
+        // we set receiving timeout so that process won't be 
+        // blocked until client sends message to us. in this
+        // way, process can serve another client connecting
+        // in time.
+        struct timeval t;
+        t.tv_sec = 4;
+        t.tv_usec = 0;
+        setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
+    
+        printf("new client!\n");
+
+        // 128byt buffer, receiving client message
+        char buffer[128];
+        memset(buffer, 0, sizeof(buffer));
+
+        // receive client message
+        char reciving = 'n';
+        char close_server = 'n';
+        while (1) {
+            int bytes = read(client_fd, buffer, sizeof(buffer));
+
+            // Error caused by read
+            if (bytes == -1) {
+                close(client_fd);
+                perror("cannot read from client");
+                break;
+            }
+
+            // client is closed
+            if (bytes == 0) {
+                break;
+            }
+
+            // start to receive
+            if (reciving == 'n') {
+                // we assume that client sends "bye", informing
+                // server to close itself.
+                if (bytes >= 3 && strncmp(buffer, "bye", 3) == 0) {
+                    printf("client wants server to be closed\n");
+                    close_server = 'y';
+                    break;
+                }
+
+                reciving = 'y';
+                printf("receiving data from client: \n");
+            }
+
+            // we assume that "nnn" is mark of getting all
+            // client message
+            int end = -1;
+            for (int i = 0; i < bytes; i++) {
+                if (buffer[i] == 'n' && i < bytes - 2) {
+                    if (strncmp(buffer + i, "nnn", 3) == 0) {
+                        end = i;
+                        break;
+                    }
+                }
+            }
+
+            // get partial client message,
+            // print it, continue to read extra
+            // client message in next loop
+            if (end == -1) {
+                char buf[129];
+                memcpy(buf, buffer, bytes);
+                buf[bytes] = '\0';
+                printf("%s\n", buf);
+
+                // receive all client message
+            } else if (end > 0) {
+                char buf[129];
+                memcpy(buf, buffer, end);
+                buf[end] = '\0';
+                printf("%s\n", buf);
+                break;
+            }
+        }
+        
+        if (reciving == 'n') {
+            if (close_server == 'y') break;
+            continue;
+        }
+
+        // answer client and close communicating.
+        char buf[] = "thank you, I recevie. bye";
+        write(client_fd, buf, sizeof(buf) - 1);
+        close(client_fd);
+    }
+
+    // close server
+    close(fd);
+    printf("server is died\n");
+}
+```
+
+- `struct timeval`: `<unistd.h>`
+- `setsockopt`, `accept`, `listen`: `<sys/socket.h>`
+
+as you can see, tcp communcating is complicated, c reveals it, but other high-level language hides it. this is why c is valuable but not human friendly.
+
 ### Use `poll` 
 
 ### Use `epoll`
@@ -707,7 +993,7 @@ if you want to delete non-empty directory, you should walk directory, remove its
 
 ### Use `kqueue`
 
-### TCP client and Server
+
 
 ### Terminal IO and Raw mode
 
