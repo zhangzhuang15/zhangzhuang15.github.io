@@ -2058,6 +2058,57 @@ fn main() {
 
 struct 是值类型，内部成员是否可变，要看struct自身是否可变。如果想要实现内部可变性，需要使用Rust标准库提供的 Cell 这类工具。
 
+## `Error` 可以自动转为 `Box<dyn Error>`
+当使用`reqwest`、`tokio` 执行IO操作时，如果发生错误，错误类型就要上抛。但是，不同的IO函数返回的错误类型不相同，导致上抛的时候，不知道该如何给出一个较为通用的错误类型声明，这个时候，就可以使用`Box<dyn Error>`。 可问题来了，IO函数返回的是分明是 `Error` 类型，它是怎么自动转换成 `Box<dyn Error>`的呢？
 
+其实是标准库在 `library/alloc/src/boxed/convert.rs` 里边定义的。
+```rs 
+#[cfg(not(no_global_oom_handling))]
+#[stable(feature = "rust1", since = "1.0.0")]
+impl<'a, E: Error + Send + Sync + 'a> From<E> for Box<dyn Error + Send + Sync + 'a> {
+    // ...
+}
+```
+
+你只需要保证自定义类型实现了`Error`，编译器就会自动转成`Box<dyn Error>`了。
+
+```rs  
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    return Err(std::io::Error::new(std::io::ErrorKind::Other, "cannot download m3u file"));
+}
+```
+这段代码是错误的，`std::io::Error` 确实实现了`Error`，但是它没有使用`?`上抛错误，因此Rust不会将它转化为 `Box<dyn Error>`， 解决方法：
+```rs    
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "cannot download m3u file")));
+}
+```
+或者 
+```rs   
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    return Err(std::io::Error::new(std::io::ErrorKind::Other, "cannot download m3u file"))?;
+}
+```
+
+## 闭包塞进Option, unwrap 时的问题
+```rs 
+fn hello(mapper: Option<impl FnMut(String) -> String>) {
+    let mapper = match mapper {
+        Some(_map) => _map,
+        None => |s: String| -> String { s }
+    }
+}
+```
+这个代码是有问题的。因为 `_map` 和 `|s: String| -> String {s}` 类型并不相同，尽管它们都实现了 `FnMut(String) -> String`。这导致 `let mapper` 无法确定变量类型。解决方法如下：
+```rs   
+fn hello(mapper: Option<Box<dyn FnMut(String) -> String>>) {
+    let mapper = match mapper {
+        Some(_map) => _map,
+        None => Box::new(|s: String| -> String { s })
+    }
+}
+```
+
+这揭示了`dyn` 和 `impl` 的区别。`impl`会在编译期能确定的类型，也就是静态分发；`dyn`表示在编译期没办法确定的类型，需要在运行时去确认具体的类型是什么，也就是动态分发。
 
 <Giscus />

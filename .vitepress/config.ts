@@ -183,7 +183,8 @@ export default defineConfig({
       "/go": [
         { text: "how to learn", link: "/go/how-to-learn" },
         { text: "FAQ", link: '/go/FAQ'},
-        { text: "Module recommend", link: "/go/recommend-module"}
+        { text: "Module recommend", link: "/go/recommend-module"},
+        { text: "code snippet", link: "/go/code-snippet" }
       ],
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
@@ -373,6 +374,10 @@ export default defineConfig({
               link: '/blog/system-program-with-c'
             },
             {
+              text: 'Hardware you should Know',
+              link: "/blog/hardware"
+            },
+            {
               text: 'Talk about pthread',
               link: '/blog/pthread'
             },
@@ -391,6 +396,10 @@ export default defineConfig({
             {
               text: 'GPU介绍',
               link: '/blog/gpu'
+            },
+            {
+              text: 'Never Confused: Rust, Zig and Go',
+              link: '/blog/rust-zig-go'
             },
             {
               text: "博客文章阅读系列",
@@ -494,7 +503,8 @@ export default defineConfig({
         },
         { text: 'software', link: '/tool/software' },
         { text: 'misc', link: "/tool/misc"},
-        { text: 'arm指令清单', link: '/tool/arm' }
+        { text: 'arm指令清单', link: '/tool/arm' },
+        { text: 'CMake', link: '/tool/cmake-tool'}
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
