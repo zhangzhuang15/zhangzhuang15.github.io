@@ -984,15 +984,1125 @@ int main() {
 as you can see, tcp communcating is complicated, c reveals it, but other high-level language hides it. this is why c is valuable but not human friendly.
 
 ### Use `poll` 
+```c  
+#include <sys/socket.h>
+#include <poll.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <fcntl.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#define PORT 6000
+
+typedef struct Vec {
+    int* data;
+    int cap;
+    int current;
+    int active;
+} Vec;
+
+Vec init_vect(int cap) {
+    int* data = malloc((sizeof(int)) * cap);
+    Vec v;
+    v.cap = cap;
+    v.data = data;
+    v.current = 0;
+    v.active = 1;
+    return v;
+}
+
+void deinit_vect(Vec* vec) {
+    if (vec->active == 1) {
+        vec->active = 0;
+        free(vec->data);
+    }
+}
+
+int push_vec(Vec* vec, int v) {
+    if (vec->current < vec->cap) {
+        vec->data[vec->current] = v;
+        vec->current++;
+        return 0;
+    }
+    return -1;
+}
+
+int pop_vec(Vec* vec) {
+    if (vec->current > 0) {
+        int val = vec->data[vec->current - 1];
+        vec->current--;
+        return val;
+    }
+    return -1;
+}
+
+int size_vec(Vec* vec) {
+    return vec->current;
+}
+
+void clear_vec(Vec* vec) {
+    vec->current = 0;
+}
+
+int has_vec(Vec* vec, int val) {
+    for(int i = 0; i < vec->current; i++) {
+        if (vec->data[i] == val) return 1;
+    }
+    return 0;
+}
+
+int main() {
+    // create server socket
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // server socket address option
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sa.sin_port = htons(PORT);
+
+    // bind address to server socket
+    bind(fd, (struct sockaddr*)&sa, sizeof(sa));
+
+    // allow server socket to reuse address
+    int yes = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
+    // server socket is non-block, because we use `poll`
+    int old_flags = fcntl(fd, F_GETFL);
+    fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
+
+    // server is running
+    listen(fd, 2);
+    printf("server is running...\n");
+
+    Vec read_fds = init_vect(10);
+    Vec write_fds = init_vect(10);
+
+    while(1) {
+        // create pllfd array
+        int cap = size_vec(&read_fds) + size_vec(&write_fds) + 1;
+        struct pollfd* fds = malloc(sizeof(struct pollfd) * cap);
+
+        // record fd, and we want to read it
+        int i = 0;
+        fds[i].fd = fd;
+        fds[i].events = POLL_IN;
+        fds[i].revents = 0;
+
+        i++;
+
+        // record other fds we want to read
+        for (int j = 0; j < read_fds.current; j++) {
+            fds[i+j].events = POLL_IN;
+            fds[i+j].revents = 0;
+            fds[i+j].fd = read_fds.data[j];
+        }
+
+        i = i + read_fds.current;
+
+        // record other fds we want to write
+        for (int j = 0; j < write_fds.current; j++) {
+            fds[i+j].events = POLL_OUT;
+            fds[i+j].revents = 0;
+            fds[i+j].fd = write_fds.data[j];
+        }
+
+        i = i + write_fds.current;
+
+        // 2000 means that poll will block 2000ms
+        int r = poll(fds, cap, 2000);
+
+        // Error caused by poll
+        if (r == -1) {
+            perror("poll failed");
+            break;
+        }
+
+        // poll timeout
+        if (r == 0) {
+            printf("timeout\n");
+            continue;
+        }
+
+        clear_vec(&write_fds);
+        clear_vec(&read_fds);
+
+        // walk fds
+        for (int j = 0; j < cap; j++) {
+            struct pollfd f = fds[j];
+
+            // server socket fd is available to read
+            if (f.fd == fd && f.revents & POLL_IN) {
+                int client_fd = -1;
+                while(1) {
+                    struct sockaddr_in client_sa;
+                    socklen_t slen = sizeof(client_sa);
+                    client_fd = accept(fd, (struct sockaddr*)&client_sa, &slen);
+                    if (client_fd == -1) {
+                        perror("accep failed");
+                        printf("do you want to keep server active?(y/n)");
+                        char b[2];
+                        scanf("%s", b);
+                        if (b[0] == 'n') {
+                            free(pollfd);
+                            goto close_server;
+                        }
+                    }
+                    break;
+                }
+                printf("new client!\n");
+
+                int old_flags = fcntl(client_fd, F_GETFL);
+                fcntl(client_fd, F_SETFL, old_flags | O_NONBLOCK);
+
+                int val = push_vec(&read_fds, client_fd);
+                if (val == -1) {
+                    close(client_fd);
+                } else {
+                
+                }
+
+                continue;
+            } 
+
+            // not server socket fd, but it's available to read
+            if (f.events & POLL_IN) {
+                int client_fd = f.fd;
+                 // yes, it's sure to read
+                if (f.revents & POLL_IN) {
+                    char buffer[128];
+                    memset(buffer, 0, sizeof(buffer));
+                    int bytes = read(client_fd, buffer, sizeof(buffer));
+                    if (bytes == -1) {
+                        close(client_fd);
+                        perror("cannot read from client");
+                        continue;
+                    }
+                    if (bytes == 0) {
+                        close(client_fd);
+                        continue;
+                    }
+                    buffer[bytes] = '\0';
+                    printf("receive data from client: %s\n", buffer);
+                    printf("bytes: %d\n", bytes);
+                    if (bytes >= 3 && strncmp(buffer + bytes - 1 - 3, "bye", 3) == 0) {
+                        free(pollfd);
+                        goto close_server;
+                    }   
+
+                    int r = push_vec(&write_fds, client_fd);
+                    if (r == -1) {
+                        close(client_fd);
+                    } else {
+                        
+                    }
+                } else {
+                    push_vec(&read_fds, client_fd);
+                }
+            }
+
+            // available to write
+            if (f.events & POLL_OUT) {
+                int client_fd = f.fd;
+                // yes, it's sure to write
+                if (f.revents & POLL_OUT) {
+                    char buffer[] = "thank you, bye";
+                    int bytes = write(client_fd, buffer, sizeof(buffer) - 1);
+                    if (bytes == -1) {
+                        perror("cannot write from client");
+                    }
+                    if (bytes == 0) {
+                    }
+                    close(client_fd);
+                } else {
+                    push_vec(&write_fds, client_fd);
+                }
+            }
+        }
+        free(pollfd);
+        
+    }
+
+close_server:
+    // release fd and memory
+    close(fd);
+    printf("server is died\n");
+
+    while(1) {
+        int client_write_fd = pop_vec(&write_fds);
+
+        if (client_write_fd == -1) break;
+
+        if (has_vec(&read_fds, client_write_fd) == 0) {
+            close(client_write_fd);
+        }
+    }
+    deinit_vect(&write_fds);
+
+    while(1) {
+        int client_read_fd = pop_vec(&read_fds);
+
+        if (client_read_fd == -1) break;
+
+        close(client_read_fd);
+    }
+    deinit_vect(&read_fds);
+}
+```
+
+`poll`: `<poll.h>`
+
+`poll` is more human friendly to `select` and `pselect`, make your code more readable and organized well.
 
 ### Use `epoll`
+`epoll` is only available in Linux, not supported by NetBSD, MacOS.
 
 ### Use `select`
+```c  
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <fcntl.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#define PORT 6000
+
+typedef struct Vec {
+    int* data;
+    int cap;
+    int current;
+    int active;
+} Vec;
+
+Vec init_vect(int cap) {
+    int* data = malloc((sizeof(int)) * cap);
+    Vec v;
+    v.cap = cap;
+    v.data = data;
+    v.current = 0;
+    v.active = 1;
+    return v;
+}
+
+void deinit_vect(Vec* vec) {
+    if (vec->active == 1) {
+        vec->active = 0;
+        free(vec->data);
+    }
+}
+
+int push_vec(Vec* vec, int v) {
+    if (vec->current < vec->cap) {
+        vec->data[vec->current] = v;
+        vec->current++;
+        return 0;
+    }
+    return -1;
+}
+
+int pop_vec(Vec* vec) {
+    if (vec->current > 0) {
+        int val = vec->data[vec->current - 1];
+        vec->current--;
+        return val;
+    }
+    return -1;
+}
+
+int size_vec(Vec* vec) {
+    return vec->current;
+}
+
+int has_vec(Vec* vec, int val) {
+    for(int i = 0; i < vec->current; i++) {
+        if (vec->data[i] == val) return 1;
+    }
+    return 0;
+}
+
+int main() {
+    // create server socket
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // server socket address option
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sa.sin_port = htons(PORT);
+
+    // bind address to server socket
+    bind(fd, (struct sockaddr*)&sa, sizeof(sa));
+
+    // server socket can reuse address
+    int yes = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
+    // server socket fd is non-block, because we use select
+    int old_flags = fcntl(fd, F_GETFL);
+    fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
+
+    // server is running
+    listen(fd, 2);
+    printf("server is running...\n");
+
+    
+
+    Vec read_fds = init_vect(10);
+    Vec write_fds = init_vect(10);
+
+    while(1) {
+        // select timeout option
+        struct timeval timeout;
+        timeout.tv_sec = 2;
+        timeout.tv_usec = 0;
+
+        int max_fd = 0;
+
+        // record fd we want to read
+        fd_set read_set;
+        FD_ZERO(&read_set);
+
+        // record fd we want to write
+        fd_set write_set;
+        FD_ZERO(&write_set);
+
+        // we want to read fd, so that we can call `accept`
+        FD_SET(fd, &read_set);
+        if (fd > max_fd) {
+            max_fd = fd;
+        }
+
+        for (int i = 0; i < read_fds.current; i++) {
+            FD_SET(read_fds.data[i], &read_set);
+            if (read_fds.data[i] > max_fd) {
+                max_fd = read_fds.data[i];
+            }
+        }
+
+        for (int i = 0; i < write_fds.current; i++) {
+            FD_SET(write_fds.data[i], &write_set);
+            if (write_fds.data[i] > max_fd) {
+                max_fd = write_fds.data[i];
+            }
+        }
+
+        // take a look at first argument, it's a pitfall.
+        // if you want to read fd 4 and 7, and want to write fd 8, 11 and 12,
+        // first argument is neither 2 nor 3, it's 13, in others words,
+        // max_fd + 1.
+        int r = select(max_fd +1, &read_set, &write_set, NULL, &timeout);
+
+        // Error caused by select
+        if (r == -1) {
+            perror("select failed");
+            break;
+        }
+
+        // select timeout
+        if (r == 0) {
+            printf("timeout\n");
+            continue;
+        }
+
+        // write to available fds
+        Vec write_copy = init_vect(10);
+        while (1) {
+            int client_fd = pop_vec(&write_fds);
+
+            // empty
+            if (client_fd == -1) {
+                break;
+            }
+
+            if (FD_ISSET(client_fd, &write_set) != 0) {
+                char buffer[] = "thank you, bye";
+                int bytes = write(client_fd, buffer, sizeof(buffer) - 1);
+                if (bytes == -1) {
+                    perror("cannot write from client");
+                }
+                if (bytes == 0) {
+                }
+                close(client_fd);
+            } else {
+                push_vec(&write_copy, client_fd);
+            }
+        }
+        deinit_vect(&write_fds);
+        write_fds = write_copy;
+
+        // read available fds
+        while(1) {
+            int client_fd = pop_vec(&read_fds);
+
+            if (client_fd == -1) {
+                break;
+            }
+
+            if (FD_ISSET(client_fd, &read_set) != 0) {
+                char buffer[128];
+                memset(buffer, 0, sizeof(buffer));
+                int bytes = read(client_fd, buffer, sizeof(buffer));
+                if (bytes == -1) {
+                    close(client_fd);
+                    perror("cannot read from client");
+                    continue;
+                }
+                if (bytes == 0) {
+                    close(client_fd);
+                    continue;
+                }
+                buffer[bytes] = '\0';
+                printf("receive data from client: %s\n", buffer);
+                printf("bytes: %d\n", bytes);
+                if (bytes >= 3 && strncmp(buffer + bytes - 1 - 3, "bye", 3) == 0) {
+                    goto close_server;
+                }
+
+                int r = push_vec(&write_fds, client_fd);
+                if (r == -1) {
+                    close(client_fd);
+                } else {
+                    
+                }
+            }
+        }
+
+        // read server socket fd
+        if (FD_ISSET(fd, &read_set) != 0) {
+            int client_fd = -1;
+            while(1) {
+                struct sockaddr_in client_sa;
+                socklen_t slen = sizeof(client_sa);
+                client_fd = accept(fd, (struct sockaddr*)&client_sa, &slen);
+                if (client_fd == -1) {
+                    perror("accep failed");
+                    printf("do you want to keep server active?(y/n)");
+                    char b[2];
+                    scanf("%s", b);
+                    if (b[0] == 'n') {
+                        goto close_server;
+                    }
+                }
+                break;
+            }
+
+            printf("new client!\n");
+
+            int old_flags = fcntl(client_fd, F_GETFL);
+            fcntl(client_fd, F_SETFL, old_flags | O_NONBLOCK);
+
+            int val = push_vec(&read_fds, client_fd);
+            if (val == -1) {
+                close(client_fd);
+            } else {
+                
+            }
+        }
+    }
+
+close_server:
+    close(fd);
+    printf("server is died\n");
+
+    // release and close fds
+    while(1) {
+        int client_write_fd = pop_vec(&write_fds);
+
+        if (client_write_fd == -1) break;
+
+        if (has_vec(&read_fds, client_write_fd) == 0) {
+            close(client_write_fd);
+        }
+    }
+    deinit_vect(&write_fds);
+
+    // release and close fds
+    while(1) {
+        int client_read_fd = pop_vec(&read_fds);
+
+        if (client_read_fd == -1) break;
+
+        close(client_read_fd);
+    }
+    deinit_vect(&read_fds);
+}
+```
+if process exits with executing code that releases memory and fds, it's called exit gracefully.
+
+`select`: `<sys/select>`
 
 ### Use `pselect`
+in most parts of `pselect`, it's identical to `select`.
+
+```c  
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <fcntl.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#define PORT 6000
+
+typedef struct Vec {
+    int* data;
+    int cap;
+    int current;
+    int active;
+} Vec;
+
+Vec init_vect(int cap) {
+    int* data = malloc((sizeof(int)) * cap);
+    Vec v;
+    v.cap = cap;
+    v.data = data;
+    v.current = 0;
+    v.active = 1;
+    return v;
+}
+
+void deinit_vect(Vec* vec) {
+    if (vec->active == 1) {
+        vec->active = 0;
+        free(vec->data);
+    }
+}
+
+int push_vec(Vec* vec, int v) {
+    if (vec->current < vec->cap) {
+        vec->data[vec->current] = v;
+        vec->current++;
+        return 0;
+    }
+    return -1;
+}
+
+int pop_vec(Vec* vec) {
+    if (vec->current > 0) {
+        int val = vec->data[vec->current - 1];
+        vec->current--;
+        return val;
+    }
+    return -1;
+}
+
+int size_vec(Vec* vec) {
+    return vec->current;
+}
+
+int has_vec(Vec* vec, int val) {
+    for(int i = 0; i < vec->current; i++) {
+        if (vec->data[i] == val) return 1;
+    }
+    return 0;
+}
+
+int main() {
+    // create server socket
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // server socket address option
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sa.sin_port = htons(PORT);
+
+    // bind address to server socket
+    bind(fd, (struct sockaddr*)&sa, sizeof(sa));
+
+    // server socket can reuse address
+    int yes = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
+    // server socket fd is non-block, because we use select
+    int old_flags = fcntl(fd, F_GETFL);
+    fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
+
+    // server is running
+    listen(fd, 2);
+    printf("server is running...\n");
+
+    Vec read_fds = init_vect(10);
+    Vec write_fds = init_vect(10);
+
+    while(1) {
+        // pselect timeout option.
+        // it's more controllable than select,
+        // select uses us but pselect uses ns.
+        struct timespec timeout;
+        timeout.tv_sec = 5;
+        timeout.tv_nsec = 0;
+
+        int max_fd = 0;
+
+        // record fd we want to read
+        fd_set read_set;
+        FD_ZERO(&read_set);
+
+        // record fd we want to write
+        fd_set write_set;
+        FD_ZERO(&write_set);
+
+        // we want to read fd, so that we can call `accept`
+        FD_SET(fd, &read_set);
+        if (fd > max_fd) {
+            max_fd = fd;
+        }
+
+        for (int i = 0; i < read_fds.current; i++) {
+            FD_SET(read_fds.data[i], &read_set);
+            if (read_fds.data[i] > max_fd) {
+                max_fd = read_fds.data[i];
+            }
+        }
+
+        for (int i = 0; i < write_fds.current; i++) {
+            FD_SET(write_fds.data[i], &write_set);
+            if (write_fds.data[i] > max_fd) {
+                max_fd = write_fds.data[i];
+            }
+        }
+
+        // in this way, when pselect is blocking, you send interrupt signal to
+        // process, process won't exit at once until pselect is returned.
+        sigset_t sig = SIGINT | SIGHUP;
+
+        // take a look at first argument, it's a pitfall.
+        // if you want to read fd 4 and 7, and want to write fd 8, 11 and 12,
+        // first argument is neither 2 nor 3, it's 13, in others words,
+        // max_fd + 1.
+        int r = pselect(max_fd +1, &read_set, &write_set, NULL, &timeout, &sig);
+
+        // Error caused by pselect
+        if (r == -1) {
+            perror("pselect failed");
+            break;
+        }
+
+        // pselect timeout
+        if (r == 0) {
+            printf("timeout\n");
+            continue;
+        }
+
+        // write to available fds
+        Vec write_copy = init_vect(10);
+        while (1) {
+            int client_fd = pop_vec(&write_fds);
+
+            // empty
+            if (client_fd == -1) {
+                break;
+            }
+
+            if (FD_ISSET(client_fd, &write_set) != 0) {
+                char buffer[] = "thank you, bye";
+                int bytes = write(client_fd, buffer, sizeof(buffer) - 1);
+                if (bytes == -1) {
+                    perror("cannot write from client");
+                }
+                if (bytes == 0) {
+                }
+                close(client_fd);
+            } else {
+                push_vec(&write_copy, client_fd);
+            }
+        }
+        deinit_vect(&write_fds);
+        write_fds = write_copy;
+
+        // read available fds
+        while(1) {
+            int client_fd = pop_vec(&read_fds);
+
+            if (client_fd == -1) {
+                break;
+            }
+
+            if (FD_ISSET(client_fd, &read_set) != 0) {
+                char buffer[128];
+                memset(buffer, 0, sizeof(buffer));
+                int bytes = read(client_fd, buffer, sizeof(buffer));
+                if (bytes == -1) {
+                    close(client_fd);
+                    perror("cannot read from client");
+                    continue;
+                }
+                if (bytes == 0) {
+                    close(client_fd);
+                    continue;
+                }
+                buffer[bytes] = '\0';
+                printf("receive data from client: %s\n", buffer);
+                printf("bytes: %d\n", bytes);
+                if (bytes >= 3 && strncmp(buffer + bytes - 1 - 3, "bye", 3) == 0) {
+                    goto close_server;
+                }
+
+                int r = push_vec(&write_fds, client_fd);
+                if (r == -1) {
+                    close(client_fd);
+                } else {
+                    
+                }
+            }
+        }
+
+        // read server socket fd
+        if (FD_ISSET(fd, &read_set) != 0) {
+            int client_fd = -1;
+            while(1) {
+                struct sockaddr_in client_sa;
+                socklen_t slen = sizeof(client_sa);
+                client_fd = accept(fd, (struct sockaddr*)&client_sa, &slen);
+                if (client_fd == -1) {
+                    perror("accep failed");
+                    printf("do you want to keep server active?(y/n)");
+                    char b[2];
+                    scanf("%s", b);
+                    if (b[0] == 'n') {
+                        goto close_server;
+                    }
+                }
+                break;
+            }
+
+            printf("new client!\n");
+
+            int old_flags = fcntl(client_fd, F_GETFL);
+            fcntl(client_fd, F_SETFL, old_flags | O_NONBLOCK);
+
+            int val = push_vec(&read_fds, client_fd);
+            if (val == -1) {
+                close(client_fd);
+            } else {
+                
+            }
+        }
+    }
+
+close_server:
+    close(fd);
+    printf("server is died\n");
+
+    // release and close fds
+    while(1) {
+        int client_write_fd = pop_vec(&write_fds);
+
+        if (client_write_fd == -1) break;
+
+        if (has_vec(&read_fds, client_write_fd) == 0) {
+            close(client_write_fd);
+        }
+    }
+    deinit_vect(&write_fds);
+
+    // release and close fds
+    while(1) {
+        int client_read_fd = pop_vec(&read_fds);
+
+        if (client_read_fd == -1) break;
+
+        close(client_read_fd);
+    }
+    deinit_vect(&read_fds);
+}
+```
 
 ### Use `kqueue`
+```c  
+#include <sys/socket.h>
+#include <sys/event.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <fcntl.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
+#define PORT 6000
+
+typedef struct Vec {
+    int* data;
+    int cap;
+    int current;
+    int active;
+} Vec;
+
+Vec init_vect(int cap) {
+    int* data = malloc((sizeof(int)) * cap);
+    Vec v;
+    v.cap = cap;
+    v.data = data;
+    v.current = 0;
+    v.active = 1;
+    return v;
+}
+
+void deinit_vect(Vec* vec) {
+    if (vec->active == 1) {
+        vec->active = 0;
+        free(vec->data);
+    }
+}
+
+int push_vec(Vec* vec, int v) {
+    if (vec->current < vec->cap) {
+        vec->data[vec->current] = v;
+        vec->current++;
+        return 0;
+    }
+    return -1;
+}
+
+int pop_vec(Vec* vec) {
+    if (vec->current > 0) {
+        int val = vec->data[vec->current - 1];
+        vec->current--;
+        return val;
+    }
+    return -1;
+}
+
+int size_vec(Vec* vec) {
+    return vec->current;
+}
+
+void clear_vec(Vec* vec) {
+    vec->current = 0;
+}
+
+int has_vec(Vec* vec, int val) {
+    for(int i = 0; i < vec->current; i++) {
+        if (vec->data[i] == val) return 1;
+    }
+    return 0;
+}
+
+int main() {
+    // create server socket fd
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // server socket address option
+    struct sockaddr_in sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sa.sin_port = htons(PORT);
+
+    // bind address to server socket
+    bind(fd, (struct sockaddr*)&sa, sizeof(sa));
+
+    // allow server socket to reuse address
+    int yes = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
+    // server socket is non-block
+    int old_flags = fcntl(fd, F_GETFL);
+    fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
+
+    // server socket is running
+    listen(fd, 2);
+    printf("server is running...\n");
+
+    Vec read_fds = init_vect(10);
+    Vec write_fds = init_vect(10);
+
+    // create kernal queue, kd is file descriptor
+    int kd = kqueue();
+
+    while(1) {
+        // create event list
+        int cap = size_vec(&read_fds) + size_vec(&write_fds) + 1;
+        // event we expect
+        struct kevent* fd_events = malloc(sizeof(struct kevent) * cap);
+        // real tiggered event
+        struct kevent* fd_events_out = malloc(sizeof(struct kevent) * cap);
+
+        int i = 0;
+        // a pitfall. you only can set one filter.
+        fd_events[i].filter = EVFILT_READ;
+        // if you don't set EV_ONESHOT, you don't need to 
+        // set fd_event in next loop; here, we sync with `poll` code,
+        // and set fd_event in every loop.
+        fd_events[i].flags = EV_ADD | EV_ENABLE | EV_ONESHOT;
+        fd_events[i].ident = fd;
+
+        i++;
+
+        // other fds we want to read
+        for (int j = 0; j < read_fds.current; j++) {
+            fd_events[i+j].filter = EVFILT_READ;
+            fd_events[i+j].flags = EV_ADD | EV_ENABLE | EV_ONESHOT;
+            fd_events[i+j].ident = read_fds.data[j];
+        }
+
+        i = i + read_fds.current;
+
+        // other fds we want to write
+        for (int j = 0; j < write_fds.current; j++) {
+            fd_events[i+j].filter = EVFILT_WRITE;
+            fd_events[i+j].flags = EV_ADD | EV_ENABLE | EV_ONESHOT;
+            fd_events[i+j].ident = write_fds.data[j];
+        }
+
+        i = i + write_fds.current;
+
+        struct timespec timeout;
+        timeout.tv_sec = 3;
+        timeout.tv_nsec = 0;
+
+        int r = kevent(kd, fd_events, cap, fd_events_out, cap, &timeout);
+        if (r == -1) {
+            perror("kevent failed");
+            break;
+        }
+
+        // timeout
+        if (r == 0) {
+            printf("timeout\n");
+            continue;
+        }
+
+        clear_vec(&write_fds);
+        clear_vec(&read_fds);
+
+        // walk fd_events_out and get triggered event
+        for (int j = 0; j < r; j++) {
+            struct kevent f = fd_events_out[j];
+            // event is related with server socket, and it is available to read.
+            // a pitfall: we use `==` , not `|`
+            if (f.ident == fd && f.filter == EVFILT_READ) {
+                int client_fd = -1;
+                while(1) {
+                    struct sockaddr_in client_sa;
+                    socklen_t slen = sizeof(client_sa);
+                    client_fd = accept(fd, (struct sockaddr*)&client_sa, &slen);
+                    if (client_fd == -1) {
+                        perror("accep failed");
+                        printf("do you want to keep server active?(y/n)");
+                        char b[2];
+                        scanf("%s", b);
+                        if (b[0] == 'n') {
+                            free(fd_events);
+                            free(fd_events_out);
+                            goto close_server;
+                        }
+                    }
+                    break;
+                }
+                printf("new client!\n");
+
+                int old_flags = fcntl(client_fd, F_GETFL);
+                fcntl(client_fd, F_SETFL, old_flags | O_NONBLOCK);
+
+                int val = push_vec(&read_fds, client_fd);
+                if (val == -1) {
+                    close(client_fd);
+                } else {
+                
+                }
+
+            } 
+
+            // not server socket, but it's available to read
+            if (f.ident != fd && f.filter == EVFILT_READ) {
+                int client_fd = f.ident;
+                char buffer[128];
+                memset(buffer, 0, sizeof(buffer));
+                int bytes = read(client_fd, buffer, sizeof(buffer));
+                if (bytes == -1) {
+                    close(client_fd);
+                    perror("cannot read from client");
+                    continue;
+                }
+                if (bytes == 0) {
+                    close(client_fd);
+                    continue;
+                }
+                buffer[bytes] = '\0';
+                printf("receive data from client: %s\n", buffer);
+                printf("bytes: %d\n", bytes);
+                if (bytes >= 3 && strncmp(buffer + bytes - 1 - 3, "bye", 3) == 0) {
+                    free(fd_events);
+                    free(fd_events_out);
+                    goto close_server;
+                }   
+
+                int r = push_vec(&write_fds, client_fd);
+                if (r == -1) {
+                    close(client_fd);
+                } else {
+                    
+                }
+            }
+
+            // it's available to write
+            if (f.filter == EVFILT_WRITE) {
+                int client_fd = f.ident;
+                char buffer[] = "thank you, bye";
+                int bytes = write(client_fd, buffer, sizeof(buffer) - 1);
+                if (bytes == -1) {
+                    perror("cannot write to client");
+                }
+                if (bytes == 0) {
+                }
+                close(client_fd);
+            }
+        }
+
+        // remember to free before next loop
+        free(fd_events);
+        free(fd_events_out);
+    }
+
+close_server:
+    // release kernel queue and server socket
+    close(fd);
+    close(kd);
+    printf("server is died\n");
+
+    // release memory and other fds
+    while(1) {
+        int client_write_fd = pop_vec(&write_fds);
+
+        if (client_write_fd == -1) break;
+
+        if (has_vec(&read_fds, client_write_fd) == 0) {
+            close(client_write_fd);
+        }
+    }
+    deinit_vect(&write_fds);
+
+    while(1) {
+        int client_read_fd = pop_vec(&read_fds);
+
+        if (client_read_fd == -1) break;
+
+        close(client_read_fd);
+    }
+    deinit_vect(&read_fds);
+}
+```
+
+`kqueue`,`kevent`: `<sys/event.h>`
+
+`kqueue` is powerful but complicated. you have to know what you do clearly. in my opinion, I prefer `poll`.
 
 
 ### Terminal IO and Raw mode
