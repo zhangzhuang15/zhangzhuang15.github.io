@@ -2108,6 +2108,11 @@ close_server:
 ### Terminal IO and Raw mode
 
 ### Create Child Process
+Before we talk about how to create process, let's dive into Orphan Process and Zombie Process, because they will teach us to take responsibility for creating and managing process.
+
+Let's say we have Process A, and it creates Process B. Process A doesn't wait for Process B exiting and exits before Process B. Then Process B becomes Orphan Process. In this case, OS Init Process whose PID is 1, will take control of Process B. If Process B still works for a long time, memory taken up by Process B cannot be released. It's very harmful to OS. So, if you create process, you have to wait for its exiting unless you know what you do clearly.
+
+Let's talk about Zombie Process. If Process B exits before Process A, but Process A doesn't wait for Process B, Process B becomes Zombie Process. It's OS duty to release Process B's resources asynchronously. Zombie Process is not unsafe like Orphan Process, but we cannot ignore it -- manage your process well. 
 
 ### Create Daemon Process
 
@@ -2126,9 +2131,119 @@ If you want to get details, read [article](https://users.cs.cf.ac.uk/Dave.Marsha
 
 You can also take a look at Zig's Thread yield source code [here](https://ziglang.org/documentation/master/std/#std.Thread.yield).
 
-### Suspend Thread
+```c  
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+// thread routine.
+// pitfall: return value must declare void* type,
+// arg must declare void* type. For arg, you can
+// transform it to specific pointer type because
+// you know which type it is when you call pthread_create.
+//
+// For return value, you must return pointer type!
+// avoid stack-free problem, you have to alloc memory
+// on heap, save your value on it, and return pointer.
+//
+// void* means generic type pointer, yes, it's pointer!
+void* entry(void* n) {
+    printf("from child thread: sleeping\n");
+    sleep(3);
+    int num = *((int*)n);
+    char* m = malloc(sizeof(char));
+    if (num > 0) {
+        printf("hello world\n");
+        *m = 'y';
+    } else {
+        printf("sorry\n");
+        *m = 'n';
+    }
+    return m;
+}
+
+int main() {
+    printf("main thread: create a child thread\n");
+
+    pthread_t child;
+    int num = 20;
+    // create thread
+    int r = pthread_create(&child, NULL, entry, &num);
+    // create failed
+    if (r != 0) {
+        perror("pthread_create failed");
+        return r;
+    }
+
+    // wait for thread exiting and fetch its return 
+    // value with re.
+    char* re;
+    r = pthread_join(child, (void**)&re);
+    if (r != 0) {
+        perror("pthread_join failed");
+        return r;
+    }
+
+    printf("main thread:\tchild return value: %c\n", *re);
+    free(re);
+    return 0;
+}
+```
+
+- `pthread_create`, `pthread_join`: `<pthread.h>`
+- `sleep`: `<unistd.h>`
+
+### Yield Thread
+
 
 ### Kill Thread
+```c  
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+void* entry(void* n) {
+    printf("from child thread: sleeping\n");
+    sleep(13);
+    int num = *((int*)n);
+    if (num > 0) {
+        printf("hello world\n");
+    } else {
+        printf("sorry\n");
+    }
+}
+int main() {
+    printf("main thread: create a child thread\n");
+
+    pthread_t child;
+    int num = 20;
+    int r = pthread_create(&child, NULL, entry, &num);
+    if (r != 0) {
+        perror("pthread_create failed");
+        return r;
+    }
+
+    // more possible to switch to child thread
+    sleep(3);
+
+    printf("main thread: cancel child thread\n");
+    r = pthread_cancel(child);
+    if (r != 0) {
+        perror("pthread_cancel failed");
+        return r;
+    }
+
+    // make sure child thread is canceled, not exited
+    // because of main thread exiting.
+    sleep(18);
+
+    return 0;
+}
+```
+
+`pthread_cancel`: `<pthread.h>`
 
 ### Sync Thread with Lock
 
