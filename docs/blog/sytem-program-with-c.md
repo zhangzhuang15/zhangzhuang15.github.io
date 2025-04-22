@@ -2120,6 +2120,11 @@ close_server:
 ### Signal Interception and Resolving
 
 ### Create Thread
+Normally, we use `posix thread library` to create and manage threads in Unix-like system. This library is based on system call, in other words, it creates kernel-level thread, not user-level thread. Go's goroutine is user-level thread. But there're some differences between os system. For example, Linux supports `pthread_yield` but macOS not; some unix support `sched_yield` but macOS not.
+
+If you want to get details, read [article](https://users.cs.cf.ac.uk/Dave.Marshall/C/node29.html#SECTION002922000000000000000).
+
+You can also take a look at Zig's Thread yield source code [here](https://ziglang.org/documentation/master/std/#std.Thread.yield).
 
 ### Suspend Thread
 
