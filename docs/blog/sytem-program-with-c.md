@@ -2246,6 +2246,71 @@ int main() {
 `pthread_cancel`: `<pthread.h>`
 
 ### Sync Thread with Lock
+```c  
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/syscall.h>
+
+int a = 10;
+
+
+void* entry3(void* n) {
+    // error ! caused by mutex is copy of original mutex,
+    // and lock only works with address of original mutex,
+    // not address of mutex here!
+    pthread_mutex_t mutex = *((pthread_mutex_t*)n);
+    pthread_mutex_lock(&mutex);
+    a += 100;
+    pthread_mutex_unlock(&mutex);
+    return NULL;
+}
+
+void* entry(void* n) {
+    pthread_mutex_t* mutex = (pthread_mutex_t*)n;
+    pthread_mutex_lock(mutex);
+    a += 100;
+    pthread_mutex_unlock(mutex);
+    return NULL;
+}
+
+
+void* entry2(void* n) {
+    pthread_mutex_t* mutex = ((pthread_mutex_t*)n);
+    pthread_mutex_lock(mutex);
+    a += 1;
+    pthread_mutex_unlock(mutex);
+    return NULL;
+}
+
+int main() {
+    pthread_mutex_t mutex;
+    pthread_mutex_init(&mutex, NULL);
+
+    pthread_t child1;
+    pthread_t child2;
+
+    int r = pthread_create(&child1, NULL, entry, &mutex);
+    if (r != 0) {
+        perror("pthread_create failed");
+        return r;
+    }
+
+    r = pthread_create(&child2, NULL, entry2, &mutex);
+    if (r != 0) {
+        perror("pthread_create failed");
+        return r;
+    }
+
+    pthread_join(child1, NULL);
+    pthread_join(child2, NULL);
+
+    printf("a: %d\n", a);
+
+    return 0;
+}
+```
 
 ### Sync Thread with Semphore
 
