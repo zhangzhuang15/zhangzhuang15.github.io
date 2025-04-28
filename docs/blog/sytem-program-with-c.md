@@ -2110,11 +2110,44 @@ close_server:
 ### Create Child Process
 Before we talk about how to create process, let's dive into Orphan Process and Zombie Process, because they will teach us to take responsibility for creating and managing process.
 
-Let's say we have Process A, and it creates Process B. Process A doesn't wait for Process B exiting and exits before Process B. Then Process B becomes Orphan Process. In this case, OS Init Process whose PID is 1, will take control of Process B. If Process B still works for a long time, memory taken up by Process B cannot be released. It's very harmful to OS. So, if you create process, you have to wait for its exiting unless you know what you do clearly.
+Let's say we have Process A, and it creates Process B. Process A doesn't wait for Process B exiting and exits before Process B. Then Process B becomes Orphan Process. In this case, OS Init Process whose PID is 1, will take control of Process B. If Process B still works for a long time, memory taken up by Process B cannot be released.
 
-Let's talk about Zombie Process. If Process B exits before Process A, but Process A doesn't wait for Process B, Process B becomes Zombie Process. It's OS duty to release Process B's resources asynchronously. Zombie Process is not unsafe like Orphan Process, but we cannot ignore it -- manage your process well. 
+Let's talk about Zombie Process. If Process B exits before Process A, but Process A doesn't wait for Process B, Process B becomes Zombie Process. Process B has released its resource, such as memory, file 
+descriptors, registers, but it still takes up space of os process table. As a result, os cannot create new process with reusing Process B's PID. Only Process A waits for Process B exiting and reaps exiting information, OS is enable to release the space from os process table. Here is a related artical [Zombie Processes in Operating Systems](https://www.baeldung.com/cs/process-lifecycle-zombie-state)
 
 ### Create Daemon Process
+Daemon Process is:
+1. background process 
+2. orphan process
+3. not binding to terminal device, but can read or write files 
+   
+```c  
+static void daemonize(void) {
+    int fd;
+    FILE *fp;
+
+    if (fork() != 0) exit(0); /* parent exits */
+    setsid(); /* create a new session */
+
+    // redirect stdout, stdin, stderror to /dev/null,
+    // and release fd.
+    if ((fd = open("/dev/null", O_RDWR, 0)) != -1) {
+        dup2(fd, STDIN_FILENO);
+        dup2(fd, STDOUT_FILENO);
+        dup2(fd, STDERR_FILENO);
+
+        if (fd > STDERR_FILENO) close(fd);
+    }
+
+    // do other long-time job
+
+    // right now, this process is not related with
+    // terminal device, and it's absolutely a 
+    // background process. its parent process exits
+    // earlier than it, it becomes an orphan process,
+    // finally it's controlled by init process.
+}
+```
 
 ### Suspend Process
 
