@@ -9,6 +9,11 @@ aside: true
 ## rcore 操作系统教程
 [阅读原文](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/index.html)
 
+## zephyrproject
+[阅读原文](https://docs.zephyrproject.org/latest/introduction/index.html)
+
+zephyrproject 是一个用c开发的嵌入式操作系统，里边介绍了很多操作系统的知识。作为一个操作系统，它原生支持用 c/c++/rust 开发系统上面的软件。
+
 ## How Browser Rendering Works
 [阅读原文](https://blog.logrocket.com/how-browser-rendering-works-behind-scenes/)
 
