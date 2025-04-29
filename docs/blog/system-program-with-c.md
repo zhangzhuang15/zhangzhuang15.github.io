@@ -2106,6 +2106,28 @@ close_server:
 
 
 ### Terminal IO and Raw mode
+Enable raw mode.
+```c  
+int enableRawMode(int fd) {
+    struct termios raw;
+
+    tcgetattr(fd, &raw);
+
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    raw.c_oflag &= ~(OPOST);
+    raw.c_cflag |= (CS8);
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    raw.c_cc[VMIN] = 0; 
+    raw.c_cc[VTIME] = 1;
+
+    tcsetattr(fd,TCSAFLUSH,&raw);
+    return 0;
+}
+```
+Read [Kilo, a Simple Text Editor](/blog/terminal-kio), get more details.
+
+Terminal IO refers that you read message from terminal emulator and write message to terminal emulator. You can set a structure, called `termios`, change action of terminal emulator. Read [Terminal IO](/blog/terminal-io), get more details.
+
 
 ### Create Child Process
 Before we talk about how to create process, let's dive into Orphan Process and Zombie Process, because they will teach us to take responsibility for creating and managing process.
@@ -2152,6 +2174,22 @@ static void daemonize(void) {
 ### Suspend Process
 
 ### Kill Process
+```c  
+#include <signal.h>
+#include <stdio.h>
+
+int main() {
+    pid_t process = 10;
+    int r = kill(process, SIGKILL);
+    if (r == 0) {
+        printf("kill successfully\n");
+        return 0;
+    }
+    return -1;
+}
+```
+
+there're important differences if process is zero or negative, `man 2 kill`, get more details.
 
 ### Sync Processes with Pipe
 
