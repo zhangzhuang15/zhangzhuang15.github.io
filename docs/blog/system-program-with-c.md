@@ -2124,7 +2124,7 @@ int enableRawMode(int fd) {
     return 0;
 }
 ```
-Read [Kilo, a Simple Text Editor](/blog/terminal-kio), get more details.
+Read [Kilo, a Simple Text Editor](/blog/terminal-kilo), get more details.
 
 Terminal IO refers that you read message from terminal emulator and write message to terminal emulator. You can set a structure, called `termios`, change action of terminal emulator. Read [Terminal IO](/blog/terminal-io), get more details.
 
