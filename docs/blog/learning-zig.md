@@ -41,3 +41,6 @@ zig build
 ```
 
 在zig源代码里，打上断点，然后在vscode的Debug面板里执行`Debug zig source code`的调试任务就能启动调试了。
+
+## zig.guide
+Zig官网标准库不友好，看了之后，还是不知道该怎么用，没有丰富的code snippet说明，你可以访问[zig.guide](https://zig.guide/standard-library/threads/)。解释得清楚，code snippet 很丰富，一看就会。

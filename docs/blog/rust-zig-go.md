@@ -380,3 +380,6 @@ If you adopt dynamic linkage, rustc will generate executable file whose size is 
 In conclusion, C generates 10KB-level executable file, Rust generates 100KB-level executable file and it can reach 10KB-level, Zig generates 100KB-level executable file, Go generates 1MB-level executable file.
 
 For bare machine, C/Rust/Zig is better.
+
+## CPP is Better ?
+In TIOBE, cpp takes up second or third spot, but it doesn't mean that cpp is better. Frankly speaking, cpp is mature, so pepole tend to adopt cpp rather than new languages, such as Rust. It feels like teachers teach you with cpp and you're more likely using cpp. If you like spending more efforts on maintaining code safety by yourself, cpp is more suitable for you.

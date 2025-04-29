@@ -185,7 +185,7 @@ Promise.resolve()
 可是改为这样就等效了：
 
 ```js
-new Promise((resolve) => resolve(Promise.resolve(111)));
+new Promise((resolve) => resolve(Promise.resolve(111))).then(console.log);
 Promise.resolve()
   .then(() => console.log(1))
   .then(() => console.log(2));
@@ -687,6 +687,151 @@ new Promise((resolve) => {
   t.then(resolve);
 });
 ```
+
+## ECMA标准解读
+[ECMAScript 标准](https://tc39.es/ecma262/#sec-hostcalljobcallback)，接下来我们根据该标准，讲一下Promise有关的API都做了什么事情。
+
+### `const t = new Promise((resolve, reject) => {})` 的 resolve 和 reject 
+[标准中 resolve 的定义](https://tc39.es/ecma262/#sec-promise-resolve-functions)
+
+`resolve(A)`执行步骤：
+1. 获取`(resolve, reject) => {}`闭包函数，记作F;
+2. 断言 F 的 `[[Promise]]` 属性值是一个 Promise 类型；
+3. 令 promise 为 F 的 `[[Promise]]` 属性值, 也就是我们标题中的 t ;
+4. 令 alreadyResolved 为 F 的 `[[AlreadyResolved]]` 属性值;
+5. 如果 alreadyResolved 是 true，返回 undefined;
+6. 将 F 的 `[[AlreadyResolved]]` 属性设置为 true;
+7. 如果 promise === A：
+   1. 令 selfResolutionError 为新创建的TypeError对象
+   2. 执行 `RejectPromise(promise, selfResolutionError)`
+   3. 返回 undefined 
+8. 如果 A 不是一个对象：
+   1. 执行 `FulfillPromise(promise, A)`
+   2. 返回 undefined 
+9. 令 then 为 A.then 
+10. 如果 then 不是一个函数：
+    1.  执行  `FulfillPromise(promise, A)`
+    2.  返回 undefined 
+11. 执行 `NewPromiseResolveThenableJob(promise, A, then)`得到一个闭包函数，记作 job;
+12. 将 job 加入微队列 
+13. 返回 undefined
+
+[标准中 FulfillPromise 的定义](https://tc39.es/ecma262/#sec-fulfillpromise)
+
+`FulfillPromise(promise, A)`执行步骤：
+1. 断言promise是**pending**状态；
+2. 令 reactions是promise的`[[PromiseFulfillReactions]]`属性值。本质上，reactions就是一个列表，列表中的每一项都是一个函数，函数入参就是promise的内部值。
+3. 令 value 是 promise 的 `[[PromiseResult]]`属性值，也就是promise的内部值。
+4. 将 promise 的 `[[PromiseFulfillReactions]]` 属性设置为 undefined.
+5. 将 promise 的 `[[PromiseRejectReactions]]` 属性设置为 undefined.
+6. 将promise的状态设置为 **fulfilled**
+7. 执行 `TriggerPromiseReactions(reactions, value)`
+8. 返回 UNUSED
+
+[标准中 TriggerPromiseReactions 的定义](https://tc39.es/ecma262/#sec-triggerpromisereactions)
+
+`TriggerPromiseReactions(reactions, value)`执行步骤：
+1. 遍历 reactions 的每一项 reaction:
+   1. 生成一个闭包函数，函数内执行`reaction(value)`
+   2. 将闭包函数加入到微队列
+2. 返回UNUSED
+
+[标准中 NewPromiseResolveThenableJob 的定义](https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob)
+
+`NewPromiseResolveThenableJob(promise, A, then)`执行步骤：
+1. 创建一个闭包函数job，该函数内部会执行如下步骤：
+   1. 创建一个 resolve 和 一个 reject 方法，resolve 等同于 promise 在创建的时候 `new Promise((resolve, reject) => {})`里边的 resolve，reject 同理。
+   2. 把then函数的this设置为 A，然后执行 `then(resolve,reject)`, 返回then的执行结果
+2. 返回job
+
+
+[标准中 reject 的定义](https://tc39.es/ecma262/#sec-promise-reject-functions)
+
+`reject(A)`执行步骤：
+1. 获取`(resolve, reject) => {}`闭包函数，记作F;
+2. 断言 F 的 `[[Promise]]` 属性值是一个 Promise 类型；
+3. 令 promise 为 F 的 `[[Promise]]` 属性值, 也就是我们标题中的 t ;
+4. 令 alreadyResolved 为 F 的 `[[AlreadyResolved]]` 属性值;
+5. 如果 alreadyResolved 是 true，返回 undefined;
+6. 将 F 的 `[[AlreadyResolved]]` 属性设置为 true;
+7. 执行`RejectPromise(promise, A)`
+8. 返回 undefined 
+
+
+[标准中 RejectPromise的定义](https://tc39.es/ecma262/#sec-rejectpromise)
+
+`RejectPromise(promise, A)`执行步骤：
+1. 断言promise是**pending**状态；
+2. 令 reactions是promise的`[[PromiseRejectReactions]]`属性值。本质上，reactions就是一个列表，列表中的每一项都是一个函数，函数入参就是promise的内部值。
+3. promise 的 `[[PromiseResult]]`属性的值设置为A
+4. promise 的 `[[PromiseFulfillReactions]]` 属性的值设置为 undefined.
+5. promise 的 `[[PromiseRejectReactions]]` 属性的值设置为 undefined.
+6. 将promise的状态设置为 **rejected**
+7. 如果 promise 的 `[[PromiseIsHandled]]`属性值是 false, 执行 `HostPromiseRejectionTracker(promise, "reject")`.
+8. 执行 `TriggerPromiseReactions(reactions, A)`
+9. 返回 UNUSED
+
+`HostPromiseRejectionTracker`在标准中并没有给出具体的步骤，而是交给实现的厂商决定，要做的事情就是告诉开发者promise处于rejected状态了，你没有提供handler，也就是忘记执行 then 或者 catch 了。
+
+
+### `Promise.prototype.then` 
+[标准中 Promise.prototype.then的定义](https://tc39.es/ecma262/#sec-promise.prototype.then)
+
+`promise.then(onFulfill, onReject)`的执行步骤：
+1. 相当于采用下面的写法，创建一个 resultCapability 对象：
+   ```js 
+   const resultCapability = {
+    promise: null,
+    resolve: null,
+    reject: null,
+   }
+   resultCapability.promise = new Promise((resolve, reject) => {
+      resultCapability.resolve = resolve;
+      resultCapability.reject = reject;
+   })
+   ```
+2. 执行 `PerformPromiseThen(promise, onFulfill, onReject, resultCapability)`, 并返回执行结果
+
+
+[标准中PerformPromiseThen的定义](https://tc39.es/ecma262/#sec-performpromisethen)
+
+`PerformPromiseThen(promise, onFulfill, onReject, resultCapability)`执行步骤：
+1. 断言 promise 是 Promise对象
+2. resultCapability如果不存在，设置一个resultCapability变量，初始值为undefined 
+3. onFulfill不是函数，就赋值为空函数
+4. onReject不是函数，就赋值为空函数
+5. 创建一个函数 fulfillReaction，函数等效于下面的定义：
+   ```js
+      function callback(value) {
+        try {
+          const v = onFulfill(value)
+          resultCapability.resolve(v)
+        } catch(err) {
+          resultCapability.reject(err)
+        }
+      }
+    ```
+6. 创建一个函数 rejectReaction，函数等效于上面的定义
+7. promise如果是 **pending**状态：
+   1. 往 promise 的 `[[PromiseFulfillReactions]]` 属性代表的列表末尾，加入fulfillReaction
+   2. 往 promise 的 `[[PromiseRejectReactions]]` 属性代表的列表末尾，加入一个rejectReaction
+8. promise如果是 **fulfilled**状态:
+   1. 令 value 是 promise的内部值，即 promise 的 `[[PromiseResult]]` 属性值 
+   2. 生成一个闭包函数，函数内部执行`fulfillReaction(value)`, 将该闭包函数加入到微队列
+9. 执行：
+   1.  断言 promise 是 **rejected**状态 
+   2.  令 reason 为 promise 的 `[[PromiseResult]]`属性值 
+   3.  如果 promise 的 `[[PromiseIsHandled]]`属性值是 false, 执行 `HostPromiseRejectionTracker(promise, "handle")`
+   4.  生成一个闭包函数，函数内部执行`rejectReaction(reason)`, 将该闭包函数加入到微队列
+10. promise 的 `[[PromiseIsHandled]]` 属性值设置为 true.
+11. resultCapability如果是 undefined, 返回 undefined 
+12. 返回 `resultCapability.promise`
+
+
+### `Promise.prototype.catch` 
+等效于 `Promise.prototype.then(undefined, onReject)`
+
+[标准中Promise.prototype.catch的定义](https://tc39.es/ecma262/#sec-promise.prototype.catch)
 
 ## 参考
 
