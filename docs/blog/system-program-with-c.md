@@ -697,6 +697,20 @@ int main() {
 
 if you want to delete non-empty directory, you should walk directory, remove its every child file using `remove` and remove its every subdirectory recursively, finally remove this directory using `rmdir`.
 
+### Clear unused fd 
+```c  
+#include <unistd.h>
+
+int main () {
+    for (int fd = 3; fd < sysconf(_SC_OPEN_MAX); fd++) {
+        close(fd);
+    }
+    return 0;
+}
+```
+
+When you make some http requests, you make some fds respectively. If you fork a child process and don't close these fds, you might get an error "too many open files", you can use this code snippet to solve that problem.
+
 ### TCP client and Server
 When we write tcp client and server, we usually print messages to stdout so that we know client/server works well.There's a pitfall you should know: our terminal is line-buffer mode as default. In other words, if you take `printf("hello")` in server, nothing is puted into terminal. To see `"hello"` in terminal, you should use `printf("hello\n")`.
 
@@ -2136,6 +2150,44 @@ Let's say we have Process A, and it creates Process B. Process A doesn't wait fo
 
 Let's talk about Zombie Process. If Process B exits before Process A, but Process A doesn't wait for Process B, Process B becomes Zombie Process. Process B has released its resource, such as memory, file 
 descriptors, registers, but it still takes up space of os process table. As a result, os cannot create new process with reusing Process B's PID. Only Process A waits for Process B exiting and reaps exiting information, OS is enable to release the space from os process table. Here is a related artical [Zombie Processes in Operating Systems](https://www.baeldung.com/cs/process-lifecycle-zombie-state)
+
+```c  
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdio.h>
+
+int main() {
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        return 1;
+    }
+
+    // child process
+    if (pid == 0) {
+        char* args[] = {
+            "sh",
+            "hello.sh",
+            NULL
+        };
+        int r = execvp(args[0], args);
+        if (r == -1) {
+            perror("execvp");
+            exit(1);
+        }
+        exit(0);
+    }
+
+    // main process , wait child process ending up
+    waitpid(pid, NULL, 0);
+    return 0;
+}
+```
+
+We use `execvp` here, because its first arg is path or filename, it will search like shell does.
+If you use `execv`, you should make sure its first arg is a path, i.g. `execv("/bin/sh", args)`, 
+`execvp("sh", args)`.
+
 
 ### Create Daemon Process
 Daemon Process is:
