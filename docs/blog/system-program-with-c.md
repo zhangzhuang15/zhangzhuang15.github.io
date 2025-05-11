@@ -997,6 +997,10 @@ int main() {
 
 as you can see, tcp communcating is complicated, c reveals it, but other high-level language hides it. this is why c is valuable but not human friendly.
 
+if you want to learn more about network programming with c, I recommend you to take a look at [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/), or:
+1.   [PDF version](https://beej.us/guide/bgnet/pdf/bgnet_usl_c_1.pdf) 
+2.   [html version](https://beej.us/guide/bgnet/html/split/)
+
 ### Use `poll` 
 ```c  
 #include <sys/socket.h>
@@ -2506,3 +2510,9 @@ int main() {
 Normally, os provides libc for wrapping systemcall. If you want to make systemcall, you should invoke functions defined in libc. But if you want to make systemcall directly, not through libc, you can use assembly code. To make it simple, os provides c function like `syscall` , `__syscall` for wrapping assembly code. Unfortunately, not every os exposes this c function. In new version of macOS, `syscall` is deprecated and dropped([Github | related issue](https://github.com/google/glog/issues/185)), so you cannot search by `man syscall` getting more details. In linux, it's ok. Libc is not equal to c standard library, it contains c standard library and other parts.
 
 
+## Systemcall, Libc and Program Language Standard Library 
+Systemcall is part of operating system. Saving values in specific registers and invoking specific machine instructions (assembly code), cpu will trap into kernel side, and take actions —— this is essence of systemcall.
+
+Normally, if you want to request systemcall, you don't write assembly code. Developers write operating system with c language, then wrapping assembly code with c. But it's still hard to use, because memorizing systemcall number is pretty boring. Developers wrap systemcall in a human-friendly way, such as `fork()`, `write()`, `read()`. They won't provide c source code to you, instead, they compile c source code and provide c library to you. Yes, this is `libc`. `libc` also includes c standard functions. By the way, if you want to see all systemcall numbers, you can read `sys/syscall.h` header file.
+
+There is always standard library going with modern program language. What should it do if invoke systemcall ? One way: wraps systemcall(assembly code) on own (Go standard library), the other way: links `libc`(Rust/Zig library). Modern program language also has its own runtime, and runtime is also part of its library.
