@@ -62,6 +62,12 @@ javascript没有执行呢；
 
 介绍如何优化长任务，提高程序交互体验
 
+## Build your Browser Engine
+[阅读原文](https://limpet.net/mbrubeck/2014/11/05/toy-layout-engine-7-painting.html)
+
+简要介绍了浏览器引擎由哪些组件构成，并给出简要的代码说明这些组件大致是如何工作的。比如，如何将html转换成DOM树结构，如何将CSS转化为CSS树结构，如何将二者合并成Style树，如何根据Style树给出布局划分，如何根据布局划分的结果在屏幕上绘制出来。本文作者来自mozzila，活跃于Rust社区，而且是Servo项目的参与者。
+
+将布局信息转换成像素点的过程，被称之为光栅化（rasterization），浏览器引擎一般是借助图形库实现这点的，比如说 Skia, Cairo, Direct2D。
 
 ## 使用C语言实现协程
 [阅读原文](https://mthli.xyz/coroutines-in-c/)
@@ -271,3 +277,32 @@ GitHub上的一个开源电子书，其中讲述了Linux内核是怎样启动、
 介绍神经网络里的前向传播和后向传播，特别是后向传播，解释得非常直观、清楚、非常好理解。
 
 在阅读上述文章后，看看redis之父手写的一个3层神经网络小游戏c语言代码，会理解得更好，[Tic Tac Toe | Github](https://github.com/antirez/ttt-rl)
+
+## Build Command Line App with Zig from Ground up !
+[原文](https://rebuild-x.github.io/docs/#/./zig/terminal/cli?id=next-steps)
+
+介绍如何使用Zig编写命令行程序。文章特色：
+1. 代码简单，非常容易懂
+2. 不使用任何zig第三方库，只用zig标准库实现
+3. 介绍了子命令解析，命令行参数解析
+4. 介绍了彩色的终端文字输出
+5. 介绍了终端的spinner动画实现
+6. 非常适合拿来学习zig语法，包含结构体、切片、错误处理、错误上抛、堆allocator、数组拼接运算++、`.?`运算、`undefined`关键字
+
+## Build your Own Redis by c/c++
+[原文](https://build-your-own.org/redis/12_timer)
+
+介绍redis一些数据结构的简化版概念，易读易懂，比如 avl tree, event loop, timer，heap, thread pool 等等，夹带着介绍了一些c语言的编程技巧，比如 intrusive struct, 非常适合在阅读redis源码之前，做个知识上的热身。
+
+
+## How to Set Up Nextjs.15 for Production
+[原文](https://medium.com/@jan.hesters/how-to-set-up-next-js-15-for-production-in-2024-347f542922b4)
+
+介绍使用nextjs从零搭建一个完整的应用，包括如下内容：
+1. 使用哪些工具完成code style 和 code lint;
+2. 使用哪些工具完成unit test;
+3. 使用哪些工具完成e2e test；
+4. 使用哪些工具在服务端访问数据库；
+5. 使用哪些工具完成国际化i18n；
+
+文章在技术上不算很深的那种，但是亮点在于，重现生产环境的需要，将众多技术串联在一起，为读者揭示了一个真实的开发场景。
