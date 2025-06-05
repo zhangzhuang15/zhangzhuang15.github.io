@@ -402,6 +402,14 @@ export default defineConfig({
               link: '/blog/rust-zig-go'
             },
             {
+              text: 'Start with Zig',
+              link: '/blog/zig',
+            },
+            {
+              text: 'Tauri',
+              link: '/blog/tauri',
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
