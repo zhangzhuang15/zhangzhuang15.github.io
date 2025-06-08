@@ -283,4 +283,30 @@ cargo add tokio
 cargo add rand
 ```
 
+### winit
+创建GUI窗口，监听窗口事件，支持macOS,windows,linux,ios,android。这个crate不会提供接口，绘制窗口的内容，你需要使用其它crate辅助。
+
+在macOS平台，它使用`objc2`和 macOS 的 Objective-C 接口通讯，其创建窗口的方式等同于使用原生Objective-C接口创建。而这种原生接口创建出来的window对象，天然支持view的概念，为在窗口内嵌入webview提供支持。
+
+```shell 
+cargo add winit
+```
+
+如果你想知道主流平台如何实现展示一个窗口，并给予事件交互的绑定，以及Rust如何通过Objective-C的bindings使用操作系统更多的能力，可以看看源码。
+
+### wry
+tauri项目维护的crate，一个跨平台的webview。源代码文件不是特别多，揭示了Rust如何调用平台语言开发的系统库（macOS上就是objective-c），给出一个跨平台的抽象层。
+
+## 一些链接
+### GUI Yet
+[Jump](https://areweguiyet.com/)
+
+介绍 GUI 开发方面有哪些 Rust Crates 可以使用
+
+### Game Yet
+[Jump](https://arewegameyet.rs/#get-started)
+
+介绍游戏开发方面有哪些 Rust Crates 可以使用，比如2D/3D游戏引擎，2D/3D渲染引擎，物理引擎等等。
+
+
 <Giscus />

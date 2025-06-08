@@ -124,3 +124,25 @@ aside: true
 **I would expect that**, 我预期是...
 
 **keep code more understandable and self-evident**, 令代码更好理解、更直观
+
+**break things down**, 将事情分解
+
+**break problems down**, 将问题分解
+
+**break things into small pieces**, 将事情拆分成零散的部分
+
+**make your code adaptable**, 让你的代码更加灵活
+
+**typescript adoption**, typescript的采纳
+
+**how to tackle error**, 如何处理错误
+
+**things become a lot easier for me**, 事情变得更加简单
+
+**passion has a way of fueling your goals**, 热爱支撑你的目标
+
+**do something else that is going to free up your brain**, 做点别的事情，换换脑子
+
+**work out for a long time**, 花费很长时间做事
+
+**step out of your house**, 到户外

@@ -382,4 +382,60 @@ In conclusion, C generates 10KB-level executable file, Rust generates 100KB-leve
 For bare machine, C/Rust/Zig is better.
 
 ## CPP is Better ?
-In TIOBE, cpp takes up second or third spot, but it doesn't mean that cpp is better. Frankly speaking, cpp is mature, so pepole tend to adopt cpp rather than new languages, such as Rust. It feels like teachers teach you with cpp and you're more likely using cpp. If you like spending more efforts on maintaining code safety by yourself, cpp is more suitable for you.
+In TIOBE, cpp takes up second or third spot, but it doesn't mean that cpp is better. Frankly speaking, cpp is mature, so people tend to adopt cpp rather than new languages, such as Rust. It feels like teachers teach you with cpp and you're more likely using cpp. If you like spending more efforts on maintaining code safety by yourself, cpp is more suitable for you.
+
+Linus said cpp was bullshit, it's not true. It's bullshit if you use cpp in a wrong way, and that says you have to follow code style and rules seriously. Last not but least, you can't hold safety and speed at the same time.
+
+## Hello World Cmparing 
+There're "hello world" programs written by c, cpp, zig and rust, and here are the size.
+
+| language | size | compile |
+|:--|:--:|:--:|
+| c | 33KB | gcc main.c -o main |
+| cpp | 39KB | g++ main.cc -std=c++20 -o main |
+| zig(debug mode) | 861KB | zig build-exe main.zig |
+| rust(debug mode)| 439KB | cargo build |
+| zig(release-fast mode)| 50KB | zig build-ext -O ReleaseFast main.zig |
+| rust(release mode)| 405KB | cargo build --release |
+| rust(release mode and prefer dynamic)| 49KB | RUSTFLAGS="-C prefer-dynamic" cargo build --release |
+
+As you can see, if we don't request safety, there is not different among these languages.
+
+:::code-group 
+```c [main.c]
+#include <stdio.h>
+int main() {
+    printf("hello world");
+    return 0;
+}
+```
+
+```cpp [main.cc]
+#include <iostream>
+
+int main() {
+    std::cout << "hello world" << std::endl;
+    return 0;
+}
+```
+
+```zig [main.zig]
+pub fn main() !void {
+    const std = @import("std");
+    const stdout = std.io.getStdOut().writer();
+    try stdout.print("Hello, World!\n", .{});
+}
+```
+
+```rust [main.rs]
+mod util {
+    pub fn say_hello() {
+        println!("hello world");
+    }
+};
+
+fn main() {
+    util::say_hello();
+}
+```
+:::

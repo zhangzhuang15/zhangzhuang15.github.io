@@ -174,7 +174,8 @@ export default defineConfig({
               items: [
                 { text: '第一次洗牙', link: "/me/first-time/wash-teeth" },
                 { text: '第一次学会投篮', link: '/me/first-time/shoot' },
-                { text: '第一次立案', link: '/me/first-time/take-law' }
+                { text: '第一次立案', link: '/me/first-time/take-law' },
+                { text: '第一次听演唱会', link: '/me/first-time/concert'}
               ],
             },
           ],
@@ -400,6 +401,14 @@ export default defineConfig({
             {
               text: 'Never Confused: Rust, Zig and Go',
               link: '/blog/rust-zig-go'
+            },
+            {
+              text: 'Start with Zig',
+              link: '/blog/zig',
+            },
+            {
+              text: 'Tauri',
+              link: '/blog/tauri',
             },
             {
               text: "博客文章阅读系列",

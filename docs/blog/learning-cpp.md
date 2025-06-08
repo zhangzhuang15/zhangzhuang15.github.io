@@ -698,6 +698,8 @@ int main() {
 如果你没有写出对应的构造函数，C++编译器会默认提供 构造函数、拷贝构造函数、赋值运算符号，这个行为是把双刃剑，好处是省得你写一写代码，坏处是它背着你做了这些事情。因此，你最好还是明确给出这些构造函数的实现，不要空缺！
 :::
 
+不推荐使用`A c(10, 20)` 这种初始化方式，因为它容易和函数调用或者函数定义混淆；推荐使用`A b{10, 20}` 这种方式；
+
 
 ## inherit
 C++的继承方式提供了public, protected, private三种方式。
@@ -971,6 +973,44 @@ world
 太可怕了！
 
 调用的是Derive定义的hello, 默认参数传的是Base的
+
+
+## std::move 
+在 Rust 语言，默认语义就是移动语义，这就意味着堆上的内存不会发生复制。但是在 c++, 它提供了拷贝构造函数和移动构造函数，语义不明确。如果实现了拷贝构造函数，就会采取值复制的语义，堆上的内存会复制。为了实现 Rust 的移动语义，必须给出移动构造函数的定义，同时使用`std::move`做类型转换，明确告知编译器，使用移动构造函数。
+
+`std::move(p)` 并不会给出移动p的动作，只是将 p 的类型转化为右值类型，编译器就会调用p的移动构造函数生成一个新的同类型数据。
+
+```cpp  
+class P {
+  public:
+    std::string s;
+   
+  P(P&& other) {
+    this->s = std::move(other.s);
+    other.s = std::string{};
+  }
+}
+
+void count(P&& p) {
+  auto v = p.s.size();
+  std::cout << v;
+}
+
+int main() {
+  P p;
+  p.s = std::string{"hello world"};
+  // use P move constructor to create a new P type data as
+  // first arg of function count.
+  count(std::move(p));
+  return 0;
+}
+```
+
+虽然 `std::move(p)` 发生了，但你仍旧可以继续使用 p ，编译器不会阻止你，因此如果没有一个良好的移动构造函数，继续使用 p 会有安全隐患。
+
+什么时候使用`std::move`，取决于以下几点：
+1. 是否要明确使用数据的移动语义。编译器会优化代码，避免调用拷贝构造函数，但这种优化不总是有效，因此你需要显式告知编译器，使用移动构造函数。
+2. 数据类型是否支持移动语义。c++的标准库一般都会实现移动构造函数，你可以大胆调用`std::move`，但是数据被move之后会如何，不要冒那个风险，像Rust那样处理就好，move之后的数据永远不要去访问！
 
 
 ## 与现代编程特性接轨
@@ -1357,5 +1397,167 @@ New way:
 #pragma once 
 void hello(); 
 ```
+
+## snippet 
+### Format String 
+```cpp 
+#include <format>
+#include <string>
+
+int main() {
+  auto s = std::string{"hello"};
+  auto suffix = std::string{"ts"};
+  auto s = std::format("{}.{}", s, suffix);
+}
+```
+
+### Buff String 
+```cpp  
+#include <iostream>
+#include <string>
+
+int main() {
+  std::ostringstream ss;
+  ss << "hello";
+  ss << "world";
+  ss << 101;
+  ss << std::endl;
+
+  std::string s = ss.str();
+}
+```
+
+### Option Value 
+```cpp 
+#include <optional>
+
+std::optional<int> take(int v) {
+  if (v == -1) {
+    return std::nullopt;
+  }
+  return std::make_optional(v);
+}
+```
+
+### Sort Vector 
+```cpp  
+#include <vector>
+#include <algorithm>
+#include <string>
+
+class Case {
+  public:
+  int index;
+  std::string val;
+
+  Case(int i, std::string v): index(i), val(v) {}
+};
+
+int main() {
+  std::vector<Case> c;
+  c.emplace_back(1, "hello");
+  c.emplace_back(3, "yes");
+  c.emplace_back(2, "now");
+
+  std::sort(
+    c.cbegin(),
+    c.cend(),
+    [](Case&a, Case& b) {
+      return a.index < b.index;
+    }
+  );
+
+  // c is sorted from small index to big index.
+}
+
+```
+
+### Write Vector to File 
+```cpp 
+#include <vector>
+#include <unistd.h>
+
+bool write_to_file(int fd, std::vector<uint8_t>& vector) {
+  auto size = 128;
+  auto len = vector.size();
+  auto ptr = vector.c_str();
+
+  while (len > 0) {
+    auto next_write = len > size ? size : len;
+    auto written = write(fd, ptr, next_write);
+    if (written == -1) {
+      return false;
+    }
+    len -= written;
+    ptr += written;
+  }
+  return true;
+}
+```
+
+### Read File to Vector 
+```cpp 
+#include <vector>
+#include <unistd.h>
+#include <string.h>
+
+bool read_file(int fd, std::vector<uint8_t>& vector) {
+  char buffer[128];
+  memset(buffer, 0, sizeof(buffer));
+
+  while (1) {
+    auto r = read(fd, buffer, sizeof(buffer));
+    if (r == 0) {
+      break;
+    }
+    if (r == -1) {
+      return false;
+    }
+    vector.insert(vector.end(), buffer, buffer + r);
+  }
+  return true;
+}
+```
+
+### Thread and Mutex 
+```cpp  
+#include <thread>
+#include <mutex>
+#include <vector>
+
+int main() {
+  std::vector<uint8_t> v;
+  std::mutex mtx;
+
+  auto t = std::thread{
+    [&](uint8_t val) {
+      // lock in RAII style
+      std::lock_guard<std::mutex> guard{ mtx };
+      v.push_back(val);
+    },
+    10 
+  };
+
+  t.join();
+}
+```
+
+## 使用感受
+### 视频下载命令行工具
+我使用cpp重构了用nodejs实现的视频下载命令行工具，收获了一些cpp的体验。
+
+标准库不完备，要造轮子。c++的标准库没有那么全，像http网络请求就需要自己调用系统的`socket` API 实现。好处是编写代码的时候，硬逼着你与system call打交道，能提高系统编程的能力。坏处就是麻烦。
+
+函数式不完备。js本身就提供了丰富的函数式编程语义，如`map` `reduce`，Rust也提供了。但是c++标准库提供了最基础的操作，你必须二次封装，支持更多的函数式编程语义。像`map`，c++就没有提供。
+
+错误不好找。运行时出错，终端只会有“segment fault”之类的错误，不像Rust，可以提供更加友好的错误提示，告诉你是源码哪一行报错。为了找出cpp程序的错误，必须使用debug，在异常发生的时候，排查调用栈。
+
+体积小。我也是使用Rust和Go编写了同样的工具，Rust花费6MB，Go花费了9MB，而c++花费了1.3MB。c++版本的实现偷了很多懒。像Go语言，自带协程调度库。像Rust实现的版本，引入了tokio运行时。这些都会导致程序体积增大，也带来了程序的可读、可维护和健壮。如果砍掉运行时，c++的1.3MB结果，一点都不出彩儿。因此，体积小，并不算是c++的亮点。
+
+不安全。c++版本的实现，为了避免函数调用过程中，函数入参和返回值位置发生太多拷贝，使用了引用和移动。c++的编译器不会审查这些引用和移动的安全性。编写代码的时候，必须要自己小心，留意哪些资源还是有效的、存在的。说来说去，c++的所谓安全，跟c一样，还是非常依赖编程人员，即便c++提供了智能指针这种工具。
+
+官网可读性，有待提高。你必须要到c++官网，查看标准库，才知道string,vector这些工具该怎么使用。对于类型定义的介绍，c++官网搞的非常糟糕，你根本无法从它的文字里直接明白什么意思。还好，在末尾会有一段示例代码，有的代码可读性好，一看就知道怎么用，有的代码可读性就糟糕了。它底层实现，太依赖各种模板、重载，简直就没有办法从它的代码定义中，理解到API的用法。这一点，Rust完胜。
+
+一句话总结下，用cpp编写程序，心力憔悴，狠狠用Rust就可以了。
 
 <Giscus />

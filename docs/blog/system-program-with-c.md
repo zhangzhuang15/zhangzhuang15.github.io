@@ -697,6 +697,20 @@ int main() {
 
 if you want to delete non-empty directory, you should walk directory, remove its every child file using `remove` and remove its every subdirectory recursively, finally remove this directory using `rmdir`.
 
+### Clear unused fd 
+```c  
+#include <unistd.h>
+
+int main () {
+    for (int fd = 3; fd < sysconf(_SC_OPEN_MAX); fd++) {
+        close(fd);
+    }
+    return 0;
+}
+```
+
+When you make some http requests, you make some fds respectively. If you fork a child process and don't close these fds, you might get an error "too many open files", you can use this code snippet to solve that problem.
+
 ### TCP client and Server
 When we write tcp client and server, we usually print messages to stdout so that we know client/server works well.There's a pitfall you should know: our terminal is line-buffer mode as default. In other words, if you take `printf("hello")` in server, nothing is puted into terminal. To see `"hello"` in terminal, you should use `printf("hello\n")`.
 
@@ -982,6 +996,10 @@ int main() {
 - `setsockopt`, `accept`, `listen`: `<sys/socket.h>`
 
 as you can see, tcp communcating is complicated, c reveals it, but other high-level language hides it. this is why c is valuable but not human friendly.
+
+if you want to learn more about network programming with c, I recommend you to take a look at [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/), or:
+1.   [PDF version](https://beej.us/guide/bgnet/pdf/bgnet_usl_c_1.pdf) 
+2.   [html version](https://beej.us/guide/bgnet/html/split/)
 
 ### Use `poll` 
 ```c  
@@ -2137,6 +2155,44 @@ Let's say we have Process A, and it creates Process B. Process A doesn't wait fo
 Let's talk about Zombie Process. If Process B exits before Process A, but Process A doesn't wait for Process B, Process B becomes Zombie Process. Process B has released its resource, such as memory, file 
 descriptors, registers, but it still takes up space of os process table. As a result, os cannot create new process with reusing Process B's PID. Only Process A waits for Process B exiting and reaps exiting information, OS is enable to release the space from os process table. Here is a related artical [Zombie Processes in Operating Systems](https://www.baeldung.com/cs/process-lifecycle-zombie-state)
 
+```c  
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdio.h>
+
+int main() {
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        return 1;
+    }
+
+    // child process
+    if (pid == 0) {
+        char* args[] = {
+            "sh",
+            "hello.sh",
+            NULL
+        };
+        int r = execvp(args[0], args);
+        if (r == -1) {
+            perror("execvp");
+            exit(1);
+        }
+        exit(0);
+    }
+
+    // main process , wait child process ending up
+    waitpid(pid, NULL, 0);
+    return 0;
+}
+```
+
+We use `execvp` here, because its first arg is path or filename, it will search like shell does.
+If you use `execv`, you should make sure its first arg is a path, i.g. `execv("/bin/sh", args)`, 
+`execvp("sh", args)`.
+
+
 ### Create Daemon Process
 Daemon Process is:
 1. background process 
@@ -2454,3 +2510,9 @@ int main() {
 Normally, os provides libc for wrapping systemcall. If you want to make systemcall, you should invoke functions defined in libc. But if you want to make systemcall directly, not through libc, you can use assembly code. To make it simple, os provides c function like `syscall` , `__syscall` for wrapping assembly code. Unfortunately, not every os exposes this c function. In new version of macOS, `syscall` is deprecated and dropped([Github | related issue](https://github.com/google/glog/issues/185)), so you cannot search by `man syscall` getting more details. In linux, it's ok. Libc is not equal to c standard library, it contains c standard library and other parts.
 
 
+## Systemcall, Libc and Program Language Standard Library 
+Systemcall is part of operating system. Saving values in specific registers and invoking specific machine instructions (assembly code), cpu will trap into kernel side, and take actions —— this is essence of systemcall.
+
+Normally, if you want to request systemcall, you don't write assembly code. Developers write operating system with c language, then wrapping assembly code with c. But it's still hard to use, because memorizing systemcall number is pretty boring. Developers wrap systemcall in a human-friendly way, such as `fork()`, `write()`, `read()`. They won't provide c source code to you, instead, they compile c source code and provide c library to you. Yes, this is `libc`. `libc` also includes c standard functions. By the way, if you want to see all systemcall numbers, you can read `sys/syscall.h` header file.
+
+There is always standard library going with modern program language. What should it do if invoke systemcall ? One way: wraps systemcall(assembly code) on own (Go standard library), the other way: links `libc`(Rust/Zig library). Modern program language also has its own runtime, and runtime is also part of its library.

@@ -267,3 +267,13 @@ A go-to tool for generating placeholder image.
 [website](https://deepai.org/machine-learning-model/text2img)
 
 Create a picture following your prompts.
+
+## Quickref
+[website](https://quickref.me)
+
+Provide some cheatsheets and quick references of programming language or software. For example, shortcuts of Firefox, base commands of bash, primary concept and code snippet of C. If you want to get primary grammar of language quickly, visit this website.
+
+## Devdocs
+[website](https://devdocs.io)
+
+Rich documents for many programming language/framework, like c, cpp, rust, go, css, kotlin, zig, vue, vueuse, rxjs and etc. These douments are more humam-friendly than official version, and provides you code snippet to understand.
