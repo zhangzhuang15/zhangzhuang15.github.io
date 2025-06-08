@@ -63,6 +63,13 @@
 
   --home-circle-size: 3rem;
   --home-circle-size-half: 1.5rem;
+  --strong-color: rgb(198, 176, 246);
+}
+
+/* 重新定义 ** ** 包裹的文字样式 */
+:root .vp-doc strong {
+  font-weight: 800;
+  color: var(--strong-color);
 }
 
 @media (max-width: 415px), (max-width: 320px) {
