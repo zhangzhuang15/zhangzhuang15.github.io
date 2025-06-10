@@ -411,6 +411,10 @@ export default defineConfig({
               link: '/blog/tauri',
             },
             {
+              text: 'How to Create .dmg File',
+              link: '/blog/create-dmg'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
