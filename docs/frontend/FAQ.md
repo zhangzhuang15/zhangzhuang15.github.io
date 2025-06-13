@@ -985,3 +985,56 @@ system tray 指的是macOS桌面最上面那一行状态栏右侧的部分，这
 要想实现这种效果，如果使用Objective-C或者Swift语言，需要使用`NSStatusBar`, [详见](https://developer.apple.com/documentation/appkit/nsstatusbar/)。
 
 如果使用`electron`，只需要使用里边的`Tray` class，调用 `Tray.setImage`更新图标，调用`Tray.setTitle`更新图标右侧的文字。
+
+## 如何让发送到vite dev server的请求，定位到任意的文件
+假设你在`/a/b`目录下，启动了vite，那么`http://localhost/hello/tom.html`会被vite定位到`/a/b/hello/tom.html`。但是，如果我想让vite定位到`/a/c/hello.html`，应该发送什么样的请求给vite呢？
+
+关于dev server，vite使用了`connect`package 管理服务器的行为，其中它使用了一个`middleware`，定义了一个`@fs`的路径规则，当vite接受到请求`http://localhost/@fs/a/c/hello.html`的时候，会把`/a/c/hello.html`当作主机文件系统的绝对路径，将这个文件解析（比如ts通过esbuild转为js）、返回。
+
+但`@fs`默认受到限制。如果用`@fs`的方式，访问任意一个文件或者目录，可以在vite config中设置：
+```js 
+
+const config = {
+  server: {
+    fs: { strict: false }
+  }
+}
+```
+
+这样做的话，权限放的太大，有风险，一般按需设置：
+```js 
+import { searchForWorkspaceRoot } from "vite";
+const config = {
+  server: {
+    fs: {
+      strict: true,
+      allow: [
+        // refer: https://vite.dev/config/server-options.html#server-fs-allow
+        searchForWorkspaceRoot(process.cwd()),
+        // 开放一个文件
+        '/a/c/hello.ts',
+        // 开放一个目录
+        '/a/d'
+      ]
+    }
+  }
+}
+```
+
+有了上述设置，如果存在下面的文件，vite就会把`/a/c/hello.ts`返回：
+```html 
+<html>
+  <body>
+    <script type="module" src="/@fs/a/c/hello.ts"></script>
+  </body>
+</html>
+```
+
+如果你在vite config中设置了base为`/cc/dd/`, 那么应该这样调整上述文件：
+```html 
+<html>
+  <body>
+    <script type="module" src="/cc/dd/@fs/a/c/hello.ts"></script>
+  </body>
+</html>
+```
