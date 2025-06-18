@@ -4,6 +4,23 @@ page: true
 aside: true
 ---
 
+## main function
+和其它编程语言不通，swift没有默认的入口函数。如果你想指定入口函数，你需要采取如下写法，尽管它非常想Java的风格，很令人讨厌：
+```swift 
+import Foundation
+
+@main
+public class Main {
+    static func main() async {
+        print("hello world")
+    }
+}
+```
+> `@main` 只能修饰 class, enum, struct。你需要提供一个main方法。
+
+执行`swift build` 之后，再执行生成的程序，终端就会打印`hello world`。
+
+
 ## 语法突击
 :::code-group
 ```swift [switch-example.swift]
