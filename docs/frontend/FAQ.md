@@ -349,10 +349,11 @@ url可以从小程序页面组件的 onLoad 入参中获取到；
 
 ## 如何实现 js bridge
 
+[jsbridge | Cross Platform Guidebook](https://tsejx.github.io/cross-platform-guidebook/hybird/jsbridge)
+
 ### js 调用 native
 
-方法一：native端使用原生 webview 组件提供的接口函数，将native端定义的函数注册到 webview 里面，
-挂载到内嵌网页的 window 对象上。内嵌网页执行 window 上的方法时，就会触发 native 中的方法。
+方法一：native端使用原生 webview 组件提供的接口函数，将native端定义的函数注册到 webview 里面，挂载到内嵌网页的 window 对象上。内嵌网页执行 window 上的方法时，就会触发 native 中的方法。
 
 方法二：内嵌网页通过某种方式，发送请求，native 端可以借助 webview 组件提供的能力，注册一个函数，
 拦截下所有内嵌网页的请求，对请求进行分析，拿到数据，然后调用 native 函数做处理。
