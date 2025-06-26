@@ -387,6 +387,10 @@ export default defineConfig({
               link: '/blog/interpreter'
             },
             {
+              text: 'Explore JavaScriptCore',
+              link: '/blog/javascriptcore'
+            },
+            {
               text: "使用vue遇到的一些坑",
               link: '/blog/vue-apply'
             },
