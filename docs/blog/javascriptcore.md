@@ -17,8 +17,8 @@ aside: true
 
 [JavaScriptCore C API | apple developer](https://developer.apple.com/documentation/javascriptcore/c-javascriptcore-api?language=objc)
 
-## Use JavascriptCore on macOS
-JavascriptCore is developed by Apple, the simplest way is using it out of box on macOS, you don't need to install any other libraries or source code.
+## Use JavaScriptCore on macOS
+JavaScriptCore is developed by Apple, the simplest way is using it out of box on macOS, you don't need to install any other libraries or source code.
 
 You can follow these steps and run the example on your own.
 
@@ -554,6 +554,260 @@ int main() {
     return 0;
 }
 ```
+
+## `setTimemout`
+Last chapter, we talk about `Promise`. `Promise` is part of javascript language. JavaScriptCore provides micro-task-queue which binds with `Promise`, we don't need to implement.
+
+What about `setTimeout` ? JavaScriptCore doesn't implement. Let's try to give a simple example that implements `setTimeout` and its macro-task-queue.
+
+```cpp 
+#include <string>
+#include <iostream>
+#include <vector>
+#include <thread>
+#include <JavaScriptCore/JavaScript.h>
+
+// Macro-task
+struct FunctionCallContext {
+    JSContextRef ctx;
+    JSValueRef function;
+    JSObjectRef thisObject;
+    size_t timeout;
+};
+
+// Macro-task-queue. To make it simple, we don't
+// consider wrapping with mutex lock.
+auto task_queue = std::vector<FunctionCallContext>();
+
+std::string to_string(JSStringRef source) {
+    auto size = JSStringGetLength(source);
+    std::string buf(size, 0);
+    JSStringGetUTF8CString(source, buf.data(), size);
+    return buf;
+}
+
+int main() {
+    auto global_context = JSGlobalContextCreate(nullptr);
+    auto global_object = JSContextGetGlobalObject(global_context);
+
+    task_queue.reserve(8);
+
+    // implement setTimeout and mount it on globalThis
+    {
+        auto set_timeout_name = JSStringCreateWithUTF8CString("setTimeout");
+        auto set_timeout_impl = JSObjectMakeFunctionWithCallback(
+            global_context, 
+            set_timeout_name,
+            [](
+                JSContextRef ctx, 
+                JSObjectRef function, 
+                JSObjectRef thisObject, 
+                size_t argumentCount, 
+                const JSValueRef arguments[], 
+                JSValueRef* exception
+            ) {
+                auto func = arguments[0];
+                auto timeout = arguments[1];
+                auto native_timeout = JSValueToNumber(ctx, timeout, nullptr);
+
+                struct FunctionCallContext context;
+                context.ctx = ctx;
+                context.function = func;
+                context.thisObject = thisObject;
+                context.timeout = (ssize_t)native_timeout;
+
+                // just push it into macro-task-queue
+                task_queue.push_back(context);
+
+                return JSValueMakeUndefined(ctx);
+            }
+        );
+        JSObjectSetProperty(
+            global_context, 
+            global_object, 
+            set_timeout_name, 
+            set_timeout_impl, 
+            kJSPropertyAttributeNone,
+            nullptr
+        );
+        JSStringRelease(set_timeout_name);
+    }
+
+    // implement log function and mount it on globalThis,
+    // so that we could print something and see executing
+    // macro task.
+    {
+        auto log_name = JSStringCreateWithUTF8CString("log");
+        auto log_impl = JSObjectMakeFunctionWithCallback(
+            global_context,
+            log_name,
+            [](
+                JSContextRef ctx, 
+                JSObjectRef function, 
+                JSObjectRef thisObject, 
+                size_t argumentCount, 
+                const JSValueRef arguments[], 
+                JSValueRef* exception
+            ) {
+                for (ssize_t i = 0; i < argumentCount; i++) {
+                    auto val = arguments[i];
+
+                    if (JSValueIsNumber(ctx, val)) {
+                        auto value = JSValueToNumber(ctx, val, nullptr);
+                        std::cout << value;
+                    } else if (JSValueIsString(ctx, val)) {
+                        auto value = to_string(
+                            JSValueToStringCopy(ctx, val, nullptr)
+                        );
+                        std::cout << value;
+                    } else {
+                        std::cout << "";
+                    }
+                }
+                std::cout << std::endl;
+                return JSValueMakeUndefined(ctx);
+            }
+        );
+        JSObjectSetProperty(
+            global_context,
+            global_object,
+            log_name,
+            log_impl,
+            kJSPropertyAttributeNone,
+            nullptr
+        );
+        JSStringRelease(log_name);
+    }
+
+    auto source_code = JSStringCreateWithUTF8CString(
+        "setTimeout(() => { log('hello world')}, 200)\n"
+        "log('happy today', false, 2025)"
+    );
+    JSEvaluateScript(
+        global_context, 
+        source_code, 
+        nullptr, 
+        nullptr, 
+        1, 
+        nullptr
+    );
+    
+    // imitate one circle of event loop
+    std::this_thread::sleep_for(std::chrono::milliseconds(1300));
+
+    // traverse task queue and execute task
+    for (auto func_context : task_queue) {
+        JSObjectCallAsFunction(
+            func_context.ctx,
+            JSValueToObject(func_context.ctx, func_context.function, nullptr),
+            func_context.thisObject,
+            0,
+            nullptr,
+            nullptr
+        );
+    }
+
+    JSGlobalContextRelease(global_context);
+
+    return 0;
+}
+```
+
+run: `g++ -std=c++20 main.cpp -o main -framework JavaScriptCore && ./main`
+
+We can also try more complex javascript code:
+```cpp 
+auto source_code = JSStringCreateWithUTF8CString(
+        "const p = {\n"
+        "  message: 'hello world',\n"
+        "  say() {\n"
+        "    log(this.message)\n"
+        "  },\n"
+        "  run() {\n"
+        "    setTimeout(() => this.say(), 200)\n"
+        "  }\n"
+        "}\n"
+        "p.run()\n"
+        "log('happy today', false, 2025)"
+    );
+```
+
+## Rust version
+Here is Rust version of our example code.
+
+:::code-group
+```rs [src/main.rs]
+use rusty_jsc_sys::{
+    JSEvaluateScript, JSGlobalContextCreate, JSGlobalContextRelease, 
+    JSStringCreateWithUTF8CString, JSStringRelease, JSValueToNumber,
+    OpaqueJSClass, JSValueRef
+};
+use std::ffi::CString;
+
+fn main() {
+    unsafe {
+        let global_context = JSGlobalContextCreate(std::ptr::null_mut::<u8>() as *mut OpaqueJSClass);
+
+        // this is very important, transform &str to *mut c_char with CString.
+        // if you try `&str.as_ptr() as *mut c_char`, you will get into trouble 
+        // with JSEvaluateScript
+        let source_code = JSStringCreateWithUTF8CString(
+            CString::new("var a = 10;\na += 4;\na;").unwrap().into_raw()
+        );
+
+        let mut except: JSValueRef = std::ptr::null_mut();
+        if except.is_null() {
+            println!("before evaluate, it's null");
+        }
+        let result = JSEvaluateScript(
+            global_context, 
+            source_code, 
+            // in c/c++ version, we can assign NULL or nullptr,
+            // in Rust, std::ptr::null_mut() is the choice
+            std::ptr::null_mut(), 
+            std::ptr::null_mut(), 
+            1, 
+            (&mut except) as *mut JSValueRef
+        );
+        if !except.is_null() {
+            println!("something is wrong");
+        }
+        let result = JSValueToNumber(global_context, result, std::ptr::null_mut());
+        println!("result is : {result}");
+
+        JSStringRelease(source_code);
+        JSGlobalContextRelease(global_context);
+   };
+    
+}
+```
+
+```rs [build.rs]
+fn main() {
+    // rusty_jsc_sys only provides bindings, and we have to
+    // link framework ourselves. this is feature of cargo 
+    // build.rs, visit https://doc.rust-lang.org/cargo/reference/build-scripts.html
+    // and learn more.
+    println!("cargo::rustc-link-lib=framework=JavaScriptCore");
+}
+```
+
+```toml [Cargo.toml]
+[package]
+name = "rust-jsc-demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rusty_jsc_sys = "0.1.0"
+```
+:::
+
+build: `cargo build`
+
+run: `./target/debug/rust-jsc-demo`
+
+Result is 14. Nice !
 
 ## Lexer, Parser, Bytecode, Interpreter and JIT
 JavaScriptCore consists of many components.
