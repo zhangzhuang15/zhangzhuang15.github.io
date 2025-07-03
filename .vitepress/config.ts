@@ -419,6 +419,10 @@ export default defineConfig({
               link: '/blog/create-dmg'
             },
             {
+              text: 'VSCode Extension Develop',
+              link: '/blog/vscode-extension-develop'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
