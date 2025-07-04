@@ -1039,3 +1039,6 @@ const config = {
   </body>
 </html>
 ```
+
+## 为什么antd提供的Menu组件，onClick函数失效
+Menu组件的items存储菜单项，叶子菜单项的children属性一定要保证是undefined，如果是空数组，这个菜单项就会被认为是subMenu，subMenu在antd实现的时候，故意不会触发onClick函数。
