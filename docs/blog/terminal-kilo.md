@@ -117,7 +117,7 @@ Concept you should know:
 
 ## How Kilo Works
 ### How to Render
-Use `write()` sending date to standard output file whose fs is 1. If you want to make it colorful, write extra escape character control sequence.
+Use `write()` sending data to standard output file whose fd is 1. If you want to make it colorful, write extra escape character control sequence.
 
 ### How to Manage Editor Content
 Editor content is split by line, every line is saved in a Row struct.
