@@ -204,6 +204,8 @@ Promise.resolve()
 - [ECMA 2024 Language Specification | Promise resolve function](https://tc39.es/ecma262/#sec-promise-resolve-functions)
   > v8 的实现就是按照这个标准写的，facebook 实现的 regenerator 似乎也是根据这个标准来的
 
+如果觉得下边的解释太啰嗦，[看简化版](#ecma标准解读)
+
 先看看 promise-resolve.tq:
 
 ```txt
@@ -713,7 +715,7 @@ new Promise((resolve) => {
     1.  执行  `FulfillPromise(promise, A)`
     2.  返回 undefined 
 11. 执行 `NewPromiseResolveThenableJob(promise, A, then)`得到一个闭包函数，记作 job;
-12. 将 job 加入微队列 
+12. **将 job 加入微队列** （引发困惑的地方就在这里， 没有立即执行job!）
 13. 返回 undefined
 
 [标准中 FulfillPromise 的定义](https://tc39.es/ecma262/#sec-fulfillpromise)
@@ -724,7 +726,7 @@ new Promise((resolve) => {
 3. 令 value 是 promise 的 `[[PromiseResult]]`属性值，也就是promise的内部值。
 4. 将 promise 的 `[[PromiseFulfillReactions]]` 属性设置为 undefined.
 5. 将 promise 的 `[[PromiseRejectReactions]]` 属性设置为 undefined.
-6. 将promise的状态设置为 **fulfilled**
+6. 将promise的状态设置为 **fulfilled**, 将value设置为 A.
 7. 执行 `TriggerPromiseReactions(reactions, value)`
 8. 返回 UNUSED
 
