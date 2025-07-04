@@ -94,6 +94,14 @@ brew update
 
 [上述方法来自这里](https://coderpan.com/tools/brew-no-install-from-api.html)
 
+## Upload Your Software to Homebrew 
+[how to publish your rust project on homebrew](https://federicoterzi.com/blog/how-to-publish-your-rust-project-on-homebrew/)
+
+[distribute program via homebrew](https://kylebebak.github.io/post/distribute-program-via-homebrew)
+
+[how to distribute your program via homebrew | Medium](https://medium.com/@kylebebak/how-to-distribute-your-program-via-homebrew-74d2461f8681)
+
+Read these blogs, you will get how to do.
 
 ## asciinema
 

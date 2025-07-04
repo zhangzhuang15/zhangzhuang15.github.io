@@ -2111,4 +2111,48 @@ fn hello(mapper: Option<Box<dyn FnMut(String) -> String>>) {
 
 这揭示了`dyn` 和 `impl` 的区别。`impl`会在编译期能确定的类型，也就是静态分发；`dyn`表示在编译期没办法确定的类型，需要在运行时去确认具体的类型是什么，也就是动态分发。
 
+
+## `From` and `Into` trait
+```rust 
+struct Context {
+    s: String,
+}
+
+impl Context {
+    pub fn new() -> Self {
+        Context {
+            s: "hello".to_string()
+        }
+    }
+}
+
+impl From<String> for Context {
+    fn from(val: String) -> Self {
+        Context {
+            s: val
+        }
+    }
+}
+
+impl Into<String> for Context {
+    fn into(self) -> String {
+        self.s
+    }
+}
+
+fn main() {
+    // ok
+    let h: Context = From::from("hello_world".to_string());
+    // ok
+    let s: String = h.into();
+
+    let p = "why".to_string();
+    // wrong!
+    let h: Context = p.into();
+}
+```
+
+在 `Context` 身上实现 `From` 和 `Into` ，只能在 `Context` 身上调用 `from` 和 `into` 方法！
+
+
 <Giscus />

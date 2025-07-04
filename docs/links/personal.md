@@ -122,4 +122,9 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 
 一个来自台湾的女性开发者（如果她的头像是本人的话），她开始做的前端开发，一年后，做的后端开发，大概维持了两年，之后就很突然，她就从事硬件工程师的岗位，目前她就职台积电，硬件和软件通吃。很难想象，一个女性开发者集硬件和软件于一体。
 
+## swiftrocks
+[前往](https://swiftrocks.com/blog)
+
+Bruno Rocha's personal website. He focus on swift development. If you wanna learn more about ios/swift, you'd better take a look. For example, he wrote a blog introducing the underhood of `async/await`. Unlike an application developer, he also provides PR to swiftlang repo, `#unavailable` is his workout.
+
 <Giscus />

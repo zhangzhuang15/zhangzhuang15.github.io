@@ -387,6 +387,10 @@ export default defineConfig({
               link: '/blog/interpreter'
             },
             {
+              text: 'Explore JavaScriptCore',
+              link: '/blog/javascriptcore'
+            },
+            {
               text: "使用vue遇到的一些坑",
               link: '/blog/vue-apply'
             },
@@ -409,6 +413,14 @@ export default defineConfig({
             {
               text: 'Tauri',
               link: '/blog/tauri',
+            },
+            {
+              text: 'How to Create .dmg File',
+              link: '/blog/create-dmg'
+            },
+            {
+              text: 'VSCode Extension Develop',
+              link: '/blog/vscode-extension-develop'
             },
             {
               text: "博客文章阅读系列",

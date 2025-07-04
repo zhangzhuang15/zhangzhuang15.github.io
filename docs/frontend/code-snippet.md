@@ -858,4 +858,52 @@ const component = () => {
 }
 ```
 
+## track downloading progress with `fetch`
+```ts 
+// refer: https://zh.javascript.info/fetch-progress
+async function downloadWithTrackingProgress(url: string) {
+  const response = await fetch(url)
+  const total = +response.headers.get("Content-Length")!
+  const reader = response.body!.getReader()
+  
+  let downloaded = 0
+
+  while(true) {
+    // value is a chunk of response body, not including response header
+    const { done, value } = await reader.read()
+
+    // download 100%
+    if (done) {
+      break;
+    }
+
+    downloaded += value.length
+    const percentage = (downloaded / total) * 100
+    // this is simple example, you can do any interesting thing here,
+    // such as showing progress indicator
+    console.log("downloading ", percentage, "%")
+  }
+}
+```
+
+## executable target exists
+You can know whether a file path is executable with some npm packages, e.g. `is-executable`. But these packages require you to provide absolute file path instead of file name. For example, `/usr/local/bin/code` is valid, `code` is not valid.
+
+We can use this simple snippet to cover both cases.
+```ts 
+import { spawnSync } from "node:child_process"
+
+function isExecutable(nameOrPath: string) {
+  const child = spawnSync(nameOrPath)
+
+  // not exist
+  if (child.error) {
+    return false
+  }
+  
+  return true
+}
+
+```
+
 <Giscus />

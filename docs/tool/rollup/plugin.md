@@ -14,9 +14,19 @@ aside: true
 
 Bundle third-party dependencies in node_modules
 
+This plugin is deprecated, use `@rollup/plugin-node-resolve` instead.
+
+If you set `external` in rollup options, this plugin won't extract modules which match `external`.
+
+If you set `resolveOnly` option of this plugin, there's a pitfall. Let's say you set `resolveOnly` `["third-party"]`,
+this plugin will extract `third-party` module, but if `third-party` module depends on `third-party-2` module, `third-party-2`
+won't be extracted, and it might bring some problems, such as `cannot resolve some exported properties from "third-party-2"`.
+
 ## rollup-plugin-commonjs
 
 Convert CommonJS modules to ES2015
+
+This plugin is deprecated, use `@rollup/plugin-commonjs` instead.
 
 ## rollup-plugin-terser
 

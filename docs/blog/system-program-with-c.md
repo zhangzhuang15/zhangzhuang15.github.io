@@ -2122,6 +2122,24 @@ close_server:
 
 `kqueue` is powerful but complicated. you have to know what you do clearly. in my opinion, I prefer `poll`.
 
+### Send ICMP Network Packet
+We talk about how to create TCP client/server before. TCP is popular, do you know how to work with ICMP ?
+
+Firstly, ICMP is like TCP/UDP, it's usually used to make sure whether local machine can communicate with remote machine, like server or router. ICMP is based on IP, unlike TCP/UDP, when you program with socket, you have to parse IP packet and extract ICMP packet by hand.
+
+Do you learn about `ping` ? Yes, `ping` is based on ICMP. When you ping a domain, ICMP packets will be sent to the domain, `ping` receives the ICMP packets from the domain, parses them and print the message in your terminal.
+
+Here is a [blog](https://fasionchan.com/network/icmp/ping-c/), telling you how to send ICMP Packet.
+
+```c  
+#include <sys/socket.h>
+
+int main() {
+    // to send ICMP packet, you need to create socket fd
+    // in this way.
+    int fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+}
+```
 
 ### Terminal IO and Raw mode
 Enable raw mode.
@@ -2250,6 +2268,9 @@ there're important differences if process is zero or negative, `man 2 kill`, get
 ### Sync Processes with Pipe
 
 ### Signal Interception and Resolving
+There're so many signals in Unix. You can get a list of signals with `man signal`.
+
+
 
 ### Create Thread
 Normally, we use `posix thread library` to create and manage threads in Unix-like system. This library is based on system call, in other words, it creates kernel-level thread, not user-level thread. Go's goroutine is user-level thread. But there're some differences between os system. For example, Linux supports `pthread_yield` but macOS not; some unix support `sched_yield` but macOS not.
@@ -2506,7 +2527,7 @@ int main() {
 
 
 
-### direct syscall
+### Direct Syscall
 Normally, os provides libc for wrapping systemcall. If you want to make systemcall, you should invoke functions defined in libc. But if you want to make systemcall directly, not through libc, you can use assembly code. To make it simple, os provides c function like `syscall` , `__syscall` for wrapping assembly code. Unfortunately, not every os exposes this c function. In new version of macOS, `syscall` is deprecated and dropped([Github | related issue](https://github.com/google/glog/issues/185)), so you cannot search by `man syscall` getting more details. In linux, it's ok. Libc is not equal to c standard library, it contains c standard library and other parts.
 
 

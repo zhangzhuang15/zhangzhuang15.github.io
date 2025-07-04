@@ -28,14 +28,15 @@ aside: true
 
 ## remark
 
-unified 生态的一环，将 markdown 内容转化为语法树，用户可以遍历访问、修改语法树，
+将 markdown形式的字符串转化为语法树，用户可以遍历访问、修改语法树，
 基于更新后的语法树，生成新的 markdown 内容 或者 转化为 html
 
-unified 库提供了语法树概念上的抽象，搭建了一套接口，其他插件接入其中，实现不同的功能，
-类似于 webpack 在打包方面的作用；
+remark本质上就是安装插件remark-parse和remark-stringify的unified。
 
-unified 库所说的语法树，不仅限于某种语言，解析语法树也是插件，因此可以解析 markdown
-javascript html yml 等等内容的语法树
+
+## unified
+
+unified，它定义了AST Node，这个定义很宽松，让Node可以作为树结构的一个节点，但它并没有规定节点内部应该有哪些属性，属性值必须是什么类型，正因为这样，其它文本解析库才能大展拳脚，在符合unified AST Node的基础上，定制化自己的属性和值，这样javascript的AST Node, html的AST Node, markdown的AST Node, yml的AST Node就能统一了。unified另外提供了一套工作流程，接受字符串 -> 转化成AST Node -> 变换 AST Node -> 合成输出。注意哦，它只是给出了工作流，具体的转化、变换、合成，它不负责，全部交给unified的插件去做。
 
 ## markdown-it
 将markdown渲染为html的工具

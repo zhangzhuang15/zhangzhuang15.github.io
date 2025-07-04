@@ -1317,10 +1317,12 @@ int main() {
 
 ```
 
-## CMAKE
+## Cmake
 CMAKE你可以这样理解：它提供了一套内置的变量、函数，让你可以设置链接库、链接库位置、声明文件位置、声明位置、要编译的源码等等，然后它读取这些设置，生成makefile，之后，你只需执行这个makefile，就能编译出executable file or library。
 
 CMAKE一定程度上，简化了整个编译的难度。没有CMAKE的话，你要手写make，手动编写`gcc`或者`clang`的指令，完成编译工作，但是有了CMAKE，你不需要这样做了，你只需要给出要编译的c/cpp文件，CMAKE会帮你生成那些指令。这也降低了一些心智负担，比如编写动态库生成的指令，没有经验的人编出来的指令就有诸多缺陷，导致程序执行的时候，找不到动态库，或者可执行文件更改保存地址后，找不到动态库，等等。
+
+[Cmake Tutorial | Medium](https://medium.com/@onur.dundar1/cmake-tutorial-585dd180109b), read this article and learn more.
 
 ## 与c兼容——c语言的宏
 ### 介绍 
