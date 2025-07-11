@@ -906,4 +906,36 @@ function isExecutable(nameOrPath: string) {
 
 ```
 
+## 如何模拟手动清空input，并输入新的值
+```ts
+/**
+ * 使用js代码模拟真人聚焦input，清空内容，输入新内容的过程，并且可以触发react的合成事件，使得
+ * 有关state更新。该方案来自cursor。
+ * 
+ * @param el 
+ * @param value 
+ * @returns 
+ */
+function clearInputAndSetNewValue(el: HTMLInputElement, value: string) {
+    // 1. 先 focus
+    el.focus();
+
+    // 2. 创建原生的 input 事件
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+
+    if (nativeInputValueSetter !== undefined) {
+        // 3. 清空
+        nativeInputValueSetter.call(el, "");
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // 4. 设置新内容
+        nativeInputValueSetter.call(el, value);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+    }
+
+    return false;  
+}
+```
+
 <Giscus />

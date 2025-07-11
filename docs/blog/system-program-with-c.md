@@ -2164,6 +2164,34 @@ Read [Kilo, a Simple Text Editor](/blog/terminal-kilo), get more details.
 
 Terminal IO refers that you read message from terminal emulator and write message to terminal emulator. You can set a structure, called `termios`, change action of terminal emulator. Read [Terminal IO](/blog/terminal-io), get more details.
 
+If you want to dive into more details, such as `c_iflag`, `c_cc`, `special characters`, you can read manual book with `man termios`. You can  also visit [website](http://uw714doc.xinuos.com/en/SDK_sysprog/TDC_SpecialCntlChars.html), figuring out what special characters are. By the way, termios manual bool also introduces special characters in chapter `Special Control Characters`.
+
+### Pitfall: Make fd Unbuffered
+Terminal will wait until you press Enter key if you execute the following code:
+```c 
+#include <unistd.h>
+
+int main() {
+    char buf[2];
+    int result = read(STDIN_FILENO, buf, sizeof(buf) - 1);
+    return 0;
+}
+```
+
+You cannot change the behavior even though rewrite code like:
+```c 
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+    setvbuf(stdin, (char*)NULL, _IONBF, 0);
+    char buf[2];
+    int result = read(STDIN_FILENO, buf, sizeof(buf) - 1);
+    return 0;
+}
+```
+
+`setvbuf` only works on reading or writing regular files, not terminal.If you want to make a change, modify the terminal io with `tcsetattr`, we have introduced in prev chapter.
 
 ### Create Child Process
 Before we talk about how to create process, let's dive into Orphan Process and Zombie Process, because they will teach us to take responsibility for creating and managing process.
