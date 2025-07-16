@@ -938,4 +938,16 @@ function clearInputAndSetNewValue(el: HTMLInputElement, value: string) {
 }
 ```
 
+## 函数命名习惯
+```js 
+// 表述某种条件必须成立时，才能调用本函数，这类函数可以采取如下的命名
+function validateOnlyIfOpenMode() {}
+function validateWithOpenMode() {}
+
+// 表述某种条件成立时，函数工作，不成立时，函数什么都不做
+function validateIfOpenMode() {}
+function validateConditionally() {}
+function tryValidate() {}
+```
+
 <Giscus />
