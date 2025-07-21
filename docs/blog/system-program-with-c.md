@@ -1001,6 +1001,64 @@ if you want to learn more about network programming with c, I recommend you to t
 1.   [PDF version](https://beej.us/guide/bgnet/pdf/bgnet_usl_c_1.pdf) 
 2.   [html version](https://beej.us/guide/bgnet/html/split/)
 
+### IP Address and Port
+When you want to create a socket, you often have to prepare `sockaddr` type data. The core of this data type consists of IP address and Port. So, how to get value of these two fields in a simple way ? 
+
+Before we dive into it, let's take a look at `sockaddr_in` and `sockaddr`.`sockaddr_in` is a c struct defined for IPV4, and `sockaddr` is common c struct defined for many ip protocol (not only IPV4).General speaking, you can convert `sockaddr_in` to `sockaddr`, it's unsafe and not allowed verse via.
+
+Ok, let's dive into address and port.
+
+1. convert hostname to ip address.
+```c 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+// hostname -> ip address
+
+int main() {
+    char *hostname = "www.baidu.com";
+    // address expressed in network sequence,
+    in_addr_t addr = inet_addr(hostname);
+    // address expressed in host.
+    uint32_t address = ntohl(addr);
+
+    sockaddr_in address_in;
+    address_in.sin_addr = addr;
+
+    // if we don't fetch right addr,
+    // take another way
+    if (addr === INADDR_NONE) {
+        struct hostent *h = gethostbyname(hostname);
+        if (!h) return 0;
+        addr = *(*uint32_t)(h->h_addr_list[0]);
+    }
+    return 0;
+}
+```
+
+2. convert ip address string to ip address.
+```c 
+#include <arpa/inet.h>
+
+// ip address string -> ip address
+
+int main() {
+    char *hostname = "127.0.0.1";
+    in_addr_t addr;
+
+    int result = inet_aton(hostname, &addr);
+
+    // fail to convert
+    if (!result) {
+       
+    }
+
+    return 0;
+}
+```
+
+
 ### Use `poll` 
 ```c  
 #include <sys/socket.h>

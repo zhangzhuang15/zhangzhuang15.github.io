@@ -163,3 +163,9 @@ You can learn how to use os native library to build your own terminal app, impro
 [build-your-own-x](https://github.com/codecrafters-io/build-your-own-x?tab=readme-ov-file#build-your-own-git)
 
 一个github仓库，上面总结了很多项目，告诉你如何自己实现耳熟能详的工具，比如 git database docker 3d-render
+
+
+## AI Agent
+[Analysis Claude Code | ShareAI Lab](https://github.com/shareAI-lab/analysis_claude_code/tree/main)
+
+逆向工程破解claude agent的代码，给出它和大模型交互、任务管理的框架，有助于学习如何开发一个大模型客户端应用。
