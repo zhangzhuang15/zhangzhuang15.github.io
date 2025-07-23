@@ -28,15 +28,13 @@ int main() {
 ## tun设备
 使用`socket`虽然可以直接发送ip报文，但是这还不够。如果你开启了VPN，你访问网页的时候，就会触发ip数据报的发送，而这些ip数据报会先被VPN程序拦截，稍作处理之后，再发送出去。关键点在于，我们如何拦截这些ip数据报。`socket`只提供给我们发送、接收ip数据报的能力，但是没有给我们拦截电脑上其他程序发送和接收数据报的能力。
 
-为了实现这一点，我们就要介绍`tun设备`了。
+为了实现这一点，我们就要介绍`tun设备`了。`tun设备`不是一个物理设备，不会出现在你的主板上边，它是Linux 下的一种虚拟网络设备，。通常用来实现三层（IP 层）的隧道。向 tun 设备写入的数据，必须是完整的 IP 数据包（二层头不用，三层头起步）。也就是说，你写入的数据应该是以 IP 头开始的，后面跟着完整的 IP payload。
 
-IFF_NO_PI 是一个 flag，意思是不带额外包信息。
-默认情况下，TUN/TAP 设备每读写一次数据，操作系统会在每个包前加上 4 字节的“包信息（Packet Information, PI）”：
-这 4 字节里，主要包含协议类型（IPv4/IPv6）、一些标志。
-如果设置了 IFF_NO_PI，读出来的数据就是纯粹的 IP 数据包，没有这 4 字节头。
+当创建一个`tun设备`后，你就可以像读写文件一样，读写`tun设备`。当你的应用程序往`tun设备`写入一些数据，在操作系统眼里，就相当于从外界接收到了ip数据报。当你的应用程序读取`tun设备`的时候，读取的就是一个ip数据报。
+
 
 ```c 
-// 创建 TUN 设备代码片段
+// 在linux创建 TUN 设备
 #include <fcntl.h>
 #include <linux/if_tun.h>
 #include <sys/ioctl.h>
@@ -45,34 +43,50 @@ IFF_NO_PI 是一个 flag，意思是不带额外包信息。
 int tun_alloc(char *dev)
 {
     struct ifreq ifr;
+    // 创建tun设备
     int fd = open("/dev/net/tun", O_RDWR);
     memset(&ifr, 0, sizeof(ifr));
     ifr.ifr_flags = IFF_TUN | IFF_NO_PI; // TUN模式，不带包信息
     if (*dev)
         strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    // 操作系统会自动为tun设备起一个名字，通过
+    // ifr.ifr_name 告诉你
     ioctl(fd, TUNSETIFF, &ifr);
     strcpy(dev, ifr.ifr_name);
     return fd;
 }
 ```
+> IFF_NO_PI 是一个 flag，意思是不带额外包信息。
+> 默认情况下，TUN/TAP 设备每读写一次数据，操作系统会在每个包前加上 4 字节的“包信息（Packet Information, PI）”：
+> 这 4 字节里，主要包含协议类型（IPv4/IPv6）、一些标志。
+> 如果设置了 IFF_NO_PI，tun设备读出来的数据就是纯粹的 IP 数据包，没有这 4 字节头；tap设备读出来的数据就是纯粹的数据链路层数据报。
 
-给 TUN 设备分配 IP 地址
+tun设备有了，说好的ip数据报拦截呢？
+
+神奇之处在于，我们可以为tun设备分配IP地址：
 ```shell 
 sudo ip addr add 10.0.0.1/24 dev tun0
 sudo ip link set tun0 up
 ```
+> 假设上面的c代码创建的tun设备名字叫做tun0
 
-配置系统路由
+更神奇的地方是，我们可以为这个ip地址配置路由转发：
 ```shell 
+# 所有发送到主机的ip数据报都会发送给tun0
 sudo ip route add default dev tun0
 
-# 或者只某一段流量
+# 源IP地址是 8.8.8.8/32 的ip数据报才会发送给tun0
 sudo ip route add 8.8.8.8/32 dev tun0
 ```
-这样你的所有（或指定）IP包会被发往 tun0，用户态程序可以读取处理。
 
+这不就连上了嘛？你需要做的就是写个程序，不断读取tun0，不就截下这些ip数据报了嘛，然后你在程序里使用socket发送一下，不就把ip数据报放行了嘛。
 
-举例：把所有 HTTP 流量代理到本地 8080 端口
+这里有一个开源项目，基于icmp实现的tunnel,[icmptunnel | Github](https://github.com/jamesbarlow/icmptunnel/blob/master/src/tun-device.c#L71)
+
+## http 流量代理
+我们用tun设备的方式，实现了ip数据报的拦截和再发送，如果我们只想拦下http报文，有没有什么方便的方式呢？
+
+在macOS，我们可以使用`networksetup`设置系统级别的http代理设置。举例：把所有 HTTP 流量代理到本地 8080 端口。
 ```shell 
 networksetup -listallnetworkservices
 
@@ -88,7 +102,6 @@ networksetup -setsecurewebproxystate "Wi-Fi" off
 ```
 
 ```c 
-
 // 简单的代理服务器框架（仅演示监听端口）
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,36 +133,31 @@ int main() {
 }
 ```
 
-修改系统的 SOCKS5/HTTP 代理设置（让所有请求走代理端口）。
+这种是有应用场景的，比如网络加速器。网络加速器程序在启动之后，可以设置好系统的http代理，然后启动一个监听服务器，将所有http报文转发给加速服务器。这些加速服务器在网络加速服务器上的表现，就是各个优质站点的配置、选择，比如香港的站点服务器、东京的站点服务器。
 
 
-libpcap 能抓到网卡所有流量的底层原理是什么？用到了哪些系统调用？
-libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所有数据包。
-最常见的是利用 Linux 的 packet socket 机制（AF_PACKET），通过 socket() 系统调用创建一个原始套接字。
-相关 system call 主要有：
-socket(AF_PACKET, SOCK_RAW, ...)：创建一个能捕获所有经过网卡的原始包的套接字。
-bind()：绑定到具体的网卡（如 eth0, wlan0）。
-recvfrom() 或 read()：不断读取抓到的数据包内容。
 
+## wireshark般的抓包
+无论是tun设备，还是http流量代理，我们都要写个监听程序，还要给出一些设置，才能截获电脑上的ip数据报。那有没有一种方式，不需要配置，直接就能截获电脑上的ip数据报呢？
 
-翻墙工具（如VPN）如何让本地IP包抵达外网并接收外网返回的数据？
+wireshark就是典范，它做到了。它背后的原理，是使用了 `libcap` 库。
+
+libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所有数据包。最常见的是利用 Linux 的 packet socket 机制（AF_PACKET），通过 socket() 系统调用创建一个原始套接字。相关 system call 主要有：
+- `socket(AF_PACKET, SOCK_RAW, ...)`, 创建一个能捕获所有经过网卡的原始包的套接字。
+- `bind()`, 绑定到具体的网卡（如 eth0, wlan0）。
+- `recvfrom()` 或 `read()`, 不断读取抓到的数据包内容。
+
+## 翻墙工具
 翻墙工具会创建一个tun设备，把你的所有流量“包裹”起来（封装成允许通过防火墙的协议，比如HTTPS）。
 所有本地发出的数据包先送到tun设备，被翻墙程序“截获”，加密后通过被允许的端口（如TCP 443）发到国外服务器。
+
 国外服务器解密，还原数据包，然后帮你访问外网，收到返回数据后再加密发回来。
+
 本地翻墙工具解密后，把数据包送回系统，让你的电脑像直接访问外网一样。
 
-网络加速工具用到了tun设备吗？如何做到加速？
-很多网络加速工具确实用到了tun设备。
-
-它们会创建一个虚拟网卡（tun），把你电脑的网络流量“拦截”下来，经过自己的加速处理，再发送出去。
-加速原理可能包括：数据压缩、智能路由（选择最快线路）、协议优化、丢包重传等。
-流程（简化版）：
-
-你的程序把数据发到tun设备（虚拟网卡）。
-网络加速工具在用户态“截获”这些数据，优化处理后转发到外网。
-收到外网返回的数据后，再交给tun设备让系统正常处理。
-
+## 防火墙
 防火墙就像网络的“门卫”，负责检查进出电脑或网络的数据包，决定哪些能放行，哪些要拦截。
+
 防火墙的规则可以按协议（比如TCP、UDP、ICMP）、端口号（比如80、443）、源/目的IP地址等条件设定。
 
 通常允许通过的协议：
@@ -159,10 +167,8 @@ recvfrom() 或 read()：不断读取抓到的数据包内容。
 
 所有IP包都允许通过吗？
 
-不会！防火墙只允许符合规则的数据包通过，其他包会被丢弃或拒绝。
-比如很多企业防火墙会禁止 P2P、游戏、ICMP（ping）等协议。
-
-tun 设备（tunnel device）是 Linux 下的一种虚拟网络设备，通常用来实现三层（IP 层）的隧道。向 tun 设备写入的数据，必须是完整的 IP 数据包（二层头不用，三层头起步）。也就是说，你写入的数据应该是以 IP 头开始的，后面跟着完整的 IP payload。
+不会！防火墙只允许符合规则的数据包通过，其他包会被丢弃或拒绝。比如很多企业防火墙会禁止 P2P、游戏、ICMP（ping）等协议。
 
 
-[icmptunnel | Github](https://github.com/jamesbarlow/icmptunnel/blob/master/src/tun-device.c#L71)
+## 更罕见的socket用法
+

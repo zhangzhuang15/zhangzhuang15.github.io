@@ -33,6 +33,12 @@ aside: true
 
 remark本质上就是安装插件remark-parse和remark-stringify的unified。
 
+## rehype
+
+类似于remark，处理的是html。将html转化为抽象语法树，修改后再序列化为html字符串。
+
+rehype本质 = unified + rehype-parse + rehype-stringify。
+
 
 ## unified
 
@@ -75,6 +81,9 @@ html是一种DSL，它没有提供AST的工具，因此只能通过DOM数遍历�
 html的内容
 
 shiki内部就依赖 hast-util-to-html
+
+## hast-util-to-jsx-runtime
+将 hast 转化为 jsx 结构
 
 ## @codemirror
 
