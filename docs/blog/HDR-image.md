@@ -20,7 +20,7 @@ aside: true
 ## 注入HDR信息
 在MacBook Pro上，有一种最简单的方式，就是用系统自带的`sips`命令行工具。
 
-请下载icc文件[a.icc](/a.icc)。这个文件是我从[hdrify](https://www.hdrify.com/)的js代码里搞到的。这种文件本身应该怎么制作，我还真不清楚。
+请下载<a href="/a.icc" download>icc文件</a>。这个文件是我从[hdrify](https://www.hdrify.com/)的js代码里搞到的。这种文件本身应该怎么制作，我还真不清楚。
 
 随便找一个png文件或者jpg文件，假设文件名是 input.png。执行如下命令：
 ```shell 
