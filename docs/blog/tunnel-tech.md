@@ -171,4 +171,231 @@ libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所
 
 
 ## 更罕见的socket用法
+### socket的三个入参搭配
+先介绍一下`socket`函数的三个入参。
 
+1. 第一个参数：domain（协议族）
+常见的有：
+- AF_INET：IPv4
+- AF_INET6：IPv6
+- AF_UNIX / AF_LOCAL：本地进程间通信（Unix域套接字）
+- AF_PACKET：底层物理层（常用于抓包等）
+
+2. 第二个参数：type（套接字类型）
+常见的有：
+- SOCK_STREAM：流式套接字（TCP）
+- SOCK_DGRAM：数据报套接字（UDP）
+- SOCK_RAW：原始套接字（可自定义协议头）
+
+3. 第三个参数：protocol（协议）
+第三个参数决定具体用什么协议。通常直接填 0，表示根据前两个参数自动选择合适的协议。有时你需要显式指定，如：
+- IPPROTO_TCP（TCP协议，值为6）
+- IPPROTO_UDP（UDP协议，值为17）
+- IPPROTO_ICMP（ICMP协议，值为1）
+- IPPROTO_RAW（原始IP，值为255）
+还有很多其他如 IPPROTO_IP, IPPROTO_SCTP 等
+> 注意：不是所有 type 都能配所有 protocol。例如 SOCK_STREAM 配 IPPROTO_UDP 是不合法的。
+
+第三个参数的选择建议：
+- 一般用途（TCP/UDP）：直接填0即可（自动选择）。
+- 需要指定协议（如原始套接字/抓包/特殊协议）：查阅对应协议编号，显式填写。
+- 协议编号常见定义（头文件 `<netinet/in.h>`、`<netinet/ip.h>`等有定义）：
+
+三个参数的常见搭配：
+|domain|type|protocol|意义|
+|:--:|:--:|:--:|:--:|
+|AF_INET|SOCK_STREAM|0 或 IPPROTO_TCP|IPv4 TCP套接字|
+｜AF_INET	｜SOCK_DGRAM	｜0 或 IPPROTO_UDP	｜IPv4 UDP套接字｜
+｜AF_INET	｜SOCK_RAW	｜IPPROTO_ICMP	｜IPv4 原始ICMP套接字｜
+｜AF_INET	｜SOCK_RAW	｜IPPROTO_RAW	｜IPv4 原始套接字（自定义IP头）｜
+｜AF_PACKET	｜SOCK_RAW	｜htons(ETH_P_ALL)	｜Linux下抓包｜
+｜AF_UNIX	｜SOCK_STREAM	｜0	｜本地流套接字｜
+｜AF_INET6	｜SOCK_DGRAM	｜0 或 IPPROTO_UDP	｜IPv6 UDP套接字｜
+
+### 用socket抓包
+AF_PACKET 允许你直接收发以太网帧（包括所有协议类型的数据包），三个参数的典型搭配如下：
+- domain（第一个参数）：AF_PACKET
+- type（第二个参数）：SOCK_RAW（抓所有包）或 SOCK_DGRAM（只抓协议数据部分，去掉帧头）
+- protocol（第三个参数）：
+    - htons(ETH_P_ALL)：抓所有以太网协议的数据包
+    - htons(ETH_P_IP)（只抓IP包）
+    - htons(ETH_P_ARP)（只抓ARP包）
+
+
+抓包过程：
+
+第一步，创建套接字
+```c 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netpacket/packet.h>
+#include <net/ethernet.h> // ETH_P_ALL
+#include <unistd.h>
+#include <stdio.h>
+
+int sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+```
+
+第二步，绑定指定网卡（可选）
+```c 
+#include <net/if.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <netinet/if_ether.h>
+#include <net/if_arp.h>
+#include <net/if_packet.h>
+
+struct sockaddr_ll sll;
+memset(&sll, 0, sizeof(sll));
+sll.sll_family = AF_PACKET;
+sll.sll_protocol = htons(ETH_P_ALL);
+
+// 获取网卡索引
+int ifindex = if_nametoindex("eth0"); // 换成你的网卡名
+sll.sll_ifindex = ifindex;
+
+bind(sockfd, (struct sockaddr*)&sll, sizeof(sll));
+```
+
+第三步，读数据
+```c
+unsigned char buffer[2048];
+while (1) {
+    ssize_t numbytes = recvfrom(sockfd, buffer, sizeof(buffer), 0, NULL, NULL);
+    if (numbytes > 0) {
+        // buffer 里就是整个以太网帧
+        // 你可以解析 buffer 前14字节为以太网头
+    }
+}
+```
+
+
+linux完整代码：
+```c 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
+#include <net/if.h>
+#include <netpacket/packet.h>
+#include <unistd.h>
+
+int main() {
+    int sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    if (sockfd < 0) {
+        perror("socket");
+        exit(1);
+    }
+
+    unsigned char buffer[2048];
+    while (1) {
+        ssize_t len = recvfrom(sockfd, buffer, sizeof(buffer), 0, NULL, NULL);
+        if (len > 0) {
+            printf("Received packet of length %zd\n", len);
+            // 这里可以解析以太网帧
+        }
+    }
+    close(sockfd);
+    return 0;
+}
+```
+
+macOS完整代码：
+```c 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <netinet/if_ether.h>
+#include <sys/time.h>
+#include <net/bpf.h>
+#include <errno.h>
+
+#define BUF_SIZE 4096
+
+int open_bpf() {
+    char dev[32];
+    int fd = -1;
+    // macOS: /dev/bpf0 ~ /dev/bpf255
+    for (int i = 0; i < 256; ++i) {
+        snprintf(dev, sizeof(dev), "/dev/bpf%d", i);
+        fd = open(dev, O_RDWR);
+        if (fd != -1) {
+            return fd;
+        } else if (errno != ENOENT && errno != EBUSY) {
+            perror(dev);
+        }
+    }
+    return -1;
+}
+
+int main() {
+    int bpf = open_bpf();
+    if (bpf == -1) {
+        fprintf(stderr,
+            "Error: Could not open any /dev/bpf* device.\n"
+            "Check if you have root privileges (use sudo), and that /dev/bpf* exists.\n"
+            "Try running 'sudo tcpdump' once to trigger bpf device creation.\n"
+            "Or reboot your computer if no bpf devices exist.\n");
+        exit(1);
+    }
+
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, "en0", sizeof(ifr.ifr_name) - 1); // 确认网卡名，用 ifconfig 查看
+
+    if (ioctl(bpf, BIOCSETIF, &ifr) < 0) {
+        perror("BIOCSETIF (check interface name and permissions)");
+        close(bpf);
+        exit(1);
+    }
+
+    unsigned int buf_len = BUF_SIZE;
+    if (ioctl(bpf, BIOCGBLEN, &buf_len) < 0) {
+        buf_len = BUF_SIZE;
+    }
+
+    // 立即模式
+    unsigned int im = 1;
+    ioctl(bpf, BIOCIMMEDIATE, &im);
+
+    // 混杂模式
+    unsigned int promisc = 1;
+    ioctl(bpf, BIOCPROMISC, &promisc);
+
+    char *buf = malloc(buf_len);
+    if (!buf) {
+        perror("malloc");
+        close(bpf);
+        exit(1);
+    }
+
+    printf("Start capturing packets on interface %s...\n", ifr.ifr_name);
+    while (1) {
+        ssize_t n = read(bpf, buf, buf_len);
+        if (n <= 0) continue;
+        char *ptr = buf;
+        while (ptr < buf + n) {
+            struct bpf_hdr *bh = (struct bpf_hdr *)ptr;
+            unsigned char *packet = ptr + bh->bh_hdrlen;
+            int plen = bh->bh_caplen;
+            printf("Got a packet of length %d\n", plen);
+            if (plen >= sizeof(struct ether_header)) {
+                struct ether_header *eth = (struct ether_header *)packet;
+                printf("EtherType: 0x%04x\n", ntohs(eth->ether_type));
+            }
+            ptr += BPF_WORDALIGN(bh->bh_hdrlen + bh->bh_caplen);
+        }
+    }
+    free(buf);
+    close(bpf);
+    return 0;
+}
+```
