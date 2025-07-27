@@ -251,6 +251,10 @@ export default defineConfig({
               link: "/blog/concurrent-links"
             },
             {
+              text: '亮瞎你的眼——HDR图片',
+              link: "/blog/HDR-image"
+            },
+            {
               text: 'Promise Resolve 的秘密',
               link: '/blog/promise-resolve'
             },
