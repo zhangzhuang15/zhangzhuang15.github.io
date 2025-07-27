@@ -347,6 +347,10 @@ export default defineConfig({
               link: "/blog/swift-package-manager"
             },
             {
+              text: '速览：几种编程语言的容器类型',
+              link: '/blog/collection-intro'
+            },
+            {
               text: "C++和Rust在值拷贝方面的一些思考",
               link: "/blog/cpp-rust"
             },
@@ -413,10 +417,6 @@ export default defineConfig({
             {
               text: 'Never Confused: Rust, Zig and Go',
               link: '/blog/rust-zig-go'
-            },
-            {
-              text: 'Start with Zig',
-              link: '/blog/zig',
             },
             {
               text: 'Tauri',
