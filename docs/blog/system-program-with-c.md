@@ -1001,6 +1001,64 @@ if you want to learn more about network programming with c, I recommend you to t
 1.   [PDF version](https://beej.us/guide/bgnet/pdf/bgnet_usl_c_1.pdf) 
 2.   [html version](https://beej.us/guide/bgnet/html/split/)
 
+### IP Address and Port
+When you want to create a socket, you often have to prepare `sockaddr` type data. The core of this data type consists of IP address and Port. So, how to get value of these two fields in a simple way ? 
+
+Before we dive into it, let's take a look at `sockaddr_in` and `sockaddr`.`sockaddr_in` is a c struct defined for IPV4, and `sockaddr` is common c struct defined for many ip protocol (not only IPV4).General speaking, you can convert `sockaddr_in` to `sockaddr`, it's unsafe and not allowed verse via.
+
+Ok, let's dive into address and port.
+
+1. convert hostname to ip address.
+```c 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+// hostname -> ip address
+
+int main() {
+    char *hostname = "www.baidu.com";
+    // address expressed in network sequence,
+    in_addr_t addr = inet_addr(hostname);
+    // address expressed in host.
+    uint32_t address = ntohl(addr);
+
+    sockaddr_in address_in;
+    address_in.sin_addr = addr;
+
+    // if we don't fetch right addr,
+    // take another way
+    if (addr === INADDR_NONE) {
+        struct hostent *h = gethostbyname(hostname);
+        if (!h) return 0;
+        addr = *(*uint32_t)(h->h_addr_list[0]);
+    }
+    return 0;
+}
+```
+
+2. convert ip address string to ip address.
+```c 
+#include <arpa/inet.h>
+
+// ip address string -> ip address
+
+int main() {
+    char *hostname = "127.0.0.1";
+    in_addr_t addr;
+
+    int result = inet_aton(hostname, &addr);
+
+    // fail to convert
+    if (!result) {
+       
+    }
+
+    return 0;
+}
+```
+
+
 ### Use `poll` 
 ```c  
 #include <sys/socket.h>
@@ -2164,6 +2222,34 @@ Read [Kilo, a Simple Text Editor](/blog/terminal-kilo), get more details.
 
 Terminal IO refers that you read message from terminal emulator and write message to terminal emulator. You can set a structure, called `termios`, change action of terminal emulator. Read [Terminal IO](/blog/terminal-io), get more details.
 
+If you want to dive into more details, such as `c_iflag`, `c_cc`, `special characters`, you can read manual book with `man termios`. You can  also visit [website](http://uw714doc.xinuos.com/en/SDK_sysprog/TDC_SpecialCntlChars.html), figuring out what special characters are. By the way, termios manual bool also introduces special characters in chapter `Special Control Characters`.
+
+### Pitfall: Make fd Unbuffered
+Terminal will wait until you press Enter key if you execute the following code:
+```c 
+#include <unistd.h>
+
+int main() {
+    char buf[2];
+    int result = read(STDIN_FILENO, buf, sizeof(buf) - 1);
+    return 0;
+}
+```
+
+You cannot change the behavior even though rewrite code like:
+```c 
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+    setvbuf(stdin, (char*)NULL, _IONBF, 0);
+    char buf[2];
+    int result = read(STDIN_FILENO, buf, sizeof(buf) - 1);
+    return 0;
+}
+```
+
+`setvbuf` only works on reading or writing regular files, not terminal.If you want to make a change, modify the terminal io with `tcsetattr`, we have introduced in prev chapter.
 
 ### Create Child Process
 Before we talk about how to create process, let's dive into Orphan Process and Zombie Process, because they will teach us to take responsibility for creating and managing process.

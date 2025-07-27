@@ -198,6 +198,21 @@ ffmpeg -i "concat:1.mp4|2.mp4|3.mp4" -c copy ./out.mp4
 ffmpeg -i 1.mp3 -i 1.mp4 -c copy merged.mp4
 ```
 
+### 将mp4转化为GIF动态图
+通常：
+```shell 
+ffmpeg -i input.mp4 -filter:v "fps=10" output_gif.gif
+```
+
+精细控制：
+```shell 
+ffmpeg -i input_video.mp4 -vf "scale=512:384,split[fg][bg];[bg]palettegen,setdar=1:[fg][palettedata]paletteuse" 
+-loop 0 output_gif.gif
+```
+> `scale=512:384` 是用来调整输出 GIF 的大小（长宽）
+> `split` 参数用于将视频流分离成两个部分，之后使用 `palettegen` 和 `paletteuse` 进行着色并生成最终的 GIF 文件
+> `-loop 0` 表示在循环播放 GIF 时无限制地重
+
 ## python2
 采用`brew install python@2` 无法安装 python2, 可以使用如下方法：
 

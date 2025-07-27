@@ -31,11 +31,11 @@ int enableRawMode(int fd) {
 }
 ```
 
-This code snippet brings terminal driver into raw mode, don't allow terminal driver to take seom default actions, e.g. modify input value, consider some character as signal. 
+This code snippet brings terminal driver into raw mode, don't allow terminal driver to take some default actions, e.g. modify input value, consider some character as signal. 
 
-In raw mode, you take **absolute control** of every characters, you have to accept every input with `read()` and print characters on screen with `write()`, terminal simulator won't do it as default.
+In raw mode, you take **absolute control** of every characters, you have to accept every input with `read()` and print characters on screen with `write()`, terminal simulator won't do it as default. If output characters are wider than width of terminal app, characters might be splitted in 2 rows, but it doesn't mean that terminal app adds `\n` automatically, it does nothing and just renders characters in 2 rows.
 
-In raw mode, **escape control sequence** still works.
+In raw mode, **escape control sequence** still works. You can write **escape control sequence** to stdout and read stdin to receive the result of **escape control sequence**.
 
 Ok, let's talk about `c_iflag` `c_oflag` `c_cflag` `c_lflag` `c_cc`.
 

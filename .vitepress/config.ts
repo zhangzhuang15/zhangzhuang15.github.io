@@ -251,6 +251,10 @@ export default defineConfig({
               link: "/blog/concurrent-links"
             },
             {
+              text: '亮瞎你的眼——HDR图片',
+              link: "/blog/HDR-image"
+            },
+            {
               text: 'Promise Resolve 的秘密',
               link: '/blog/promise-resolve'
             },
@@ -373,6 +377,10 @@ export default defineConfig({
             {
               text: 'System Program with C',
               link: '/blog/system-program-with-c'
+            },
+            { 
+              text: '隧道、加速器和VPN——tunnel技术', 
+              link: '/blog/tunnel-tech'
             },
             {
               text: 'Hardware you should Know',

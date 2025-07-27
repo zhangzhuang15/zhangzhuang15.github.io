@@ -120,6 +120,9 @@ keywords: `Unsafe` `drop` `PhantomData` `covariant` `invariant` `contravariant` 
 
 [<<Rust 中的 Unsafe\>\> ](https://doc.rust-lang.org/nightly/nomicon/)
 
+## Rust in Game Development
+read this article: [Rust vs C for Game Development](https://iodroplet.com/rust-vs-c-for-game-development/)
+
 ## 推荐的 github 项目
 
 [rustlings](https://github.com/rust-lang/rustlings.git)
