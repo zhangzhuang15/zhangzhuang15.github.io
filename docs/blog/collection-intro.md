@@ -405,13 +405,104 @@ func main() {
 
 ## javascript
 ### vector 
+```js 
+const vec = [];
+
+// [10]
+vec.push(10);
+// [10,20]
+vec.push(20);
+// [30, 10, 20]
+vec.unshift(30);
+
+// [30, 10]
+vec.pop();
+
+// [10]
+vec.shift();
+
+vec.forEach(it => console.log(it));
+vec.map(it => it + 10);
+
+if (vec.length) {
+    console.log("vec is not empty");
+}
+
+vec.length = 0;
+```
 
 ### map 
+```js 
+const m = new Map();
 
+m.set("hello", 10);
+
+const val = m.get("hello");
+
+if (m.has("hello")) {
+    console.log("yes")
+}
+
+m.delete("hello");
+
+m.set("hello", 100);
+m.set("world", 20);
+
+for(const key of m.keys()) console.log(key)
+
+for(const value of m.values()) console.log(value)
+
+for(const [key, value] of m.entries()) console.log(key, value)
+for(const [key, value] of m) console.log(key, value)
+
+if (m.size > 0) {
+    console.log("map is not empty")
+}
+
+m.clear();
+```
 
 ### set 
+```js 
+const set = new Set()
+
+set.add(10)
+set.delete(10)
+
+if (set.size) {
+    console.log("set is not empty")
+}
+
+set.add(20)
+
+if (set.has(20)) {
+
+}
+
+for(const value of m) console.log(value)
+
+m.clear();
+```
 
 ### string
+```js 
+let s = "hello world"
+
+s.startsWith("hell")
+s.endsWith("rld")
+s.length 
+s.forEach(c => console.log(c))
+s.trim()
+s.trimStart()
+s.trimEnd()
+s = `${s}, hello Peter`
+s.includes("Peter")
+s.split(",")
+s.match(/helo/)
+s.replace("h", "t")
+s.replaceAll("h", "t")
+s.slice(1, 4)
+```
 
 ## rust 
 ### vector 
@@ -535,6 +626,41 @@ fn main() {
 
 ## java
 ### vector 
+```java 
+import java.util.ArrayList;
+import java.util.List;
+
+ArrayList<Integer> vec = new ArrayList<>();
+
+vec.add(10);
+vec.add(20);
+vec.add(30);
+vec.addFirst(40);
+vec.addLast(50);
+
+vec.remove(0);
+vec.removeFirst();
+vec.removeLast();
+
+vec.getFirst();
+vec.getLast();
+vec.get(0);
+
+vec.isEmpty();
+vec.size();
+vec.contains(40);
+vec.subList(0, 3);
+vec.indexOf(10);
+vec.lastIndexOf(20);
+
+vec.stream().forEach((val) -> System.out.println(val));
+List<Integer> mapped = vec.stream()
+    .map((val) -> val + 10)
+    .filter((val) -> val < 40)
+    .toList();
+
+vec.clear();
+```
 
 ### map 
 
