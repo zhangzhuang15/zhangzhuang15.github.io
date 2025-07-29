@@ -616,7 +616,60 @@ fn main() {
 
 ## swift
 ### vector 
+```swift 
+var vector = [10, 20]
+vector.append(30)
 
+vector.insert(40, at: 0)
+
+vector.popLast()
+
+vector.removeFirst()
+vector.removeLast()
+
+vector.remove(at: 0)
+
+vector.count
+vector.isEmpty
+vector.capacity
+vector.startIndex
+vector.endIndex
+vector.first 
+vector.last
+
+vector.firstIndex(of: 20)
+vector.lastIndex(of: 10)
+
+vector.forEach() { val in
+    print(val)
+}
+
+let v = vector.map() { val in
+    return val + 1
+}.filter() { val in
+    return val > 20
+}.reduce(0) { partialResult, val in partialResult + val }
+print(v)
+
+vector.enumerated().forEach() { val in
+    print(val.offset)
+    print(val.element)
+}
+
+for val in vector {
+    print(val)
+}
+
+for val in vector.enumerated() {
+    print(val.element)
+}
+
+for val in vector[0...vector.count - 2] {
+    print(val)
+}
+
+vector.removeAll()
+```
 ### map 
 
 
@@ -663,8 +716,90 @@ vec.clear();
 ```
 
 ### map 
+```java 
+import java.util.HashMap;
 
+HashMap<String, Integer> map = new HashMap<>();
+
+map.put("hello", 1);
+map.put("world", 2);
+        
+var v = map.getOrDefault("name", 3);
+v = map.get("hello");
+
+if (map.containsKey("hello")) {
+    System.out.println("yes");
+}
+
+map.size();
+map.isEmpty();
+
+map.putIfAbsent("peter", 10);
+
+map.forEach((key, val) -> {
+    System.out.printf("%s %d\n", key, val);
+});
+
+map.values().stream().forEach(System.out::println);
+
+map.remove("hello");
+        
+map.replace("world", 5);
+
+map.clear();
+```
 
 ### set 
+```java 
+import java.util.HashSet;
+
+HashSet<Integer> set = new HashSet<>();
+
+set.add(10);
+set.add(20);
+
+set.remove(10);
+
+set.contains(20);
+
+set.size();
+
+set.isEmpty();
+
+set.stream().forEach(System.out::println);
+
+set.clear();
+```
 
 ### string
+```java 
+String v = "hello world";
+
+v.length();
+
+v.chars().forEach(System.out::println);
+
+v.startsWith("hel");
+
+v.endsWith("ld");
+
+v.contains("o w");
+
+var bytes = v.getBytes();
+System.out.println(bytes[0]);
+
+v.toLowerCase();
+        
+v.replace("hello", "happy");
+
+v.indexOf("world");
+
+v.lastIndexOf("world");
+
+v.isBlank();
+v.isEmpty();
+
+v.lines().forEach(System.out::println);
+
+var list = v.split(" ");
+```
