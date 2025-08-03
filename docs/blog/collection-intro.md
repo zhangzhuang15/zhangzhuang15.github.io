@@ -671,6 +671,57 @@ for val in vector[0...vector.count - 2] {
 vector.removeAll()
 ```
 ### map 
+```swift 
+var map: [String:Int] = [:]
+
+map["hello"] = 1
+map["world"] = 2
+
+if map.contains(where:)({ key, value in
+    return key == "world"
+}) {
+    print("has world")
+}
+
+if map["hello"] != nil {
+    print("has hello")
+}
+
+if let _ = map["hello"] {
+    print("has hello")
+}
+
+
+map.values
+map.keys
+map.count
+
+for (key, value) in map {
+    print("\(key):\(value)")
+}
+
+for key in map.keys {
+    print("\(key)")
+}
+
+for value in map.values {
+    print("\(value)")
+}
+
+map.removeValue(forKey: "hello")
+map.updateValue(10, forKey: "helo")
+
+var another_map = map.map() { key, value in
+    if key == "world" {
+        return value + 100
+    }
+    
+    return value
+}
+
+another_map.removeAll()
+
+```
 
 
 ### set 
