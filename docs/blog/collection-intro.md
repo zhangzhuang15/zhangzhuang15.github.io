@@ -610,6 +610,9 @@ fn main() {
 
     s.find(char::is_whitespace).map(|byte_offset| println!("{byte_offset}"));
 
+    let sub_str = &s[0..5];
+    let sub_str = &s[0..=5];
+
     s.clear();
 }
 ```
@@ -722,11 +725,86 @@ var another_map = map.map() { key, value in
 another_map.removeAll()
 
 ```
-
-
 ### set 
+```swift 
+var set: Set<Int> = []
+
+set.insert(10)
+set.insert(20)
+set.count
+
+set.insert(10)
+set.count
+
+set.first
+
+
+if set.contains(10) {
+    print("contains 10")
+}
+
+
+for value in set {
+    print("\(value)")
+}
+
+set.remove(0)
+set.remove(10)
+
+var another_set: Set<Int> = [200,200,40,50]
+another_set.insert(10)
+another_set.insert(20)
+another_set.insert(100)
+another_set
+
+set.isSubset(of: another_set)
+// 合集
+set.union(another_set)
+// 交集
+set.intersection(another_set)
+// 差集
+set.symmetricDifference(another_set)
+
+set.removeAll()
+```
 
 ### string
+```swift 
+var s = "hello world"
+s.isEmpty
+s.count
+s.first
+s.last
+s.startIndex
+s.endIndex
+s.append(" Peter")
+s += " Polo"
+
+s.starts(with: "hell")
+s.hasSuffix("lo")
+s.hasPrefix("hell")
+s.lowercased()
+s.removeFirst()
+s.popLast()
+s.removeLast()
+
+var m = s.firstIndex(where:)({ c in c == "o"})
+if let _ = m {
+    print("\(m!)")
+}
+
+var n = s.map() { c in
+    if c >= "o" {
+        return 1
+    }
+    return 2
+}
+
+var p = Set(n)
+
+// slice[0: len(s) - 2]
+var t = s[s.startIndex..<s.index(s.endIndex, -2)]
+```
 
 ## java
 ### vector 
