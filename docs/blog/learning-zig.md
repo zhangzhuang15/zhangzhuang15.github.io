@@ -304,3 +304,48 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_exe_unit_tests.step);
 }
 ```
+
+### `b.dependency`
+项目如果使用了第三方的zig库，`build.zig`中你会看到用`b.dependency`声明这些依赖。并不是说，你写了这些依赖，zig构建的时候会自动寻找、下载这些依赖，你需要使用`zig fetch`下载它们。
+
+[How to Fetch, Add, and Use External Dependencies](https://amustaque97.github.io/zig-modules-101/), 介绍了这点。
+
+```shell 
+zig fetch --save git+https://github.com/rockorager/libvaxis.git
+```
+
+下载完依赖后，就可以写：
+```zig 
+const vaxis = b.dependency("vaxis", .{
+    .target = target,
+    .optimize = optimize,
+});
+
+exe.root_module.addImport("vaxis", vaxis.module("vaxis"));
+```
+`vaxis`就是我们下载好的依赖。
+
+### Inject Options
+使用`zig build`的时候，会指定一些命令行参数，如果你想在程序中想获取到这些参数，可以这样写：
+```zig 
+const options = b.addOptions();
+options.addOption(bool, "enable_tracy", tracy_enabled);
+options.addOption(bool, "use_tree_sitter", use_tree_sitter);
+options.addOption(bool, "strip", strip);
+options.addOption(bool, "gui", gui);
+
+const options_mod = options.createModule();
+exe.root_module.addImport("build_options", options_mod);
+```
+注意，这里的命令行参数是构建程序的时候，传入的参数，并不是程序执行的时候用户给出的命令行参数。
+
+### Lints 
+在构建项目的时候，对项目代码进行lint format处理：
+```zig 
+const lints = b.addFmt(.{
+    .paths = &.{ "src", "test", "build.zig" },
+    .check = true,
+});
+lint_step.dependOn(&lints.step);
+b.default_step.dependOn(lint_step);
+```
