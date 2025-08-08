@@ -950,4 +950,28 @@ function validateConditionally() {}
 function tryValidate() {}
 ```
 
+## 如何解决输入法对`<input>`的影响
+往`<input>`输入中文的时候，因为输入法的缘故，会先往里边输入拼音字母，按下回车键的时候，才会输入中文，我们想忽略输入拼音字母，可以这样做：
+```js 
+let isCompositing = false;
+
+inputElement.addEventListener('compositionstart', () => {
+  isCompositing = true;
+});
+
+inputElement.addEventListener('compositionend', () => {
+  isCompositing = false;
+});
+
+inputElement.addEventListener('input', () => {
+  if (isCompositing) return;
+
+  // 上层收到的是中文，而不是拼音
+  onChange(inputElement.value);
+});
+```
+refer:
+1. [input输入中文，高频出发onchange和oninput | CSDN](https://blog.csdn.net/weixin_44058725/article/details/134072159)
+2. [CompositionEvent | MDN](https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent)
+
 <Giscus />
