@@ -240,3 +240,98 @@ int main(int argc, char** argv) {
 
 ## 终端控制序列
 如果你对终端控制序列感兴趣，可以阅读[ansi escape control](/tool/ansi-escape-control)
+
+## 对终端更细致的理解
+最好的方法就是查看手册`man termios`。不过，man手册讲的不是那么好理解，我结合AI对话，给出以下的解释，建议你结合man手册原文去看。
+
+### 读取终端
+读取终端的意思，就是调用`read`函数读取标准输入。具体的过程就是，终端有一个输入队列，当你按下键盘输入数据的时候，操作系统会将这些数据放入到这个队列，然后应用程序调用`read`再从这个队列里读取数据。当然，这个队列不是无限长的，操作系统会给出一个限制，当队列已经满了，你再往里边输入数据的时候，会发生什么，取决于`termios.c_iflag`是否设置`IMAXBEL`。如果设置了，终端就会收到 ASCII BEL 字符，发出响铃声，而输入的数据会忽略不计。如果没有设置，队列就会被清空，新来的数据进入队列。
+
+接下来有一个问题，调用`read`之后，我输入多少个字符，`read`函数才会返回呢？ 
+
+这要看你是否为终端设置了`O_NONBLOCK`。假设你要读取10字节数据。如果没有设置，`read`会阻塞，直到有10字节数据准备好了，才会返回。如果设置了，`read`不会阻塞，如果有20字节数据准备好，就返回10字节数据，如果有5字节数据准备好，就返回5字节，如果没有数据准备好，就返回-1.
+
+问题来了，怎么才算**数据准备好**？
+
+要分两种情况理解。
+
+第一种，采取**正常模式**处理终端输入值，这是终端默认的行为。这个模式下，按行处理输入值。假设你输入abcd，不好意思，虽然终端输入队列有四个字符，但无法断定这4个字符构成了完整的一行数据，不能算作数据准备好。当你按下回车的时候，就是输入了一个`\n`字符，神奇的事情发生了，abcd就会被认为是完整的一行，数据就算准备好了，`read`就能顺利返回abcd。除了`\n`字符有这样的功效，end-of-file (EOF)字符，end-of-line (EOL) 字符也有。当输入 ERASE 字符的时候，会删除输入队列的末尾字符。输入 KILL字符的时候，会删除输入队列的末尾一行数据。 关于ERASE字符，KILL字符，这些特殊字符，会在后边介绍。一行有多少个字符呢？无限个字符么？显然不行。操作系统会给出一个上限，当一行数据的长度超过这个上限，就会按照上面输入队列满了的情况，对这行数据做同样的处理，响铃声或者清空。
+
+第二种，采取**非正常模式**处理终端输入值。这个模式下，就不是按照行的概念处理输入值了，ERASE字符、KILL字符也会失效。那该怎么处理呢？取决于`termios.c_cc[VMIN]`和`termios.c_cc[VTIME]`怎么设置。
+| termios.c_cc[VMIN] | termios.c_cc[VTIME] | 调用read的效果 |
+|:--:|:--:|:--|
+| 10 | 2 | 输入队列如果有数据，read立即从中读取需要的数据，如果没有，read陷入阻塞，当你输入一个字符的时候，开启 2*0.1秒的计时，在接下来的0.2秒到期之前，如果你又输入了9个字符，那么read就会读取这10个字符，如果在到期的时候，你输入了5个字符，总共6个字符，不足10个字符，那么read就会读取这6个字符|
+|10 | 0 | 没有上一种情况的计时效果，只要你输入了10个字符，read就会返回，否则就是数据没准备好，read要么阻塞，要么返回-1
+| 0 | 2 | 立即开启每2*0.1秒的计时器，在这0.2秒内，如果你输入了一个字符，read立即返回，如果没有输入任何字符，read立即返回0 |
+|0| 0| 有输入的字符，read立即返回字符，没有输入的字符，read返回0 |
+
+### 特殊字符 
+|字符名称|ascii码值|如何构造|作用|
+|:--:|:--:|:--|:--|
+| INTR | 3 | 按下键盘的Ctrl+C|termios.c_lflag如果设置ISIG，终端直接忽略该字符，同时向前台进程组发送SIGINT信号, 如果没有设置，按照普通字符处理 |
+| QUIT | 28 | 按下键盘的Ctrl+\ | termios.c_lflag如果设置ISIG，终端直接忽略该字符，同时向前台进程组发送SIGQUIT信号，如果没有设置，按照普通字符处理 |
+| ERASE | 127 或者 8 | 按下键盘的Ctrl+H， 或者 DELETE键 | termios.c_lflag如果设置ICANON，终端直接忽略该字符，同时删除队列中的末尾字符，如果没有设置，按照普通字符处理 |
+| KILL | 21 | 按下键盘Ctrl+U | termios.c_lflag如果设置ICANON，终端直接忽略该字符，同时删除队列中的末尾一行，如果没有设置，按照普通字符处理|
+|  EOF | 4 | 按下键盘Ctrl+D | termios.c_lflag如果设置ICANON，终端直接忽略该字符，将输入对列里的数据返回给进程 |
+| EOL | 255 || 同EOF |
+|  SUSP | 26 | 按下键盘Ctrl+Z | termios.c_lflag如果设置ISIG，终端直接忽略该字符，同时向前台进程组发送SIGTSTP信号，如果没有设置，按照普通字符处理|
+|STOP | 19 | 按下键盘Ctrl+S | termios.c_iflag如果设置IXOFF, 或者 termios.c_oflag设置 IXON， 终端直接忽略该字符，并挂起输出 |
+|START| 17 | 按下键盘Ctrl+Q | termios.c_iflag如果设置IXOFF, 或者 termios.c_oflag设置 IXON， 终端直接忽略该字符，恢复输出 |
+
+> 以上特殊字符对应的 ascii 码，可以在 `<sys/ttydefaults.h>` 头文件找到
+
+
+Ctrl+C为什么意味着中断一个进程呢？首先Ctrl+C按下之后，就会向终端发送3（`037 & 67`），终端在默认情况下，INTR 就是 3，因此终端认为你输入了一个INTR特殊字符给它，恰巧，在默认的处理方式下，终端会发送SIGINT信号给前台进程，最终导致进程被中断。
+
+除了NL和CR，其余特殊字符对应的ascii值可以通过`termios.c_cc`修改。比如`termios.c_cc[VINTR] = 2`, Ctrl+C 按下后，就不会被当作输入一个INTR特殊字符，就不会产生SIGINT信号，你必须按下 Ctrl+B 才行。
+
+接下来，我们认识认识不可见字符的英文名和中文名：
+
+| 十进制 | 八进制 | 十六进制 | ASCII 字符 | 英文缩写 | 中文含义 |
+|--------|--------|----------|------------|----------|----------|
+| 0      | 000    | 0x00     | NUL        | NUL      | 空字符，表示空 |
+| 1      | 001    | 0x01     | SOH        | SOH      | 起始符，Start of Heading |
+| 2      | 002    | 0x02     | STX        | STX      | 起始符，Start of Text |
+| 3      | 003    | 0x03     | ETX        | ETX      | 文本结束符，End of Text |
+| 4      | 004    | 0x04     | EOT        | EOT      | 文本结束符，End of Transmission |
+| 5      | 005    | 0x05     | ENQ        | ENQ      | 询问符，Enquiry |
+| 6      | 006    | 0x06     | ACK        | ACK      | 确认符，Acknowledge |
+| 7      | 007    | 0x07     | BEL        | BEL      | 铃声，Bell |
+| 8      | 010    | 0x08     | BS         | BS       | 退格符，Backspace |
+| 9      | 011    | 0x09     | HT         | HT       | 水平制表符，Horizontal Tab |
+| 10     | 012    | 0x0A     | NL         | NL       | 换行符，New Line |
+| 11     | 013    | 0x0B     | VT         | VT       | 垂直制表符，Vertical Tab |
+| 12     | 014    | 0x0C     | NP         | NP       | 换页符，Next Page |
+| 13     | 015    | 0x0D     | CR         | CR       | 回车符，Carriage Return |
+| 14     | 016    | 0x0E     | SO         | SO       | 移动到下一个设备，Shift Out |
+| 15     | 017    | 0x0F     | SI         | SI       | 移动到前一个设备，Shift In |
+| 16     | 020    | 0x10     | DLE        | DLE      | 数据链路转义符，Data Link Escape |
+| 17     | 021    | 0x11     | DC1        | DC1      | 设备控制符 1，Device Control 1 |
+| 18     | 022    | 0x12     | DC2        | DC2      | 设备控制符 2，Device Control 2 |
+| 19     | 023    | 0x13     | DC3        | DC3      | 设备控制符 3，Device Control 3 |
+| 20     | 024    | 0x14     | DC4        | DC4      | 设备控制符 4，Device Control 4 |
+| 21     | 025    | 0x15     | NAK        | NAK      | 否认符，Negative Acknowledge |
+| 22     | 026    | 0x16     | SYN        | SYN      | 同步符，Synchronous Idle |
+| 23     | 027    | 0x17     | ETB        | ETB      | 结束传输块符，End of Transmission Block |
+| 24     | 030    | 0x18     | CAN        | CAN      | 取消符，Cancel |
+| 25     | 031    | 0x19     | EM         | EM       | 媒体结束符，End of Medium |
+| 26     | 032    | 0x1A     | SUB        | SUB      | 替换符，Substitute |
+| 27     | 033    | 0x1B     | ESC        | ESC      | 转义符，Escape |
+| 28     | 034    | 0x1C     | FS         | FS       | 文件分隔符，File Separator |
+| 29     | 035    | 0x1D     | GS         | GS       | 组分隔符，Group Separator |
+| 30     | 036    | 0x1E     | RS         | RS       | 记录分隔符，Record Separator |
+| 31     | 037    | 0x1F     | US         | US       | 单元分隔符，Unit Separator |
+
+趁此机会，介绍下键盘和ascii码的联系。我们想输入字符，必须通过键盘。**并不是所有的键盘按下之后，就会输入字符**。比如，我们按下键盘A, 输入的就是字符'a'；我们按下 Shift + A，输入的就是字符'A'。但是，我们只按下Ctrl或者Shift的时候，就不会输入字符。在ascii码中，32到126的码值，表示的是可见字符，都可以通过按下一个键盘输入，但0到31的码值，是控制字符，不可见的，尽管你可以强制打印它们，但它们在终端可能就变成了这个样子"^A", "^B" —— "^"组合一个可见字符的形式。以码值1为例，打印出来就是^A。为什么是这个样子呢？因为^表示Ctrl键， ^A就是Ctrl键+A键，而A的ascii码是65， Ctrl+A的背后是计算 `037 & 65`, 这个结果刚好是1。
+
+延伸一点看，如果用`read`读取出来的字符值，正好是0到31, 这就意味着用户按下了Ctrl键。
+
+### `termios.c_iflag` 
+
+
+### `termios.c_oflag` 
+
+
+### `termios.c_lflag`
+
+### `termios.c_cflag`
