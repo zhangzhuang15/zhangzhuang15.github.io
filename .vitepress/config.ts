@@ -431,6 +431,10 @@ export default defineConfig({
               link: '/blog/vscode-extension-develop'
             },
             {
+              text: 'Map Concept: H3',
+              link: '/blog/h3'
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
