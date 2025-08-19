@@ -720,6 +720,54 @@ function prompt<const A extends Record<string, any>>(value: { name: Extract<keyo
 const m = prompt([{ name: 'fdfsd'}, { name: '43rewr'}])
 ```
 
+### 限制输入值为0到255的整数
+```ts 
+type ToArray<T extends string> = T extends `${infer M}${infer N}`
+  ? [M, ...ToArray<N>]
+  : [];
+type StringLength<T extends string> = ToArray<T>["length"];
+
+
+type NumberIn0_9<T extends number> = T extends 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 ? T : never;
+type NumberIn0_5<T extends number> = T extends 0 | 1 | 2 | 3 | 4 | 5 ? T : never;
+type NumberIn0_4<T extends number> = T extends 0 | 1 | 2 | 3 | 4 ? T : never;
+type NumberIn0_2<T extends number> = T extends 0 | 1 | 2 ? T : never;
+type NumberIn0_1<T extends number> = T extends 0 | 1 ? T : never;
+type NumberIn0_255<T extends number> = 
+  StringLength<`${T}`> extends 1 ?
+    NumberIn0_9<T> extends number ? T : never 
+    : StringLength<`${T}`> extends 2 ? 
+        `${T}` extends `${infer N extends number}${infer M extends number}` ? 
+          NumberIn0_9<N> extends never ?  
+            never
+            : NumberIn0_9<M> extends never ? never : T
+          : never
+      : StringLength<`${T}`> extends 3 ?
+          `${T}` extends `${infer N extends number}${infer M extends number}${infer O extends number}` ? 
+            NumberIn0_2<N> extends never ? 
+              never
+              : NumberIn0_1<N> extends never ?
+                 NumberIn0_5<M> extends never ? 
+                   never
+                   : NumberIn0_4<M> extends never ?
+                       NumberIn0_5<O> extends never ? never : T
+                       : NumberIn0_9<O> extends never ? never: T
+                : NumberIn0_9<M> extends never ? never : NumberIn0_9<O> extends never ? never : T
+            : never
+          : never;
+
+function input<A extends number>(value: NumberIn0_255<A>);
+
+input(256); // error
+input(-11); // error
+input(255); // ok
+input(129); // ok
+
+function inputMultiple<A extends number, B extends number, C extends number>(
+  value: [NumberIn0_255<A>, NumberIn0_255<B>, NumberIn0_255<C>]
+);
+```
+
 ## FAQ
 ### 如何拓展window原本的类型
 新建一个.d.ts文件，内容如下，并在tsconfig.json中include到这个文件。
