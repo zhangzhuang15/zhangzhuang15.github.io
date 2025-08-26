@@ -1,11 +1,107 @@
 ---
-title: "react概念梳理"
+title: "react原理探索之旅"
 page: true
 aside: true
 ---
 
-## Description
+# Description
+从一个简单的react代码开始。
 
+```tsx
+import React, { useState, useEffect } from "react";
+import { createRoot } from "react-dom";
+
+const App = () => {
+  const [count, setCount] = useState(1);
+  useEffect(() => {
+    setCount(5);
+  }, []);
+  return <div>hello world {count}</div>
+}
+
+createRoot(document.getElementId("app")!)
+  .render(<App />);
+```
+
+先大致说一下react渲染页面的思路。react采取fiber架构渲染页面，所谓的fiber架构，就是一个树结构。react需要创建一个根结点，它称之为**FiberRoot**，实际上，它就是一个javascript对象。这个对象有两个重要的属性，一个属性指向一个DOM节点，另外一个属性指向一个fiber节点，react称这个fiber节点为**RootFiber**。
+
+fiber节点就是一个javascript对象，而且是一种树形节点。因为它有 `return` 属性，指向它的父节点；它有`sibling`属性，指向它的兄弟节点；它有`child`属性，指向它的子节点。那fiber节点有什么用呢？使用react开发过应用程序，你就会知道，你的应用本质上就是一个组件树，组件可能是 `class component` 实现的，也可能是 `function component` 实现的，还可能是react的内置组件，比如 `Suspense`, 无论怎样，每个组件都是组件树的一个节点，fiber 节点的作用就是记录下单个组件的状态，那么 fiber 树就是对整个组件树状态的记录，就像拍了张相片一样。渲染页面的过程，其实就是拿着fiber树的组件状态信息，将组件转化为DOM节点。这还不够，react需要检测到fiber树，一旦fiber树变化了，就应该再去拿着fiber树的信息，将组件转化为崭新的DOM节点。
+
+你一定会想到一种更新策略：每次都重新生成一个fiber树，按照这个fiber树重新生成一遍DOM节点，然后把老的DOM节点全部删除，换上新的DOM节点。
+
+这种方式可行，但效率不高，早期的react是这么干的，页面的组件一旦多了，这种方式就会非常慢，因为它没有跳过不需要更新的节点。
+
+那么如何知道fiber节点是否更新了呢？直观的想法就是做比较，新fiber和老fiber之间做比较。所以，我们就必须要保存下新fiber和老fiber。react于是给fiber节点添加了`alternate`属性。老fiber的`alternate`属性指向新fiber，新fiber的`alternate`属性指向老fiber。这样就方便比较了。
+
+既然fiber有新老之分，那么fiber树也有新老之分。**RootFiber**是fiber树的根节点，自然就会有新的**RootFiber**和老的**RootFiber**。
+
+问题来了，如何区分哪一个是老的**RootFiber**？很简单，**FiberRoot**只有一个，它的`current`属性指向谁，谁就是老的**RootFiber**。
+
+知道了这些，整个更新的思路就如下图所示，变得清晰了。每次更新的时候，生成一个新的fiber树，在生成每个新的fiber节点的时候，和老的fiber节点做对比，找出哪些fiber节点发生了变化，以及具体变化了什么，然后按照新fiber树收集到的信息，更新对应的DOM节点，更新完毕之后，**FiberRoot**的`current`属性指向新的**RootFiber**。
+
+接下来，我们就结合开头给出的示例代码，了解更具体的过程。
+
+## createRoot
+```tsx
+import React, { useState, useEffect } from "react";
+import { createRoot } from "react-dom";
+
+const App = () => {
+  const [count, setCount] = useState(1);
+  useEffect(() => {
+    setCount(5);
+  }, []);
+  return <div>hello world {count}</div>
+}
+
+createRoot(document.getElementId("app")!)
+  .render(<App />);
+```
+
+`createRoot`的作用，就是创建**FiberRoot**，并在它上面绑定一个新建的**RootFiber**。它的实现，位于react仓库的`packages/react-dom/src/client/ReactDOM.js`。
+
+**FiberRoot**有如下的属性：
+|属性名|解释|
+|:--|:--|
+| tag | 枚举值，区分生成fiber树的过程，使用并发模式，还是同步模式|
+| containerInfo | DOM节点，指的就是示例代码的 `document.getElementId("app")`|
+| current | 指向 RootFiber，也就是老fiber树的树根节点 |
+| finishedWork | 当新的fiber树生成好了之后，就会把这个属性设置为新fiber树的树根节点 |
+| callbackNode | 生成新的fiber树是一个任务函数，react用自定义的调度系统，调度这个任务函数，为了支持取消，就会把实现取消功能的函数赋值给 callbackNode属性 |
+
+`createRoot`执行之后，我们就只有一个`FiberRoot`，还有一个`RootFiber`，fiber树光有一个树根节点，其余中间节点和叶子节点都没有生成。而这些节点的生成，是在`render`函数里完成的。
+
+## render 
+```tsx
+import React, { useState, useEffect } from "react";
+import { createRoot } from "react-dom";
+
+const App = () => {
+  const [count, setCount] = useState(1);
+  useEffect(() => {
+    setCount(5);
+  }, []);
+  return <div>hello world {count}</div>
+}
+
+createRoot(document.getElementId("app")!)
+  .render(<App />);
+```
+
+先说几个注意事项：
+1. RootFiber, FiberRoot 和 `<App />` 没有关系；
+2. 会有一个fiber节点对应`<App />`, 但这个fiber节点不是RootFiber，而是RootFiber的子节点；
+3. `<App />`经过jsx编译器处理后，得到的是ReactNode对象，并不是Fiber节点，当 `render` 函数执行后，要根据ReactNode对象生成与之对应的Fiber节点
+
+为了方便理解接下来要说的事情，有必要先了解一下`<App />`的编译结果：
+
+## react-reconciler的全局变量
+|名称|解释|
+|:--|:--|
+|workInProgressRoot| |
+|workInProgress| |
+|executionContext||
+|rootWithPendingPassiveEffects||
 ### FiberRoot
 
 ```js
