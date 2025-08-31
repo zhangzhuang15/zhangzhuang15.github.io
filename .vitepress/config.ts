@@ -347,6 +347,10 @@ export default defineConfig({
               link: "/blog/swift-package-manager"
             },
             {
+              text: '结合实际经验，聊聊函数式编程和面向对象编程',
+              link: '/blog/functional-and-object-programming'
+            },
+            {
               text: '速览：几种编程语言的容器类型',
               link: '/blog/collection-intro'
             },
