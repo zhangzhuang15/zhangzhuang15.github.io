@@ -94,6 +94,42 @@ createRoot(document.getElementId("app")!)
 3. `<App />`经过jsx编译器处理后，得到的是ReactNode对象，并不是Fiber节点，当 `render` 函数执行后，要根据ReactNode对象生成与之对应的Fiber节点
 
 为了方便理解接下来要说的事情，有必要先了解一下`<App />`的编译结果：
+```tsx
+import { useState, useEffect } from "react";
+import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
+
+const App = () => {
+  const [count, setCount] = useState(1);
+  useEffect(() => {
+    setCount(5);
+  }, []);
+  return /*#__PURE__*/_jsxs("div", {
+    children: ["hello world ", count]
+  });
+};
+
+/*#__PURE__*/_jsx(App, {});
+```
+> 上述代码，根据[babel playground](https://babeljs.io/repl)生成
+
+可以看到， `<App />` 编译后的结果，就是`_jsx`返回的值，它是一个js对象，react称为 `ReactNode`。
+
+我们不妨执行一下上述编译好的代码，看看这个`ReactNode`到底长什么样子：
+```ts
+const appReactNode = {
+  _self: null,
+  _source: null,
+  ref: null,
+  props: {},
+  key: null,
+  $$typeof: Symbol("react.element"),
+  type: App,
+}
+```
+
+`ReactNode`的实现，位于 `packages/react/src/jsx/ReactJSXElement.js`.
+
+这里额外说一下，函数组件和类组件的定义都是挂载到 `type` 属性上的。
 
 ## react-reconciler的全局变量
 |名称|解释|

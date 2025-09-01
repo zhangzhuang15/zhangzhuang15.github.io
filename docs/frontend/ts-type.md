@@ -627,7 +627,7 @@ interface A {
   t: string
 }
 
-type PartialSome<T, K in keyof T> = Omit<T, K> & Pick<Partial<T>, K>
+type PartialSome<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>
 
 type B = PartialSome<A, 't'>
 // {
@@ -645,7 +645,7 @@ interface A {
   c?: number
 }
 
-type RequiredSome<T, K in keyof T> = Omit<T, K> & Pick<Required<T>, K>
+type RequiredSome<T, K extends keyof T> = Omit<T, K> & Pick<Required<T>, K>
 
 type B = RequiredSome<A, 'b'>
 // {
