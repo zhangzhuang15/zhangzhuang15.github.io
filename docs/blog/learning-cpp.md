@@ -1012,6 +1012,315 @@ int main() {
 1. 是否要明确使用数据的移动语义。编译器会优化代码，避免调用拷贝构造函数，但这种优化不总是有效，因此你需要显式告知编译器，使用移动构造函数。
 2. 数据类型是否支持移动语义。c++的标准库一般都会实现移动构造函数，你可以大胆调用`std::move`，但是数据被move之后会如何，不要冒那个风险，像Rust那样处理就好，move之后的数据永远不要去访问！
 
+## fucking 移动构造函数和拷贝构造函数
+### 右值用右值引用接收
+```cpp
+// test.cpp
+#include <iostream>
+
+class TestClass {
+public:
+    TestClass() {
+        std::cout << "Default constructor\n";
+    }
+
+    TestClass(const TestClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    TestClass(TestClass&&) noexcept {
+        std::cout << "Move constructor\n";
+    }
+
+    ~TestClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+TestClass&& createByValue() {
+    return TestClass();
+}
+
+int main() {
+    TestClass result = createByValue();
+    return 0;
+}
+```
+执行：
+- `g++ test.cpp -std=c++20 -fno-elide-constructors -o test`
+- `./test`
+> -fno-elide-constructors, 禁止编译器对构造函数的优化，强制代码调用构造函数，不得省略。
+
+结果：
+```txt
+Default constructor
+Destructor
+Move constructor
+Destructor
+```
+非常危险！先销毁，再移动！移动构造函数发生在 `TestClass result = createByValue();`
+
+### 右值用左值引用接收
+```cpp 
+// test.cpp
+#include <iostream>
+
+class TestClass {
+public:
+    TestClass() {
+        std::cout << "Default constructor\n";
+    }
+
+    TestClass(const TestClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    TestClass(TestClass&&) noexcept {
+        std::cout << "Move constructor\n";
+    }
+
+    ~TestClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+TestClass& createByValue() {
+    return TestClass();
+}
+
+int main() {
+    TestClass result = createByValue();
+    return 0;
+}
+```
+编译不通过， `return TestClass();` 返回一个右值，但是 `TestClass&` 是左值引用。
+
+### 左值用左值引用接收
+```cpp 
+// test.cpp
+#include <iostream>
+
+class TestClass {
+public:
+    TestClass() {
+        std::cout << "Default constructor\n";
+    }
+
+    TestClass(const TestClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    TestClass(TestClass&&) noexcept {
+        std::cout << "Move constructor\n";
+    }
+
+    ~TestClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+TestClass& createByValue() {
+    TestClass t;
+    return t;
+}
+
+int main() {
+    TestClass result = createByValue();
+    return 0;
+}
+```
+执行：
+- `g++ test.cpp -std=c++20 -fno-elide-constructors -o test`
+- `./test`
+
+结果：
+```txt
+Default constructor
+Destructor
+Copy constructor
+Destructor
+```
+非常危险！先销毁，再拷贝！拷贝构造函数发生在`TestClass result = createByValue();`
+
+### 左值用右值引用接收
+```cpp
+// test.cpp
+#include <iostream>
+
+class TestClass {
+public:
+    TestClass() {
+        std::cout << "Default constructor\n";
+    }
+
+    TestClass(const TestClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    TestClass(TestClass&&) noexcept {
+        std::cout << "Move constructor\n";
+    }
+
+    ~TestClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+TestClass&& createByValue() {
+    TestClass t;
+    return t;
+}
+
+int main() {
+    TestClass result = createByValue();
+    return 0;
+}
+```
+编译不通过， `createByValue`声明的是`右值引用`，实际返回了`左值`，类型矛盾。
+
+### 左值转为右值引用，再由右值引用接收
+```cpp 
+// test.cpp
+#include <iostream>
+
+class TestClass {
+public:
+    TestClass() {
+        std::cout << "Default constructor\n";
+    }
+
+    TestClass(const TestClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    TestClass(TestClass&&) noexcept {
+        std::cout << "Move constructor\n";
+    }
+
+    ~TestClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+TestClass&& createByValue() {
+    TestClass t;
+    return std::move(t);
+}
+
+int main() {
+    TestClass result = createByValue();
+    return 0;
+}
+```
+执行：
+- `g++ test.cpp -std=c++20 -fno-elide-constructors -o test`
+- `./test`
+
+结果：
+```txt
+Default constructor
+Destructor
+Move constructor
+Destructor
+```
+非常危险！先销毁，再移动！
+
+### 左值直接返回
+```cpp 
+// test.cpp
+#include <iostream>
+
+class TestClass {
+public:
+    TestClass() {
+        std::cout << "Default constructor\n";
+    }
+
+    TestClass(const TestClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    TestClass(TestClass&&) noexcept {
+        std::cout << "Move constructor\n";
+    }
+
+    ~TestClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+TestClass createByValue() {
+    TestClass t;
+    return t;
+}
+
+int main() {
+    TestClass result = createByValue();
+    return 0;
+}
+```
+
+执行：
+- `g++ test.cpp -std=c++20 -fno-elide-constructors -o test`
+- `./test`
+
+结果：
+```txt
+Default constructor
+Move constructor
+Destructor
+Destructor
+```
+被优化了，可以理解为`createByValue`返回左值的时候，调用了移动构造函数创建一个对象，然后 `result`变量直接指向该对象，
+中间不发生任何拷贝行为。
+
+### 右值直接返回
+```cpp 
+// test.cpp
+#include <iostream>
+
+class TestClass {
+public:
+    TestClass() {
+        std::cout << "Default constructor\n";
+    }
+
+    TestClass(const TestClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    TestClass(TestClass&&) noexcept {
+        std::cout << "Move constructor\n";
+    }
+
+    ~TestClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+TestClass createByValue() {
+    return TestClass();
+}
+
+int main() {
+    TestClass result = createByValue();
+    return 0;
+}
+```
+执行：
+- `g++ test.cpp -std=c++20 -fno-elide-constructors -o test`
+- `./test`
+
+结果：
+```txt
+Default constructor
+Destructor
+```
+被优化了，可以理解为直接将 `createByValue` inline处理了。
+
+### 总结
+函数返回值类型不要声明T&或者T&&, 直接声明为T.
+
 
 ## 与现代编程特性接轨
 ### std::tuple 
