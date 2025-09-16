@@ -1853,6 +1853,65 @@ int main() {
 }
 ```
 
+## 类型体操
+类型体操原本是typescript里的把戏，但是c++的模板编程中，对于模板中定义的typename，并没有明确的类型约束，它可以是任何一种类型，这很像typescript的情形，因此c++的模板中，同样可以玩出类型体操的把戏。通过人为地编写一套模板类型约束原则，让编译器按照这些规则检查代码，提早发现问题，近似于javascript的类型注释，python的type hints等等。
+
+此处的代码，全部来自于 ladybird 项目。
+
+### 擦掉类型中的const
+```cpp 
+template<class T>
+struct __RemoveConst {
+    using Type = T;
+};
+template<class T>
+struct __RemoveConst<T const> {
+    using Type = T;
+};
+template<class T>
+using RemoveConst = typename __RemoveConst<T>::Type;
+
+// M = int
+using M = RemoveConst<const int>;
+```
+
+### 擦掉类型中的volatile
+```cpp 
+template<class T>
+struct __RemoveVolatile {
+    using Type = T;
+};
+
+template<class T>
+struct __RemoveVolatile<T volatile> {
+    using Type = T;
+};
+
+template<typename T>
+using RemoveVolatile = typename __RemoveVolatile<T>::Type;
+
+// M = int
+using M = RemoveVolatile<int volatile>;
+```
+
+### 判断类型是否为左值引用
+```cpp 
+template<class T>
+inline constexpr bool IsLvalueReference = false;
+
+template<class T>
+inline constexpr bool IsLvalueReference<T&> = true;
+```
+
+### 判断类型是否为右值引用
+```cpp 
+template<class T>
+inline constexpr bool IsRvalueReference = false;
+
+template<class T>
+inline constexpr bool IsRvalueReference<T&&> = true;
+```
+
 ## 使用感受
 ### 视频下载命令行工具
 我使用cpp重构了用nodejs实现的视频下载命令行工具，收获了一些cpp的体验。
