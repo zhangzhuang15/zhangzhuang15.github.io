@@ -1875,6 +1875,12 @@ using RemoveConst = typename __RemoveConst<T>::Type;
 using M = RemoveConst<const int>;
 ```
 
+### 给类型增加const
+```cpp 
+template<class T>
+using AddConst = T const;
+```
+
 ### 擦掉类型中的volatile
 ```cpp 
 template<class T>
@@ -1910,6 +1916,601 @@ inline constexpr bool IsRvalueReference = false;
 
 template<class T>
 inline constexpr bool IsRvalueReference<T&&> = true;
+```
+
+### 判断是否为函数类型
+```cpp 
+template<class>
+inline constexpr bool IsFunction = false;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...)> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...)> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) const> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) const> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) volatile> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) volatile> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) const volatile> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) const volatile> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...)&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...)&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) const&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) const&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) volatile&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) volatile&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) const volatile&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) const volatile&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) &&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) &&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) const&&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) const&&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) volatile&&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) volatile&&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args...) const volatile&&> = true;
+template<class Ret, class... Args>
+inline constexpr bool IsFunction<Ret(Args..., ...) const volatile&&> = true;
+```
+
+### 判断是否为指针
+```cpp 
+template<class T>
+using RemoveCV = RemoveVolatile<RemoveConst<T>>;
+
+template<class T>
+inline constexpr bool __IsPointerHelper = false;
+
+template<class T>
+inline constexpr bool __IsPointerHelper<T*> = true;
+
+template<class T>
+inline constexpr bool IsPointer = __IsPointerHelper<RemoveCV<T>>;
+```
+
+### 获取指针所指向的类型
+```cpp 
+template<class T>
+struct __RemovePointer {
+    using Type = T;
+};
+template<class T>
+struct __RemovePointer<T*> {
+    using Type = T;
+};
+template<class T>
+struct __RemovePointer<T* const> {
+    using Type = T;
+};
+template<class T>
+struct __RemovePointer<T* volatile> {
+    using Type = T;
+};
+template<class T>
+struct __RemovePointer<T* const volatile> {
+    using Type = T;
+};
+template<typename T>
+using RemovePointer = typename __RemovePointer<T>::Type;
+
+// M = int
+using M = RemovePointer<int* const volatile>;
+```
+
+### 判断两个类型是否一样
+```cpp 
+template<typename T, typename U>
+inline constexpr bool IsSame = false;
+
+template<typename T>
+inline constexpr bool IsSame<T, T> = true;
+```
+
+### 判断是否为nullptr
+```cpp 
+template<typename T>
+inline constexpr bool IsNullPointer = IsSame<decltype(nullptr), RemoveCV<T>>;
+```
+
+### 判断是否为void
+```cpp 
+template<class T>
+inline constexpr bool IsVoid = IsSame<void, RemoveCV<T>>;
+```
+
+### 判断是否被const修饰
+```cpp 
+template<class T>
+inline constexpr bool IsConst = false;
+
+template<class T>
+inline constexpr bool IsConst<T const> = true;
+```
+
+### 判断是否为enum
+```cpp 
+template<typename T>
+inline constexpr bool IsEnum = __is_enum(T);
+```
+> __is_enum 是g++编译器提供的特性，由编译器在编译器计算
+
+### 获取enum的底层数据类型
+```cpp 
+template<class T>
+requires(IsEnum<T>) using UnderlyingType = __underlying_type(T);
+
+enum class Status : int { OK, ERROR };
+// StatusType = int;
+using StatusType = UnderlyingType<Status>;
+```
+
+### 判断是否为union 
+```cpp 
+template<typename T>
+inline constexpr bool IsUnion = __is_union(T);
+```
+> __is_union是g++编译器提供的特性，由编译器在编译器计算
+
+### 判断是否为class
+```cpp 
+template<typename T>
+inline constexpr bool IsClass = __is_class(T);
+```
+> __is_class 是g++编译器提供的特性，由编译器在编译器计算
+
+### 判断一个class是否为另一个class的父类
+```cpp 
+template<typename Base, typename Derived>
+inline constexpr bool IsBaseOf = __is_base_of(Base, Derived);
+```
+> __is_base_of 是g++编译器提供的特性，由编译器在编译器计算
+
+### 判断是否为最简单的class或者struct
+```cpp 
+template<typename T>
+inline constexpr bool IsPOD = __is_pod(T);
+
+struct Simple {
+    int x;
+    char y;
+};
+
+struct Complex {
+    virtual void foo() {}
+};
+
+static_assert(IsPOD<Simple>);      // 通过
+static_assert(!IsPOD<Complex>); 
+```
+> __is_pod 是g++编译器提供的特性，由编译器在编译器计算
+
+POD (Plain Old Data) 的意思是：
+- POD类型是最简单的C++类型
+- 可以直接进行内存拷贝
+- 没有虚函数和虚基类
+- 所有非静态成员都是POD类型
+
+### 判断是否为trivial的class或者struct
+```cpp 
+template<typename T>
+inline constexpr bool IsTrivial = __is_trivial(T);
+
+class Simple {};
+class Complex { 
+    Complex() {} 
+};
+
+static_assert(IsTrivial<Simple>);      // 通过
+static_assert(!IsTrivial<Complex>); 
+```
+> __is_trivial 是g++编译器提供的特性，由编译器在编译器计算
+
+trivial 类型指的是：
+- 具有 trivial 默认构造函数
+- 具有 trivial 拷贝构造函数
+- 具有 trivial 赋值运算符
+- 具有 trivial 析构函数
+
+### 判断是否为 trivial copyable 的class或者struct
+```cpp 
+template<typename T>
+inline constexpr bool IsTriviallyCopyable = __is_trivially_copyable(T);
+
+class Simple {
+    int x;
+};
+
+class Complex {
+    std::string str;
+    virtual void foo() {}
+};
+
+static_assert(IsTriviallyCopyable<Simple>);      // 通过
+static_assert(IsTriviallyCopyable<Complex>);
+```
+> __is_trivially_copyable 是g++编译器提供的特性，由编译器在编译器计算
+
+Trivially Copyable 的含义:
+- 表示一个类型可以通过简单的内存拷贝来复制
+- 不需要特殊的拷贝构造函数或赋值运算符
+- 通常用于优化性能，可以使用 memcpy 等函数直接复制
+
+### 判断是否为 trivial constructible 的class或者struct
+```cpp 
+template<typename T, typename... Args>
+inline constexpr bool IsTriviallyConstructible = __is_trivially_constructible(T, Args...);
+
+class Simple {};
+class Complex { 
+    Complex() {} 
+};
+
+static_assert(IsTriviallyConstructible<Simple>);          // true
+static_assert(!IsTriviallyConstructible<Complex>);   
+```
+> __is_trivially_constructible 是g++编译器提供的特性，由编译器在编译器计算
+
+trivial constructible意味着：
+- 不需要执行任何自定义代码
+- 可以被编译器直接生成
+- 通常只是简单的内存复制
+
+### 判断类型是否可以new
+```cpp
+template<typename T>
+auto declval() -> T;
+
+template<typename T, typename... Args>
+inline constexpr bool IsConstructible = requires { ::new T(declval<Args>()...); };
+```
+
+### 判断两个类型之间是否可以转化
+```cpp 
+template<typename T>
+auto declval() -> T;
+
+template<typename From, typename To>
+inline constexpr bool IsConvertible = requires { declval<void (*)(To)>()(declval<From>()); };
+```
+
+### 判断两个类型之间是否可以赋值
+```cpp 
+template<typename T>
+auto declval() -> T;
+
+template<typename T, typename U>
+inline constexpr bool IsAssignable = requires { declval<T>() = declval<U>(); };
+```
+
+### 判断两个类型之间是否可以简单复制
+```cpp 
+template<typename T, typename U>
+inline constexpr bool IsTriviallyAssignable = __is_trivially_assignable(T, U);
+```
+> __is_trivially_assignable 是g++编译器提供的特性，由编译器在编译器计算
+
+简单赋值：不需要自定义赋值运算符，可以直接按位复制
+
+### 判断类型是否可以析构
+```cpp 
+template<typename T>
+auto declval() -> T;
+
+template<typename T>
+inline constexpr bool IsDestructible = requires { declval<T>().~T(); };
+```
+
+### 判断类型是否可以拷贝构造
+```cpp 
+template<typename T>
+inline constexpr bool IsCopyConstructible = IsConstructible<T, AddLvalueReference<AddConst<T>>>;
+```
+
+### 判断类型是否可以拷贝赋值
+```cpp 
+template<typename T>
+inline constexpr bool IsCopyAssignable = IsAssignable<AddLvalueReference<T>, AddLvalueReference<AddConst<T>>>;
+```
+
+### 判断类型是否可以移动构造
+```cpp 
+template<typename T>
+inline constexpr bool IsMoveConstructible = IsConstructible<T, AddRvalueReference<T>>;
+```
+
+### 判断类型是否可以移动赋值
+```cpp 
+template<typename T>
+inline constexpr bool IsMoveAssignable = IsAssignable<AddLvalueReference<T>, AddRvalueReference<T>>;
+```
+
+### 判断一个类型位于一个类型集
+```cpp 
+template<typename T, typename... Ts>
+inline constexpr bool IsOneOf = (IsSame<T, Ts> || ...);
+```
+
+### 获取函数返回值类型或者方法返回值类型
+```cpp 
+template<typename...>
+struct __InvokeResult { };
+
+template<typename MethodDefBaseType, typename MethodType, typename InstanceType, typename... Args>
+struct __InvokeResult<MethodType MethodDefBaseType::*, InstanceType, Args...> {
+    using type = decltype((
+        declval<InstanceType>()
+        .*declval<MethodType MethodDefBaseType::*>())(declval<Args>()...));
+};
+
+template<typename F, typename... Args>
+struct __InvokeResult<F, Args...> {
+    using type = decltype((declval<F>())(declval<Args>()...));
+};
+
+template<typename F, typename... Args>
+using InvokeResult = typename __InvokeResult<F, Args...>::type;
+
+class Test {
+    int foo(int x) { return x; }
+};
+
+// 成员函数返回类型
+using RetType1 = InvokeResult<int (Test::*)(int), Test&, int>; // int
+
+// 普通函数返回类型
+using RetType2 = InvokeResult<int(*)(int), int>; // int
+```
+
+### 获取等价的函数类型
+```cpp 
+template<typename Callable>
+struct EquivalentFunctionTypeImpl;
+
+template<template<typename> class Function, typename T, typename... Args>
+struct EquivalentFunctionTypeImpl<Function<T(Args...)>> {
+    using Type = T(Args...);
+};
+
+template<typename T, typename... Args>
+struct EquivalentFunctionTypeImpl<T(Args...)> {
+    using Type = T(Args...);
+};
+
+template<typename T, typename... Args>
+struct EquivalentFunctionTypeImpl<T (*)(Args...)> {
+    using Type = T(Args...);
+};
+
+template<typename L>
+struct EquivalentFunctionTypeImpl {
+    using Type = typename EquivalentFunctionTypeImpl<decltype(&L::operator())>::Type;
+};
+
+template<typename T, typename C, typename... Args>
+struct EquivalentFunctionTypeImpl<T (C::*)(Args...)> {
+    using Type = T(Args...);
+};
+
+template<typename T, typename C, typename... Args>
+struct EquivalentFunctionTypeImpl<T (C::*)(Args...) const> {
+    using Type = T(Args...);
+};
+
+template<typename Callable>
+using EquivalentFunctionType = typename EquivalentFunctionTypeImpl<Callable>::Type;
+
+// 假设有函数指针类型
+using FuncPtr = int (*)(double, char);
+
+// 使用这个特化后，可以获得对应的函数类型
+using FuncType = EquivalentFunctionTypeImpl<FuncPtr>::Type;
+// FuncType 将是 int(double,char)
+
+auto lambda = [](int x) { return x * 2; };
+using ActualType = EquivalentFunctionTypeImpl<decltype(lambda)>::Type;
+// ActualType 将是 int(int)
+```
+
+### 判断是否为整数类型
+```cpp 
+template<typename T>
+inline constexpr bool __IsIntegral = false;
+
+template<>
+inline constexpr bool __IsIntegral<bool> = true;
+template<>
+inline constexpr bool __IsIntegral<unsigned char> = true;
+template<>
+inline constexpr bool __IsIntegral<char8_t> = true;
+template<>
+inline constexpr bool __IsIntegral<char16_t> = true;
+template<>
+inline constexpr bool __IsIntegral<char32_t> = true;
+template<>
+inline constexpr bool __IsIntegral<unsigned short> = true;
+template<>
+inline constexpr bool __IsIntegral<unsigned int> = true;
+template<>
+inline constexpr bool __IsIntegral<unsigned long> = true;
+template<>
+inline constexpr bool __IsIntegral<unsigned long long> = true;
+
+template<typename T>
+inline constexpr bool IsIntegral = __IsIntegral<MakeUnsigned<RemoveCV<T>>>;
+```
+
+### 判断是否为浮点数类型
+```cpp 
+template<typename T>
+inline constexpr bool __IsFloatingPoint = false;
+template<>
+inline constexpr bool __IsFloatingPoint<float> = true;
+template<>
+inline constexpr bool __IsFloatingPoint<double> = true;
+template<>
+inline constexpr bool __IsFloatingPoint<long double> = true;
+template<>
+inline constexpr bool __IsFloatingPoint<f16> = true;
+
+template<typename T>
+inline constexpr bool IsFloatingPoint = __IsFloatingPoint<RemoveCV<T>>;
+```
+
+### 获取左值引用或者右值引用所指代的类型
+```cpp 
+template<typename T>
+struct __RemoveReference {
+    using Type = T;
+};
+template<class T>
+struct __RemoveReference<T&> {
+    using Type = T;
+};
+template<class T>
+struct __RemoveReference<T&&> {
+    using Type = T;
+};
+
+template<typename T>
+using RemoveReference = typename __RemoveReference<T>::Type;
+```
+
+### 获取两个类型的公共类型
+```cpp 
+template<typename T>
+auto declval() -> T;
+
+template<typename...>
+struct __CommonType;
+
+template<typename T>
+struct __CommonType<T> {
+    using Type = T;
+};
+
+template<typename T1, typename T2>
+struct __CommonType<T1, T2> {
+    using Type = decltype(true ? declval<T1>() : declval<T2>());
+};
+
+template<typename T1, typename T2, typename... Ts>
+struct __CommonType<T1, T2, Ts...> {
+    using Type = typename __CommonType<typename __CommonType<T1, T2>::Type, Ts...>::Type;
+};
+
+template<typename... Ts>
+using CommonType = typename __CommonType<Ts...>::Type;
+```
+
+### 三元条件取类型
+```cpp 
+template<bool condition, class TrueType, class FalseType>
+struct __Conditional {
+    using Type = TrueType;
+};
+
+template<class TrueType, class FalseType>
+struct __Conditional<false, TrueType, FalseType> {
+    using Type = FalseType;
+};
+
+template<bool condition, class TrueType, class FalseType>
+using Conditional = typename __Conditional<condition, TrueType, FalseType>::Type;
+
+// M = int
+using M = Conditional<true, int, float>;
+// N = float
+using N = Conditional<false, int, float>;
+```
+
+### 编译期的特定类型序列
+```cpp 
+template<typename T, T... Ts>
+struct IntegerSequence {
+    using Type = T;
+    static constexpr unsigned size() noexcept { return sizeof...(Ts); }
+};
+
+IntegerSequence<int, 1, 0, 1, 1, 20> seq;  // 创建一个整数序列
+static_assert(seq.size() == 5); 
+```
+
+### 给类型增加左值引用或者右值引用
+```cpp 
+template<typename...>
+using VoidType = void;
+
+template<typename T, typename = void>
+struct __AddReference {
+    using LvalueType = T;
+    using TvalueType = T;
+};
+
+template<typename T>
+struct __AddReference<T, VoidType<T&>> {
+    using LvalueType = T&;
+    using RvalueType = T&&;
+};
+
+template<typename T>
+using AddLvalueReference = typename __AddReference<T>::LvalueType;
+
+template<typename T>
+using AddRvalueReference = typename __AddReference<T>::RvalueType;
+
+// M = int&
+using M = AddLvalueReference<int>;
+
+// N = int&&
+using N = AddRvalueReference<int>;
+
+// K = void
+using K = AddRvalueReference<void>;
+```
+
+### 编译期类型size的检查
+```cpp 
+template<class T, T v>
+struct IntegralConstant {
+    static constexpr T value = v;
+    using ValueType = T;
+    using Type = IntegralConstant;
+    constexpr operator ValueType() const { return value; }
+    constexpr ValueType operator()() const { return value; }
+};
+
+using TrueType = IntegralConstant<bool, true>;
+
+template<typename T, unsigned ExpectedSize, unsigned ActualSize>
+struct __AssertSize : TrueType {
+    static_assert(ActualSize == ExpectedSize,
+        "actual size does not match expected size");
+
+    consteval explicit operator bool() const { return value; }
+};
+
+template<typename T, unsigned ExpectedSize>
+using AssertSize = __AssertSize<T, ExpectedSize, sizeof(T)>;
+
 ```
 
 ## 使用感受
