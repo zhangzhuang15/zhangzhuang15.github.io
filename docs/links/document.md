@@ -214,3 +214,8 @@ This is an online book helping you learn computer graphics.
 [前往](https://oi-wiki.org/ds/bplus-tree/)
 
 介绍众多数据结构的博客网站，比如笛卡尔树、替罪羊树、左偏红黑树、B++树、B树、线段树、划分树等等。
+
+## Linux from Scratch
+[前往](https://www.linuxfromscratch.org/lfs/view/stable/chapter02/hostreqs.html)
+
+从0开始教你如何编译linux项目，在编译的过程中，顺便教你linux的内容

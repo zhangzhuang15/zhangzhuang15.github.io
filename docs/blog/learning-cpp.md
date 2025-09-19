@@ -2531,4 +2531,24 @@ using AssertSize = __AssertSize<T, ExpectedSize, sizeof(T)>;
 
 一句话总结下，用cpp编写程序，心力憔悴，狠狠用Rust就可以了。
 
+### 聊聊cpp项目管理
+以 ladybird 项目为代表的cpp项目，采用 cmake 作为构建工具，生成 ninja/make 的构建配置脚本，然后通过 ninja/make 启动构建，生成最后的二进制文件。没错，cmake不会直接启动构建，而是生成指定构建工具所需要的一切。这就类似于有一套命令行工具，直接生成vite/webpack的配置，然后 vit/webpack 启动后读取配置，开始构建项目。
+
+cpp没有官方的库管理工具，比较热门的就是微软的vcpkg工具，使用它的时候，需要下载其github源码到本地。我们所说的cmake、vcpkg，都有对应的vscode插件支持。最让人头疼的是cpp源码的include问题，你什么都不配置的话，用vscode/zed这样的编辑器打开cpp文件之后，肯定是报错的，说是找不到有关路径。
+
+在这里，我推荐使用vscode中的`clangd`插件和`clang-format`插件，而不是微软官方的`c/c++`插件，这是因为二者功能都一样，clangd不要求你做很多配置，使用范围更广，而新兴的编辑器，比如zed，都是内置clangd的language server，这是一种流行趋势。从插件的表现效果看，clangd也更胜一筹，cpp相关的API都有不错的类型、注释提示，更美观，更舒服。
+
+clangd默认会寻找项目根目录下的`.clangd`文件，从中得知include路径的配置信息，这样include路径不会报错了。以 ladybird 为例，它有`.clangd`文件：
+```txt 
+CompileFlags:
+  CompilationDatabase: Build/release
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+```
+`Build/release`的意思是，告诉clangd用`Build/release/compile_commands.json`的配置信息，作为g++编译器的配置。这个配置文件，就有关于include path的设置，帮助clangd锁定头文件的位置，避免找不到而报错。但是，这个文件不是手写的，一开始连Build目录都没有，ladybird要求先执行一个shell脚本，这个脚本会生成Build文件夹下的一切。
+
+zed编辑器更轻量，很多功能开箱即用，但生态还很年轻，部分文件类型的高亮还不支持，比如 `CMakeLists.txt`，vscode在此更胜一筹。
+
 <Giscus />
