@@ -347,6 +347,14 @@ export default defineConfig({
               link: "/blog/swift-package-manager"
             },
             {
+              text: '结合实际经验，聊聊函数式编程和面向对象编程',
+              link: '/blog/functional-and-object-programming'
+            },
+            {
+              text: '速览：几种编程语言的容器类型',
+              link: '/blog/collection-intro'
+            },
+            {
               text: "C++和Rust在值拷贝方面的一些思考",
               link: "/blog/cpp-rust"
             },
@@ -415,10 +423,6 @@ export default defineConfig({
               link: '/blog/rust-zig-go'
             },
             {
-              text: 'Start with Zig',
-              link: '/blog/zig',
-            },
-            {
               text: 'Tauri',
               link: '/blog/tauri',
             },
@@ -429,6 +433,10 @@ export default defineConfig({
             {
               text: 'VSCode Extension Develop',
               link: '/blog/vscode-extension-develop'
+            },
+            {
+              text: 'Map Concept: H3',
+              link: '/blog/h3'
             },
             {
               text: "博客文章阅读系列",

@@ -950,4 +950,71 @@ function validateConditionally() {}
 function tryValidate() {}
 ```
 
+## 如何解决输入法对`<input>`的影响
+往`<input>`输入中文的时候，因为输入法的缘故，会先往里边输入拼音字母，按下回车键的时候，才会输入中文，我们想忽略输入拼音字母，可以这样做：
+```js 
+let isCompositing = false;
+
+inputElement.addEventListener('compositionstart', () => {
+  isCompositing = true;
+});
+
+inputElement.addEventListener('compositionend', () => {
+  isCompositing = false;
+});
+
+inputElement.addEventListener('input', () => {
+  if (isCompositing) return;
+
+  // 上层收到的是中文，而不是拼音
+  onChange(inputElement.value);
+});
+```
+refer:
+1. [input输入中文，高频出发onchange和oninput | CSDN](https://blog.csdn.net/weixin_44058725/article/details/134072159)
+2. [CompositionEvent | MDN](https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent)
+
+## 如果实现拖拽
+npm社区已经有很多库实现了拖拽功能，开箱直接用，比如 sortablejs。但这些库有局限性，比如只支持列表的拖拽，或者只能由一个地方拖拽到另外一个地方，如果要完成任意一个地方的东西，拖拽到另外一个地方，实现起来反而不轻松。这个时候，就要使用html5原生的Drop and Drag API了。方法如下：
+
+对于可以被Drag的元素，要设置draggable属性和dragstart事件：
+```html 
+<div draggable="true" ondragstart="dragStartHandler"></div>
+```
+
+对于元素可以Drop的区域，要绑定drop事件和dragover事件：
+```html 
+<div class="drop-area" ondrop="dropHandler" ondragover="dragoverHandler"></div>
+```
+
+在`dragStartHandler`中，记录被拖拽对象有关的信息；在`dropHandler`中，读取记录的信息，更新Drop区域，比如生成一个和拖拽对象一模一样的元素。
+
+```js 
+function dragStartHandler(e) {
+  e.dataTransfer.setData("text", e.target.id);
+  if (e.dataTransfer) {
+     e.dataTransfer.effectAllowed = "copy";
+  }
+}
+
+function dragoverHandler(e) {
+  e.preventDefault();
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = "copy";
+  }
+}
+
+function dropHandler(e) {
+  e.preventDefault();
+  const id = e.dataTransfer.getData("text");
+  const node = document.getElementById(id);
+  e.target.appendChild(node);
+}
+```
+> `effectAllowed` 和 `dropEffect` 会影响拖拽行为，二者如果设置的值
+> 不一致，则拖拽行为会被阻止。另外，设置 "copy" 或者 "move"的时候，释放鼠标时，鼠标长得样子也不同，这个是浏览器自动控制的。
+> [dropEffect | MDN](https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/dropEffect)
+
+[HTML Drag and Drop API | MDN](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)
+
 <Giscus />

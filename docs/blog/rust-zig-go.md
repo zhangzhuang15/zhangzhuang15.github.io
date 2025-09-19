@@ -67,7 +67,7 @@ Many API of Go standard library inherits from style of C. It makes Go similiar w
 ### Conclusion
 Rust =  C + module management + safety check + super great developing experience + neat project structure + advanced friendly abstraction. Rust is more academic and systematic.
 
-Zig = C + module management + improved memory management + great developing experience + neat project structure. Zig looks like perfect C.
+Zig = C + module management + improved memory management + great developing experience + neat project structure. Zig looks like perfect C, however you're still careful.
 
 Go = C + module management + GC + great developing experience + neat project structure. Go looks like application C.
 
@@ -386,7 +386,7 @@ In TIOBE, cpp takes up second or third spot, but it doesn't mean that cpp is bet
 
 Linus said cpp was bullshit, it's not true. It's bullshit if you use cpp in a wrong way, and that says you have to follow code style and rules seriously. Last not but least, you can't hold safety and speed at the same time.
 
-## Hello World Cmparing 
+## Hello World Comparing 
 There're "hello world" programs written by c, cpp, zig and rust, and here are the size.
 
 | language | size | compile |
@@ -395,7 +395,7 @@ There're "hello world" programs written by c, cpp, zig and rust, and here are th
 | cpp | 39KB | g++ main.cc -std=c++20 -o main |
 | zig(debug mode) | 861KB | zig build-exe main.zig |
 | rust(debug mode)| 439KB | cargo build |
-| zig(release-fast mode)| 50KB | zig build-ext -O ReleaseFast main.zig |
+| zig(release-fast mode)| 50KB | zig build-exe -O ReleaseFast main.zig |
 | rust(release mode)| 405KB | cargo build --release |
 | rust(release mode and prefer dynamic)| 49KB | RUSTFLAGS="-C prefer-dynamic" cargo build --release |
 
@@ -439,3 +439,12 @@ fn main() {
 }
 ```
 :::
+
+## Name Mangle
+| language | has name mangle | how to ignore name mangle |
+|:--:|:--:|:--:|
+| Rust | ✅ | `extern "C" fn ` |
+| Go | ✅ | cgo with `export` comment |
+| Zig | ✅ | `export fn` |
+| Cpp | ✅ | `extern "C"`|
+| C | ❌ ||

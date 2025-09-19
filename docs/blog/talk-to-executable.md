@@ -281,10 +281,10 @@ gcc -shared -o libexample.so.1.0 source.c -Wl,-soname,libexample.so.1
 ## 查看可执行程序
 可执行程序也是一种文件，但它比较特殊，无法像一般的文本文件查看，需要用专门的工具查看。
 
-- **nm**: 查看可执行程序的符号表
-- **objdump**: 查看目标文件或者可执行文件的工具，常用于linux, macOS上也有
+- **nm**: 查看可执行程序的符号表。**查看有哪些函数**。
+- **objdump**: 查看目标文件或者可执行文件的工具，常用于linux, macOS上也有。**查看汇编代码**
 - **readelf**: 查看类型为elf格式的可执行文件，常用于linux
-- **otool**: 查看macOS可执行文件和目标文件
+- **otool**: 查看macOS可执行文件和目标文件。**查看链接了哪些静态库或者动态库**
 
 接下来给出一些示例, 在直观上有些感知。
 
@@ -616,6 +616,7 @@ output:
 main:
         /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)
 ```
+> macOS平台，gcc编译代码的时候，默认会链接libSystem.B.dylib，这个动态库里包含了c标准函数的实现，已经类unix常用的系统调用的c函数封装。因此，在编写c代码的时候，你只需要引入指定的头文件，就可以使用大部分常用的操作系统能力。但是对于特定能力的使用，你仍然需要在编译的时候，为gcc手动指定要链接的库名，比如你在使用posix多线程库的时候，就需要指定`-lpthread`。
 
 ### 查看可执行文件的text section
 ```shell 
