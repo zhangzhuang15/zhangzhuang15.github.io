@@ -23,7 +23,7 @@ int main() {
 
 好了，现在我们能直接发送ip报文，可这有什么用呢？因为你可以随便玩弄ip数据报的payload部分。
 
-试想一下，我们发送的tcp报文，无非就是遵从tcp报文的格式，然后塞进ip数据报的payload，然后发送出去，由另外一方提取、解析。如果，我们自己定义了一套格式，不再是tcp报文这种格式，并且对数据加密，加密方式只有我们知道，这种报文一旦发送出去了，另一侧只有安装好我们预先写出来的程序才能解析。这种感觉像什么呢？没错，专用通道！VPN、隧道技术、加速软件，就是靠这种思路。
+试想一下，我们发送的tcp报文，无非就是遵从tcp报文的格式，然后被塞进ip数据报的payload，然后发送出去，由另外一方提取、解析。如果，我们自己定义了一套格式，不再是tcp报文这种格式，并且对数据加密，加密方式只有我们知道，这种报文一旦发送出去了，另一侧只有安装好我们预先写出来的程序才能解析。这种感觉像什么呢？没错，专用通道！VPN、隧道技术、加速软件，就是靠这种思路。
 
 ## tun设备
 使用`socket`虽然可以直接发送ip报文，但是这还不够。如果你开启了VPN，你访问网页的时候，就会触发ip数据报的发送，而这些ip数据报会先被VPN程序拦截，稍作处理之后，再发送出去。关键点在于，我们如何拦截这些ip数据报。`socket`只提供给我们发送、接收ip数据报的能力，但是没有给我们拦截电脑上其他程序发送和接收数据报的能力。
@@ -186,6 +186,7 @@ libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所
 - SOCK_STREAM：流式套接字（TCP）
 - SOCK_DGRAM：数据报套接字（UDP）
 - SOCK_RAW：原始套接字（可自定义协议头）
+> 如果你的程序使用了`SOCK_RAW`，执行程序的时候，需要sudo命令加持
 
 3. 第三个参数：protocol（协议）
 第三个参数决定具体用什么协议。通常直接填 0，表示根据前两个参数自动选择合适的协议。有时你需要显式指定，如：
@@ -205,12 +206,12 @@ libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所
 |domain|type|protocol|意义|
 |:--:|:--:|:--:|:--:|
 |AF_INET|SOCK_STREAM|0 或 IPPROTO_TCP|IPv4 TCP套接字|
-｜AF_INET	｜SOCK_DGRAM	｜0 或 IPPROTO_UDP	｜IPv4 UDP套接字｜
-｜AF_INET	｜SOCK_RAW	｜IPPROTO_ICMP	｜IPv4 原始ICMP套接字｜
-｜AF_INET	｜SOCK_RAW	｜IPPROTO_RAW	｜IPv4 原始套接字（自定义IP头）｜
-｜AF_PACKET	｜SOCK_RAW	｜htons(ETH_P_ALL)	｜Linux下抓包｜
-｜AF_UNIX	｜SOCK_STREAM	｜0	｜本地流套接字｜
-｜AF_INET6	｜SOCK_DGRAM	｜0 或 IPPROTO_UDP	｜IPv6 UDP套接字｜
+|AF_INET	|SOCK_DGRAM	|0 或 IPPROTO_UDP	|IPv4 UDP套接字|
+|AF_INET	|SOCK_RAW	|IPPROTO_ICMP	|IPv4 原始ICMP套接字|
+|AF_INET	|SOCK_RAW	|IPPROTO_RAW	|IPv4 原始套接字（自定义IP头）|
+|AF_PACKET	|SOCK_RAW	|htons(ETH_P_ALL)	|Linux下抓包|
+|AF_UNIX	|SOCK_STREAM	|0	|本地流套接字|
+|AF_INET6	|SOCK_DGRAM	|0 或 IPPROTO_UDP	|IPv6 UDP套接字|
 
 ### 用socket抓包
 AF_PACKET 允许你直接收发以太网帧（包括所有协议类型的数据包），三个参数的典型搭配如下：
@@ -399,3 +400,23 @@ int main() {
     return 0;
 }
 ```
+> 这段代码在macOS上已经试了，可以成功执行，要留意的是，需要使用sudo执行
+
+### TCP 和 SOCK_STREAM 
+TCP是一种协议， SOCK_STREAM 是套接字处理数据报文的一种方式。
+
+SOCK_STREAM必须实现如下特性：
+- 面向连接（Connection-oriented）
+- 可靠传输（Reliable）
+- 有序交付（Ordered delivery）
+- 流量控制（Flow control）
+- 拥塞控制（Congestion control）
+
+SOCK_STREAM 可不能一个人完成上述特性，它必须从数据报中，解析出必要的信息，比如时间参数、包序号等等，根据这些信息，完成一系列的控制，进而实现上述特性。而TCP协议的数据报中，恰巧提供了这些信息。但是，如果有另外一种协议，也能提供这些信息，只是信息字段不同，SOCK_STREAM 的解析逻辑里，只要适配了这个协议，就可以。但实际情况是，现在只有TCP协议是这样。因此，当你使用SOCK_STREAM的时候，操作系统默认就是采用TCP协议。
+
+既然只有TCP协议满足要求，为什么多次一举搞出来一个SOCK_STREAM呢？这是为了拓展，现在是只有TCP协议满足，未来如果有另外一种协议满足，只需要拓展SOCK_STREAM的代码即可，不用改动 `socket` API 格式。
+
+### TCP，ICMP和IP
+TCP和ICMP的数据报都要装进IP数据报的payload，TCP和ICMP之间，没有包含关系。更重要的区别在于，TCP走的是SOCK_STREAM, ICMP走的是SOCK_RAW。上一节提到的SOCK_STREAM的特性，SOCK_RAW没有。如果你指定了socket走TCP协议后，就不能再指定走ICMP协议了。于是，你给socket设置SOCK_STREAM+ICMP协议，或者SOCK_RAW+TCP协议，都是非法的。
+
+我们常说的IP+端口号确定一个进程，IP号是IP数据报报头的概念，端口号是TCP/UDP协议数据报报头的概念，二者不要混淆。换言之，如果你发送ICMP数据报，就只有IP号的概念，没有端口号的概念。
