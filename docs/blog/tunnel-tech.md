@@ -26,11 +26,11 @@ int main() {
 试想一下，我们发送的tcp报文，无非就是遵从tcp报文的格式，然后被塞进ip数据报的payload，然后发送出去，由另外一方提取、解析。如果，我们自己定义了一套格式，不再是tcp报文这种格式，并且对数据加密，加密方式只有我们知道，这种报文一旦发送出去了，另一侧只有安装好我们预先写出来的程序才能解析。这种感觉像什么呢？没错，专用通道！VPN、隧道技术、加速软件，就是靠这种思路。
 
 ## tun设备
-使用`socket`虽然可以直接发送ip报文，但是这还不够。如果你开启了VPN，你访问网页的时候，就会触发ip数据报的发送，而这些ip数据报会先被VPN程序拦截，稍作处理之后，再发送出去。关键点在于，我们如何拦截这些ip数据报。`socket`只提供给我们发送、接收ip数据报的能力，但是没有给我们拦截电脑上其他程序发送和接收数据报的能力。
+使用`socket`虽然可以直接发送ip报文，但是这还不够。如果你开启了VPN，你访问网页的时候，就会触发ip数据报的发送，而这些ip数据报会先被VPN程序拦截，稍作处理之后，再发送出去。关键点在于，我们如何拦截这些ip数据报。`socket`只提供给我们发送、接收ip数据报, 发送、接收ethernet frame的能力，但是没有给我们拦截电脑上其他程序发送和接收数据报的能力。
 
-为了实现这一点，我们就要介绍`tun设备`了。`tun设备`不是一个物理设备，不会出现在你的主板上边，它是Linux 下的一种虚拟网络设备，。通常用来实现三层（IP 层）的隧道。向 tun 设备写入的数据，必须是完整的 IP 数据包（二层头不用，三层头起步）。也就是说，你写入的数据应该是以 IP 头开始的，后面跟着完整的 IP payload。
+为了实现这一点，我们就要介绍`tun设备`了。`tun设备`不是一个物理设备，不会出现在你的主板上边，它是Linux 下的一种虚拟网络设备,通常用来实现三层（IP 层）的隧道。向 tun 设备写入的数据，必须是完整的 IP 数据包（二层头不用，三层头起步）。也就是说，你写入的数据应该是以 IP 头开始的，后面跟着完整的 IP payload。
 
-当创建一个`tun设备`后，你就可以像读写文件一样，读写`tun设备`。当你的应用程序往`tun设备`写入一些数据，在操作系统眼里，就相当于从外界接收到了ip数据报。当你的应用程序读取`tun设备`的时候，读取的就是一个ip数据报。
+**这里很重要**：当创建一个`tun设备`后，相当于创建一个虚拟网卡，你就可以像读写文件一样，读写`tun设备`。当你的应用程序往`tun设备`写入一些数据，就是把ip数据报发送到虚拟网卡，操作系统会根据路由规则，决定是ip数据报的去向（发送出去，转发到别的虚拟网卡，本地网络回环处理）。当你的应用程序读取`tun设备`的时候，读取的就是一个ip数据报。
 
 
 ```c 
@@ -60,6 +60,47 @@ int tun_alloc(char *dev)
 > 默认情况下，TUN/TAP 设备每读写一次数据，操作系统会在每个包前加上 4 字节的“包信息（Packet Information, PI）”：
 > 这 4 字节里，主要包含协议类型（IPv4/IPv6）、一些标志。
 > 如果设置了 IFF_NO_PI，tun设备读出来的数据就是纯粹的 IP 数据包，没有这 4 字节头；tap设备读出来的数据就是纯粹的数据链路层数据报。
+> tun设备接收和返回的是网络层的数据包 ip packet, 数据链路层的包 ethernet frame 需要使用 tap 设备读取。
+
+:::tip <TipIcon />
+```c 
+/*
+ * Taken from Kernel Documentation/networking/tuntap.txt
+ */
+int tun_alloc(char *dev)
+{
+    struct ifreq ifr;
+    int fd, err;
+
+    if( (fd = open("/dev/net/tap", O_RDWR)) < 0 ) {
+        print_error("Cannot open TUN/TAP dev");
+        exit(1);
+    }
+
+    CLEAR(ifr);
+
+    /* Flags: IFF_TUN   - TUN device (no Ethernet headers)
+     *        IFF_TAP   - TAP device
+     *
+     *        IFF_NO_PI - Do not provide packet information
+     */
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+    if( *dev ) {
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    }
+
+    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+        print_error("ERR: Could not ioctl tun: %s\n", strerror(errno));
+        close(fd);
+        return err;
+    }
+
+    strcpy(dev, ifr.ifr_name);
+    return fd;
+}
+```
+代码取自文章[Let's code a TCP/IP stack, 1: Ethernet & ARP](https://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/)
+:::
 
 tun设备有了，说好的ip数据报拦截呢？
 
@@ -135,8 +176,6 @@ int main() {
 
 这种是有应用场景的，比如网络加速器。网络加速器程序在启动之后，可以设置好系统的http代理，然后启动一个监听服务器，将所有http报文转发给加速服务器。这些加速服务器在网络加速服务器上的表现，就是各个优质站点的配置、选择，比如香港的站点服务器、东京的站点服务器。
 
-
-
 ## wireshark般的抓包
 无论是tun设备，还是http流量代理，我们都要写个监听程序，还要给出一些设置，才能截获电脑上的ip数据报。那有没有一种方式，不需要配置，直接就能截获电脑上的ip数据报呢？
 
@@ -169,6 +208,24 @@ libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所
 
 不会！防火墙只允许符合规则的数据包通过，其他包会被丢弃或拒绝。比如很多企业防火墙会禁止 P2P、游戏、ICMP（ping）等协议。
 
+## arp
+arp, address resolution protocol, 用来发送arp数据包，查询某个ip地址的mac地址。
+
+你要知道，arp协议和ip协议是同层次的，这意味着我们发送的数据报不再是ip数据报，而是ethernet frame。按照arp协议准备好数据报后，将它填入到ethernet frame的payload处，并设置好ethernet frame的header信息，发送完ethernet frame，就相当于发送出一条ip查询请求。然后，我们监听返回值，解析arp数据报返回值，就能拿到ip地址对应的mac地址了。
+
+话虽然简单，但是该如何实现呢？
+
+一种方式是，使用`socket`编程。给socket配置`AF_PACKET`和`SOCK_RAW`, 我们就可以直接发送ethernet frame了。但这里并不想展开解释。
+
+要说的是另外一个方式，利用tap设备。在上边介绍tun设备的时候，我们已经简单介绍过如何创建一个tap设备了。在建立好tap设备后，我们仍旧需要为这个设备分配ip地址，设置路由转发配置。
+
+我们在读取tap设备的环节，获取到返回的arp数据报，从中得知ip地址对应的mac地址。
+
+而发送查询请求，我们在写入tap设备的环节搞定。在arp数据报，我们填入本机的ip地址和mac地址作为源IP和源MAC，然后在目的IP地址填入待查询的IP地址，目的MAC地址空着就行，最后把这个arp数据报写入tap设备即可。
+
+这里解释一下，为什么写入到tap设备后，数据就被发送出去了。我们在给tap设备设置路由的时候，待查询的IP地址并不在路由的子网设置，因此写入tap设备的数据，会根据系统默认的路由设置，发送给en0(WIFI网卡)，进而通过WI-FI发送出去。
+
+关于ARP的更多细节，可以阅读[lets-code-tcp-ip-stack-1-ethernet-arp](http://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp)及其[源码](https://github.com/saminiir/level-ip)
 
 ## 更罕见的socket用法
 ### socket的三个入参搭配
@@ -400,7 +457,8 @@ int main() {
     return 0;
 }
 ```
-> 这段代码在macOS上已经试了，可以成功执行，要留意的是，需要使用sudo执行
+> 这段代码在macOS上已经试了，可以成功执行，要留意的是，需要使用sudo执行；
+> 这段代码抓取的是数据链路层的包，ethernet frame.
 
 ### TCP 和 SOCK_STREAM 
 TCP是一种协议， SOCK_STREAM 是套接字处理数据报文的一种方式。

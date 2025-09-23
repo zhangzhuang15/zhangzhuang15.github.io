@@ -2199,6 +2199,157 @@ int main() {
 }
 ```
 
+### Create Unix IPC
+```c 
+#include <socket.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+char *sockname = "/tmp/lvlip.socket";
+
+void server()
+{
+    int fd, rc, datasock;
+    struct sockaddr_un un;
+
+    unlink(sockname);
+    
+    if (strnlen(sockname, sizeof(un.sun_path)) == sizeof(un.sun_path)) {
+        // Path is too long
+        printf("Path for UNIX socket is too long\n");
+        exit(-1);
+    }
+        
+    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        perror("IPC listener UNIX socket");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&un, 0, sizeof(struct sockaddr_un));
+    un.sun_family = AF_UNIX;
+    strncpy(un.sun_path, sockname, sizeof(un.sun_path) - 1);
+
+    // this will create a sock file
+    rc = bind(fd, (const struct sockaddr *) &un, sizeof(struct sockaddr_un));
+  
+    if (rc == -1) {
+        perror("IPC bind");
+        exit(EXIT_FAILURE);
+    }
+
+    rc = listen(fd, 20);
+
+    if (rc == -1) {
+        perror("IPC listen");
+        exit(EXIT_FAILURE);
+    }
+
+    if (chmod(sockname, S_IRUSR | S_IWUSR | S_IXUSR |
+              S_IRGRP | S_IWGRP | S_IXGRP |
+              S_IROTH | S_IWOTH | S_IXOTH) == -1) {
+        perror("Chmod on lvl-ip IPC UNIX socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    for (;;) {
+        datasock = accept(fd, NULL, NULL);
+        if (datasock == -1) {
+            perror("IPC accept");
+            exit(EXIT_FAILURE);
+        }
+
+        // reply to the other process with writing something
+        // to datasock.
+    }
+
+    // don't forget to remove fd and delete sock file
+    close(fd);
+    unlink(sockname);
+
+    return NULL;
+}
+
+void client() {
+    int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd < 0) {
+        printf("failed to create socket");
+        return;
+    }
+
+    connect(fd, sockname);
+
+    // send somthing to server with send(fd)
+
+    close(fd);
+}
+```
+
+### Ethernet Frame Layout
+If you intend to send ethernet frame, you should follow its layout:
+```c 
+struct eth_hdr
+{
+    uint8_t  dmac[6];
+    uint8_t  smac[6];
+    uint16_t ethertype;
+    uint8_t  payload[];
+} __attribute__((packed));
+```
+- dmac: mac address of destination
+- smac: mac address of source
+- ethertype: which protocol, arp/ipv4/ipv6
+- payload: arp packet or ip packet
+
+By the way, take a look at ip packet:
+```c 
+struct iphdr {
+    uint8_t ihl : 4;
+    uint8_t version : 4;
+    uint8_t tos;
+    uint16_t len;
+    uint16_t id;
+    uint16_t frag_offset;
+    uint8_t ttl;
+    uint8_t proto;
+    uint16_t csum;
+    uint32_t saddr;
+    uint32_t daddr;
+    uint8_t data[];
+} __attribute__((packed));
+```
+- saddr: ip address of source;
+- daddr: ip address of destination;
+- data: icmp packet, tcp packet or udp packet;
+
+Here is arp packet:
+```c 
+struct arp_hdr {
+    uint16_t hwtype;
+    uint16_t protype;
+    uint8_t hwsize;
+    uint8_t prosize;
+    uint16_t opcode;
+    unsigned char data[];
+} __attribute__((packed));
+```
+- hwtype: `ARP_ETHERNET` as default
+- protype: IPV4 protocol
+- hwsize: 6
+- prosize: 4, if protype is IPV4 protocol
+- opcode: `ARP_REQUEST` for arp request; `ARP_REPLY` for arp reply;
+- data: if protype is OPV$ protocol, it looks like:
+    ```c
+    struct arp_ipv4 {
+        unsigned char smac[6];
+        uint32_t sip;
+        unsigned char dmac[6];
+        uint32_t dip;
+    } __attribute__((packed));
+    ```
+    if you ask for mac address of ip, fill in smac, sip and dip, and send arp packet.
+
 ### Terminal IO and Raw mode
 Enable raw mode.
 ```c  
@@ -2546,6 +2697,28 @@ int main() {
 }
 ```
 
+### Sync Thread with RWLock
+```c 
+#include <pthread.h>
+
+static pthread_rwlock_t rwlock = PTHREAD_RWLOCK_INITIALIZER;
+int count = 10;
+
+void do_write() {
+    pthread_rwlock_wrlock(&rwlock);
+    count += 10;
+    pthread_rwlock_unlock(&rwlock);
+}
+
+int do_read() {
+    int result = 0;
+    pthread_rwlock_rdlock(&rwlock);
+    result = count;
+    pthread_rwlock_unlock(&rwlock);
+    return result;
+}
+```
+
 ### Sync Thread with Semphore
 
 ### Sync Thread with Condition Var
@@ -2556,56 +2729,44 @@ int main() {
 #include <stdlib.h>
 #include <sys/syscall.h>
 
-int a = 10;
+struct wait_lock {
+    pthread_cond_t ready;
+    pthread_mutex_t lock;
+    uint8_t sleeping;
+};
 
-pthread_cond_t cond;
-pthread_mutex_t mutex;
-
-void* entry(void* n) {
-    pthread_mutex_lock(&mutex);
-    if (a < 20) {
-        pthread_cond_wait(&cond, &mutex);
-    }
-    a += 100;
-    pthread_mutex_unlock(&mutex);
-    return NULL;
-}
-
-
-void* entry2(void* n) {
-    pthread_mutex_lock(&mutex);
-    a += 20;
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&mutex);
-    return NULL;
-}
-
-int main() {
-    pthread_mutex_init(&mutex, NULL);
-    pthread_cond_init(&cond, NULL);
-
-    pthread_t child1;
-    pthread_t child2;
-
-    int r = pthread_create(&child1, NULL, entry, NULL);
-    if (r != 0) {
-        perror("pthread_create failed");
-        return r;
-    }
-
-    r = pthread_create(&child2, NULL, entry2, NULL);
-    if (r != 0) {
-        perror("pthread_create failed");
-        return r;
-    }
-
-    pthread_join(child1, NULL);
-    pthread_join(child2, NULL);
-
-    printf("a: %d\n", a);
-
+inline int wait_init(struct wait_lock *w) {
+    pthread_cond_init(&w->ready, NULL);
+    pthread_mutex_init(&w->lock, NULL);
+    w->sleeping = 0;
+    
     return 0;
-}
+};
+
+inline int wait_wakeup(struct wait_lock *w) {
+    pthread_mutex_lock(&w->lock);
+
+    pthread_cond_signal(&w->ready);
+    w->sleeping = 0;
+
+    pthread_mutex_unlock(&w->lock);
+    return 0;
+};
+
+inline int wait_sleep(struct wait_lock *w) {
+    w->sleeping = 1;
+    // sleep here
+    pthread_cond_wait(&w->ready, &w->lock);
+    
+    return 0;
+};
+
+inline void wait_free(struct wait_lock *w) {
+    wait_wakeup(w);
+    
+    pthread_mutex_destroy(&w->lock);
+    pthread_cond_destroy(&w->ready);
+};
 ```
 
 
