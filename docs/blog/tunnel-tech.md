@@ -7,6 +7,21 @@ aside: true
 # tunnel技术
 VPN，网络加速器，翻墙工具，背后都少不了tunnel技术。
 
+## 参考
+[OpenVPN puts packets inside your packets](https://www.saminiir.com/openvpn-puts-packets-inside-your-packets/)
+
+[Lets code tcp ip stack, 1: Ethernt & ARP](https://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/)
+
+[Lets code tcp ip stack, 2: IPV4 & ICMPV4](https://www.saminiir.com/lets-code-tcp-ip-stack-2-ipv4-icmpv4/)
+
+[Lets code tcp ip stack, 3: TCP Handshake](https://www.saminiir.com/lets-code-tcp-ip-stack-3-tcp-handshake/)
+
+[Lets code tcp ip stack, 4: TCP Data Flow & Socket API](https://www.saminiir.com/lets-code-tcp-ip-stack-4-tcp-data-flow-socket-api/)
+
+[Lets code tcp ip stack, 5: TCP Retransmission](https://www.saminiir.com/lets-code-tcp-ip-stack-5-tcp-retransmission/)
+
+[TCPdump man page](https://www.tcpdump.org/manpages/tcpdump.1.html)
+
 ## 从IP数据包说起
 开发http或者tcp服务器，不是什么困难的事情，有一套固定的c代码模板，麻烦的地方无非是如何使用线程池、连接池、多路复用技术，增强程序的健壮。但你要知道，你发送的数据、接收的数据，都是tcp层面的数据。发送的时候，你不用关心tcp的报头是什么，只管发送你想要的数据；接收的时候，你也不用考虑解析tcp的报头，因为操作系统已经帮你解析好了，你接收到的数据，就是你想要的数据。
 
@@ -23,14 +38,14 @@ int main() {
 
 好了，现在我们能直接发送ip报文，可这有什么用呢？因为你可以随便玩弄ip数据报的payload部分。
 
-试想一下，我们发送的tcp报文，无非就是遵从tcp报文的格式，然后塞进ip数据报的payload，然后发送出去，由另外一方提取、解析。如果，我们自己定义了一套格式，不再是tcp报文这种格式，并且对数据加密，加密方式只有我们知道，这种报文一旦发送出去了，另一侧只有安装好我们预先写出来的程序才能解析。这种感觉像什么呢？没错，专用通道！VPN、隧道技术、加速软件，就是靠这种思路。
+试想一下，我们发送的tcp报文，无非就是遵从tcp报文的格式，然后被塞进ip数据报的payload，然后发送出去，由另外一方提取、解析。如果，我们自己定义了一套格式，不再是tcp报文这种格式，并且对数据加密，加密方式只有我们知道，这种报文一旦发送出去了，另一侧只有安装好我们预先写出来的程序才能解析。这种感觉像什么呢？没错，专用通道！VPN、隧道技术、加速软件，就是靠这种思路。
 
 ## tun设备
-使用`socket`虽然可以直接发送ip报文，但是这还不够。如果你开启了VPN，你访问网页的时候，就会触发ip数据报的发送，而这些ip数据报会先被VPN程序拦截，稍作处理之后，再发送出去。关键点在于，我们如何拦截这些ip数据报。`socket`只提供给我们发送、接收ip数据报的能力，但是没有给我们拦截电脑上其他程序发送和接收数据报的能力。
+使用`socket`虽然可以直接发送ip报文，但是这还不够。如果你开启了VPN，你访问网页的时候，就会触发ip数据报的发送，而这些ip数据报会先被VPN程序拦截，稍作处理之后，再发送出去。关键点在于，我们如何拦截这些ip数据报。`socket`只提供给我们发送、接收ip数据报, 发送、接收ethernet frame的能力，但是没有给我们拦截电脑上其他程序发送和接收数据报的能力。
 
-为了实现这一点，我们就要介绍`tun设备`了。`tun设备`不是一个物理设备，不会出现在你的主板上边，它是Linux 下的一种虚拟网络设备，。通常用来实现三层（IP 层）的隧道。向 tun 设备写入的数据，必须是完整的 IP 数据包（二层头不用，三层头起步）。也就是说，你写入的数据应该是以 IP 头开始的，后面跟着完整的 IP payload。
+为了实现这一点，我们就要介绍`tun设备`了。`tun设备`不是一个物理设备，不会出现在你的主板上边，它是Linux 下的一种虚拟网络设备,通常用来实现三层（IP 层）的隧道。向 tun 设备写入的数据，必须是完整的 IP 数据包（二层头不用，三层头起步）。也就是说，你写入的数据应该是以 IP 头开始的，后面跟着完整的 IP payload。
 
-当创建一个`tun设备`后，你就可以像读写文件一样，读写`tun设备`。当你的应用程序往`tun设备`写入一些数据，在操作系统眼里，就相当于从外界接收到了ip数据报。当你的应用程序读取`tun设备`的时候，读取的就是一个ip数据报。
+**这里很重要**：当创建一个`tun设备`后，相当于创建一个虚拟网卡，你就可以像读写文件一样，读写`tun设备`。当你的应用程序往`tun设备`写入一些数据，就是把ip数据报发送到虚拟网卡，操作系统会根据路由规则，决定是ip数据报的去向（发送出去，转发到别的虚拟网卡，本地网络回环处理）。当你的应用程序读取`tun设备`的时候，读取的就是一个ip数据报。
 
 
 ```c 
@@ -60,6 +75,47 @@ int tun_alloc(char *dev)
 > 默认情况下，TUN/TAP 设备每读写一次数据，操作系统会在每个包前加上 4 字节的“包信息（Packet Information, PI）”：
 > 这 4 字节里，主要包含协议类型（IPv4/IPv6）、一些标志。
 > 如果设置了 IFF_NO_PI，tun设备读出来的数据就是纯粹的 IP 数据包，没有这 4 字节头；tap设备读出来的数据就是纯粹的数据链路层数据报。
+> tun设备接收和返回的是网络层的数据包 ip packet, 数据链路层的包 ethernet frame 需要使用 tap 设备读取。
+
+:::tip <TipIcon />
+```c 
+/*
+ * Taken from Kernel Documentation/networking/tuntap.txt
+ */
+int tun_alloc(char *dev)
+{
+    struct ifreq ifr;
+    int fd, err;
+
+    if( (fd = open("/dev/net/tap", O_RDWR)) < 0 ) {
+        print_error("Cannot open TUN/TAP dev");
+        exit(1);
+    }
+
+    CLEAR(ifr);
+
+    /* Flags: IFF_TUN   - TUN device (no Ethernet headers)
+     *        IFF_TAP   - TAP device
+     *
+     *        IFF_NO_PI - Do not provide packet information
+     */
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+    if( *dev ) {
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    }
+
+    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+        print_error("ERR: Could not ioctl tun: %s\n", strerror(errno));
+        close(fd);
+        return err;
+    }
+
+    strcpy(dev, ifr.ifr_name);
+    return fd;
+}
+```
+代码取自文章[Let's code a TCP/IP stack, 1: Ethernet & ARP](https://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/)
+:::
 
 tun设备有了，说好的ip数据报拦截呢？
 
@@ -135,8 +191,6 @@ int main() {
 
 这种是有应用场景的，比如网络加速器。网络加速器程序在启动之后，可以设置好系统的http代理，然后启动一个监听服务器，将所有http报文转发给加速服务器。这些加速服务器在网络加速服务器上的表现，就是各个优质站点的配置、选择，比如香港的站点服务器、东京的站点服务器。
 
-
-
 ## wireshark般的抓包
 无论是tun设备，还是http流量代理，我们都要写个监听程序，还要给出一些设置，才能截获电脑上的ip数据报。那有没有一种方式，不需要配置，直接就能截获电脑上的ip数据报呢？
 
@@ -169,6 +223,24 @@ libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所
 
 不会！防火墙只允许符合规则的数据包通过，其他包会被丢弃或拒绝。比如很多企业防火墙会禁止 P2P、游戏、ICMP（ping）等协议。
 
+## arp
+arp, address resolution protocol, 用来发送arp数据包，查询某个ip地址的mac地址。
+
+你要知道，arp协议和ip协议是同层次的，这意味着我们发送的数据报不再是ip数据报，而是ethernet frame。按照arp协议准备好数据报后，将它填入到ethernet frame的payload处，并设置好ethernet frame的header信息，发送完ethernet frame，就相当于发送出一条ip查询请求。然后，我们监听返回值，解析arp数据报返回值，就能拿到ip地址对应的mac地址了。
+
+话虽然简单，但是该如何实现呢？
+
+一种方式是，使用`socket`编程。给socket配置`AF_PACKET`和`SOCK_RAW`, 我们就可以直接发送ethernet frame了。但这里并不想展开解释。
+
+要说的是另外一个方式，利用tap设备。在上边介绍tun设备的时候，我们已经简单介绍过如何创建一个tap设备了。在建立好tap设备后，我们仍旧需要为这个设备分配ip地址，设置路由转发配置。
+
+我们在读取tap设备的环节，获取到返回的arp数据报，从中得知ip地址对应的mac地址。
+
+而发送查询请求，我们在写入tap设备的环节搞定。在arp数据报，我们填入本机的ip地址和mac地址作为源IP和源MAC，然后在目的IP地址填入待查询的IP地址，目的MAC地址空着就行，最后把这个arp数据报写入tap设备即可。
+
+这里解释一下，为什么写入到tap设备后，数据就被发送出去了。我们在给tap设备设置路由的时候，待查询的IP地址并不在路由的子网设置，因此写入tap设备的数据，会根据系统默认的路由设置，发送给en0(WIFI网卡)，进而通过WI-FI发送出去。
+
+关于ARP的更多细节，可以阅读[lets-code-tcp-ip-stack-1-ethernet-arp](http://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp)及其[源码](https://github.com/saminiir/level-ip)
 
 ## 更罕见的socket用法
 ### socket的三个入参搭配
@@ -186,6 +258,7 @@ libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所
 - SOCK_STREAM：流式套接字（TCP）
 - SOCK_DGRAM：数据报套接字（UDP）
 - SOCK_RAW：原始套接字（可自定义协议头）
+> 如果你的程序使用了`SOCK_RAW`，执行程序的时候，需要sudo命令加持
 
 3. 第三个参数：protocol（协议）
 第三个参数决定具体用什么协议。通常直接填 0，表示根据前两个参数自动选择合适的协议。有时你需要显式指定，如：
@@ -205,12 +278,12 @@ libpcap 是一种抓包库，能让你的程序“监听”网卡上流动的所
 |domain|type|protocol|意义|
 |:--:|:--:|:--:|:--:|
 |AF_INET|SOCK_STREAM|0 或 IPPROTO_TCP|IPv4 TCP套接字|
-｜AF_INET	｜SOCK_DGRAM	｜0 或 IPPROTO_UDP	｜IPv4 UDP套接字｜
-｜AF_INET	｜SOCK_RAW	｜IPPROTO_ICMP	｜IPv4 原始ICMP套接字｜
-｜AF_INET	｜SOCK_RAW	｜IPPROTO_RAW	｜IPv4 原始套接字（自定义IP头）｜
-｜AF_PACKET	｜SOCK_RAW	｜htons(ETH_P_ALL)	｜Linux下抓包｜
-｜AF_UNIX	｜SOCK_STREAM	｜0	｜本地流套接字｜
-｜AF_INET6	｜SOCK_DGRAM	｜0 或 IPPROTO_UDP	｜IPv6 UDP套接字｜
+|AF_INET	|SOCK_DGRAM	|0 或 IPPROTO_UDP	|IPv4 UDP套接字|
+|AF_INET	|SOCK_RAW	|IPPROTO_ICMP	|IPv4 原始ICMP套接字|
+|AF_INET	|SOCK_RAW	|IPPROTO_RAW	|IPv4 原始套接字（自定义IP头）|
+|AF_PACKET	|SOCK_RAW	|htons(ETH_P_ALL)	|Linux下抓包|
+|AF_UNIX	|SOCK_STREAM	|0	|本地流套接字|
+|AF_INET6	|SOCK_DGRAM	|0 或 IPPROTO_UDP	|IPv6 UDP套接字|
 
 ### 用socket抓包
 AF_PACKET 允许你直接收发以太网帧（包括所有协议类型的数据包），三个参数的典型搭配如下：
@@ -399,3 +472,58 @@ int main() {
     return 0;
 }
 ```
+> 这段代码在macOS上已经试了，可以成功执行，要留意的是，需要使用sudo执行；
+> 这段代码抓取的是数据链路层的包，ethernet frame.
+
+### TCP 和 SOCK_STREAM 
+TCP是一种协议， SOCK_STREAM 是套接字处理数据报文的一种方式。
+
+SOCK_STREAM必须实现如下特性：
+- 面向连接（Connection-oriented）
+- 可靠传输（Reliable）
+- 有序交付（Ordered delivery）
+- 流量控制（Flow control）
+- 拥塞控制（Congestion control）
+
+SOCK_STREAM 可不能一个人完成上述特性，它必须从数据报中，解析出必要的信息，比如时间参数、包序号等等，根据这些信息，完成一系列的控制，进而实现上述特性。而TCP协议的数据报中，恰巧提供了这些信息。但是，如果有另外一种协议，也能提供这些信息，只是信息字段不同，SOCK_STREAM 的解析逻辑里，只要适配了这个协议，就可以。但实际情况是，现在只有TCP协议是这样。因此，当你使用SOCK_STREAM的时候，操作系统默认就是采用TCP协议。
+
+既然只有TCP协议满足要求，为什么多次一举搞出来一个SOCK_STREAM呢？这是为了拓展，现在是只有TCP协议满足，未来如果有另外一种协议满足，只需要拓展SOCK_STREAM的代码即可，不用改动 `socket` API 格式。
+
+### TCP，ICMP和IP
+TCP和ICMP的数据报都要装进IP数据报的payload，TCP和ICMP之间，没有包含关系。更重要的区别在于，TCP走的是SOCK_STREAM, ICMP走的是SOCK_RAW。上一节提到的SOCK_STREAM的特性，SOCK_RAW没有。如果你指定了socket走TCP协议后，就不能再指定走ICMP协议了。于是，你给socket设置SOCK_STREAM+ICMP协议，或者SOCK_RAW+TCP协议，都是非法的。
+
+我们常说的IP+端口号确定一个进程，IP号是IP数据报报头的概念，端口号是TCP/UDP协议数据报报头的概念，二者不要混淆。换言之，如果你发送ICMP数据报，就只有IP号的概念，没有端口号的概念。
+
+### 为什么是 tun/tap
+tun/tap 和 raw socket 都可以让用户发送或者接受 IP 数据包或者 ethernet 数据包，为什么更好的选择是 tun/tap 呢？
+
+1.  简化协议处理
+- RAW Socket 需要开发者手动构造完整的数据帧（如以太网帧、IP头、TCP/UDP头等），并处理所有协议细节（如校验和、分片、路由等）。这容易出错，且开发成本高。
+- TUN/TAP 设备 作为虚拟网络接口，允许开发者像操作普通网卡一样操作数据包。例如：
+    - TUN（网络层）：处理 IP 数据包（如 ethertype=0x0800），开发者只需处理 IP 层的数据（如 TCP/UDP）。
+    - TAP（数据链路层）：处理以太网帧（如 ethertype=0x0800），开发者需要处理完整的以太网帧（包括 MAC 头）。
+    - 内核会自动处理协议栈的其他部分（如路由、NAT、ARP 等），开发者无需手动实现。
+
+2. 权限与安全性
+- RAW Socket 需要 root 权限 才能发送原始数据包（如 SOCK_RAW），否则会被操作系统限制。这可能带来安全风险。
+- TUN/TAP 设备 通常通过 内核模块 实现，开发者只需配置虚拟接口（如 tun0），并设置适当的权限（如 CAP_NET_ADMIN 或 CAP_NET_BIND_SERVICE），无需直接操作底层协议。这降低了权限需求，提高了安全性。
+
+3. 与操作系统网络栈的兼容性
+- RAW Socket 需要开发者手动处理所有网络协议栈的逻辑（如 IP 地址分配、路由表、ARP 缓存等），这可能导致与系统网络栈的不兼容。
+- TUN/TAP 设备 可以无缝集成到操作系统网络栈中：
+    - 内核会自动处理 IP 地址分配、路由、NAT、防火墙规则等。
+    - 开发者只需关注数据包的收发，无需手动实现协议栈功能。
+
+4. 虚拟化与网络功能支持
+- TUN/TAP 设备 常用于虚拟化场景（如虚拟机、容器、VPN 等），例如：
+    - OpenVPN 使用 TUN/TAP 设备实现加密隧道，虚拟接口自动处理 IP 地址分配和路由。
+    - 虚拟私有网络（VPN） 通过 TUN/TAP 设备模拟物理网卡，实现跨网络的加密通信。
+- RAW Socket 需要开发者手动实现这些功能，复杂度极高。
+
+5. 性能与效率
+- TUN/TAP 设备 的数据包处理由内核驱动完成，性能更高，且能利用硬件加速（如 DMA）。
+- RAW Socket 需要开发者手动处理数据包的收发，可能引入额外的延迟和性能损耗。
+
+6. 开发与调试的便利性
+- TUN/TAP 设备 提供了更直观的接口，开发者可以像操作普通网卡一样调试数据包（如使用 tcpdump、ip link 等工具）。
+- RAW Socket 需要开发者自行实现数据包的构造、发送和接收逻辑，调试复杂度高。
