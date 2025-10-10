@@ -7,6 +7,21 @@ aside: true
 # tunnel技术
 VPN，网络加速器，翻墙工具，背后都少不了tunnel技术。
 
+## 参考
+[OpenVPN puts packets inside your packets](https://www.saminiir.com/openvpn-puts-packets-inside-your-packets/)
+
+[Lets code tcp ip stack, 1: Ethernt & ARP](https://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/)
+
+[Lets code tcp ip stack, 2: IPV4 & ICMPV4](https://www.saminiir.com/lets-code-tcp-ip-stack-2-ipv4-icmpv4/)
+
+[Lets code tcp ip stack, 3: TCP Handshake](https://www.saminiir.com/lets-code-tcp-ip-stack-3-tcp-handshake/)
+
+[Lets code tcp ip stack, 4: TCP Data Flow & Socket API](https://www.saminiir.com/lets-code-tcp-ip-stack-4-tcp-data-flow-socket-api/)
+
+[Lets code tcp ip stack, 5: TCP Retransmission](https://www.saminiir.com/lets-code-tcp-ip-stack-5-tcp-retransmission/)
+
+[TCPdump man page](https://www.tcpdump.org/manpages/tcpdump.1.html)
+
 ## 从IP数据包说起
 开发http或者tcp服务器，不是什么困难的事情，有一套固定的c代码模板，麻烦的地方无非是如何使用线程池、连接池、多路复用技术，增强程序的健壮。但你要知道，你发送的数据、接收的数据，都是tcp层面的数据。发送的时候，你不用关心tcp的报头是什么，只管发送你想要的数据；接收的时候，你也不用考虑解析tcp的报头，因为操作系统已经帮你解析好了，你接收到的数据，就是你想要的数据。
 
@@ -478,3 +493,37 @@ SOCK_STREAM 可不能一个人完成上述特性，它必须从数据报中，�
 TCP和ICMP的数据报都要装进IP数据报的payload，TCP和ICMP之间，没有包含关系。更重要的区别在于，TCP走的是SOCK_STREAM, ICMP走的是SOCK_RAW。上一节提到的SOCK_STREAM的特性，SOCK_RAW没有。如果你指定了socket走TCP协议后，就不能再指定走ICMP协议了。于是，你给socket设置SOCK_STREAM+ICMP协议，或者SOCK_RAW+TCP协议，都是非法的。
 
 我们常说的IP+端口号确定一个进程，IP号是IP数据报报头的概念，端口号是TCP/UDP协议数据报报头的概念，二者不要混淆。换言之，如果你发送ICMP数据报，就只有IP号的概念，没有端口号的概念。
+
+### 为什么是 tun/tap
+tun/tap 和 raw socket 都可以让用户发送或者接受 IP 数据包或者 ethernet 数据包，为什么更好的选择是 tun/tap 呢？
+
+1.  简化协议处理
+- RAW Socket 需要开发者手动构造完整的数据帧（如以太网帧、IP头、TCP/UDP头等），并处理所有协议细节（如校验和、分片、路由等）。这容易出错，且开发成本高。
+- TUN/TAP 设备 作为虚拟网络接口，允许开发者像操作普通网卡一样操作数据包。例如：
+    - TUN（网络层）：处理 IP 数据包（如 ethertype=0x0800），开发者只需处理 IP 层的数据（如 TCP/UDP）。
+    - TAP（数据链路层）：处理以太网帧（如 ethertype=0x0800），开发者需要处理完整的以太网帧（包括 MAC 头）。
+    - 内核会自动处理协议栈的其他部分（如路由、NAT、ARP 等），开发者无需手动实现。
+
+2. 权限与安全性
+- RAW Socket 需要 root 权限 才能发送原始数据包（如 SOCK_RAW），否则会被操作系统限制。这可能带来安全风险。
+- TUN/TAP 设备 通常通过 内核模块 实现，开发者只需配置虚拟接口（如 tun0），并设置适当的权限（如 CAP_NET_ADMIN 或 CAP_NET_BIND_SERVICE），无需直接操作底层协议。这降低了权限需求，提高了安全性。
+
+3. 与操作系统网络栈的兼容性
+- RAW Socket 需要开发者手动处理所有网络协议栈的逻辑（如 IP 地址分配、路由表、ARP 缓存等），这可能导致与系统网络栈的不兼容。
+- TUN/TAP 设备 可以无缝集成到操作系统网络栈中：
+    - 内核会自动处理 IP 地址分配、路由、NAT、防火墙规则等。
+    - 开发者只需关注数据包的收发，无需手动实现协议栈功能。
+
+4. 虚拟化与网络功能支持
+- TUN/TAP 设备 常用于虚拟化场景（如虚拟机、容器、VPN 等），例如：
+    - OpenVPN 使用 TUN/TAP 设备实现加密隧道，虚拟接口自动处理 IP 地址分配和路由。
+    - 虚拟私有网络（VPN） 通过 TUN/TAP 设备模拟物理网卡，实现跨网络的加密通信。
+- RAW Socket 需要开发者手动实现这些功能，复杂度极高。
+
+5. 性能与效率
+- TUN/TAP 设备 的数据包处理由内核驱动完成，性能更高，且能利用硬件加速（如 DMA）。
+- RAW Socket 需要开发者手动处理数据包的收发，可能引入额外的延迟和性能损耗。
+
+6. 开发与调试的便利性
+- TUN/TAP 设备 提供了更直观的接口，开发者可以像操作普通网卡一样调试数据包（如使用 tcpdump、ip link 等工具）。
+- RAW Socket 需要开发者自行实现数据包的构造、发送和接收逻辑，调试复杂度高。

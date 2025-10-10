@@ -1036,6 +1036,7 @@ int main() {
     return 0;
 }
 ```
+> `gethostbyname` is a choice, `getaddrinfo` is another choice.
 
 2. convert ip address string to ip address.
 ```c 
@@ -2507,6 +2508,94 @@ there're important differences if process is zero or negative, `man 2 kill`, get
 ### Signal Interception and Resolving
 There're so many signals in Unix. You can get a list of signals with `man signal`.
 
+0. Signal mask
+Signal mask is a set of signals and these signals will be blocked, their respective routine won't be invoked until they're unblocked. 
+
+1. Block signal with `sigprocmask` or `pthread_sigmask`
+You can block one or more signals with systemcall `sigprocmask`. Since a signal has been blocked, if you invoke this signal again, for example, block SIGINT but you press Ctrl+C, SIGINT will be appended in a queue, and we call SIGINT is pending. Once you cancel blocking signals with `sigprocmask`，pending signals will be invoked and its respective routine will be executed.
+
+```c 
+#include <signal.h>
+#include <pthread.h>
+
+int main() {
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGQUIT);
+
+    int err = pthread_sigmask(SIG_BLOCK, &mask, NULL);
+    if (err != 0) {
+        // fail to block SIGINT and SIGQUIT
+    }
+
+    return 0;
+}
+```
+
+```c 
+#include <signal.h>
+
+int main() {
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGQUIT);
+
+    int err = sigprocmask(SIG_BLOCK, &mask, NULL);
+    if (err != 0) {
+        // fail to block SIGINT and SIGQUIT
+    }
+
+    return 0;
+}
+```
+
+2. Catch pending signal with `sigwait`
+`sigprocmask` can block signals and bring pending signals. You can use systemcall `sigwait` to know which signal is pending, and do something. Classic scenario is that blocking some signals in main thread with `sigprocmask` or `pthread_sigmask`, and catch pending signal with `sigwait` in a new thread.
+
+Note that `sigwait` tells you which signal is pending but it doesn't modify signal mask of process, so you don't need to block the same signal with `sigprocmask` again after `sigwait` returns this signal.
+
+```c 
+#include <pthread.h>
+#include <signal.h>
+
+sigset_t mask;
+
+// new thread routine, waiting for pending signals and deal with them
+void* listen() {
+    int err, signo;
+
+    for (;;) {
+        err = sigwait(&mask, &signo);
+        if (err != 0) {
+            print_err("Sigwait failed: %d\n", err);
+        }
+
+        switch (signo) {
+        case SIGINT:
+        case SIGQUIT:
+            return 0;
+        default:
+            printf("Unexpected signal %d\n", signo);
+        }
+    }
+}
+
+int main() {
+    // block signals in main thread
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGQUIT);
+
+    // create a new thread waiting for pending signals
+    pthread_t thread;
+    pthread_create(&thread, NULL, listen, NULL);
+    pthread_join(&thread, NULL);
+
+    return 0;
+}
+```
 
 
 ### Create Thread
