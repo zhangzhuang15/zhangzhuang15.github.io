@@ -657,9 +657,37 @@ mod tests {
     }
 }
 ```
-
+## 插入节点
 添加节点场景，在调整树的颜色时，关注的是新加入的节点node, node父节点parent，祖父节点gparent，叔叔节点psibling，并根据parent和psibling的颜色进行分类讨论，处理颜色。
 
+插入的新节点是红色，之后分以下情况处理：
+1. parent是黑色。不需要做任何调整，插入结束。
+2. parent是红色，psibling是红色。parent和psibling设置为黑色，gparent设置为红色，然后把gparent看成是新的node, 继续分类处理。
+> 只有这种情形，会导致O(h)的复杂度，h为树的高度。其余情形都是O(1)调整，就完成了。
+3. parent是红色，psibling是黑色，node是parent的近端子节点，将parent旋转，让node跑到parent的位置，然后将node设置为parent，原本的parent设置为node, 按照情形4继续处理
+4. parent是红色，psibling是黑色，node是parent的远端子节点，将parent和gparent互换颜色，旋转gparent，让parent跑到gparent的位置，插入结束。
+
+解释下node是parent的近端子节点是什么意思，如下图所示，node就是parent的近端子节点：
+```txt 
+      gparent
+       /
+      /
+   parent
+      \
+       \
+       node
+
+
+    gparent
+       \
+        \
+        parent
+         /
+        /
+      node
+```
+
+## 删除节点
 删除节点场景，在调整树的颜色时，关注的是替换被删除节点的节点node, node兄弟节点sibling。根据node和sibling的颜色进行分类讨论，处理颜色。
 
 删除节点场景的AI helper:
@@ -686,3 +714,15 @@ Case D: S 是黑且其两个子都是黑（或 S 为 NULL）
 把 S 染成红（(*sibling).color = Red），这等价于把兄弟路径“贡献”的一个黑从那边拿掉（使其路径黑数减少 1），从而把“缺黑”向上移动到 parent（如果 parent 原来是黑，则现在 parent 路径也缺黑，需要继续向上处理；如果 parent 原来是红，把 parent 染黑就可以抵消，修复完成）。
 在代码中如果 parent 是黑，则把 node = parent; parent = parent.parent; continue（继续循环向上）；否则把 parent 染黑并结束。
 为什么：当兄弟本身不能借红子给你（两子黑），你通过把 S 变红“把黑从兄弟路径上拿掉”使两边黑高度相等（因为 N 的一侧也缺黑），但这操作可能让 parent 侧的路径产生缺黑，所以需要把问题推进到上层。
+
+总结下：
+node节点顶替被删除节点的那个节点，parent是node的父节点，sibling是node的兄弟节点
+1. node是红色，设置成黑色就可以了，删除结束
+2. node是黑色，sibling是红色。parent旋转，让sibling来到parent的位置，设置sibling为黑色，parent设置为红色，接着按照后边的情形继续处理。
+3. node是黑色，sibling是黑色，sibling拥有近端红色子节点。交换sibling和近端红色子节点的颜色，旋转sibling，让近端红色子节点跑到sibling的位置，此时转化为情形4继续处理。
+4. node是黑色，sibling是黑色，sibling拥有远端红色子节点。旋转parent，让sibling跑到parent的位置，sibling远端红色子节点设置为parent的颜色，删除结束。
+5. node是黑色，sibling是黑色，sibling没有子节点，或者子节点都是黑色的。sibling设置为红色，此时parent左右子树黑高一样。如果parent是红色，设置为黑色，删除结束；如果parent是黑色，parent左右子树虽然黑高平衡，但是自身的黑高减少1，处于失衡状态，应该把parent当作新的node，从1开始继续分类判断处理。
+> 只有这个情形中，parent是黑色的情况，为恢复黑高平衡，会带来O(h)的操作，其余情形都是O(1)操作后，删除就结束了。
+
+## 与跳表、B树的比较
+RB树适用于单线程内存操作，跳表适用于多线程内存操作。前者因为有颜色调整的操作，无法分段加锁，必须给整个树加锁；后者不涉及这种调整，而且是链表结构，可以分段加锁。B树使用于IO磁盘操作，不适合内存操作，因为它用了树节点和数组，缓存命中不如RB树好。
