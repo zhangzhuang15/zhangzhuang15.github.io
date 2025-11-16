@@ -126,6 +126,31 @@ pub fn main() !void {
 }
 ```
 
+
+## Block Returning Value 
+In Rust, you can build a value in block expression and return it to a variable like:
+```rust 
+fn main() {
+    let hello = {
+        println!("initial value");
+        10
+    };
+}
+```
+
+It's really cool feature. You can reach the goal in Zig as well with different style:
+```zig 
+fn main() {
+    const std = @import("std");
+    const stdout = std.io.getStdOut().writer();
+
+    const hello = hello: {
+        try stdout.print("inital value", .{});
+        break :hello 10;
+    }
+}
+```
+
 ## Slice
 zig的slice和go的slice有着非常大的区别。
 
