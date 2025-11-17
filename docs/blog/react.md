@@ -131,6 +131,79 @@ const appReactNode = {
 
 这里额外说一下，函数组件和类组件的定义都是挂载到 `type` 属性上的。
 
+下面就可以聊聊`render`了，其定义于`packages/react-dom/src/client/ReactDOMRoot.js`:
+```js 
+ReactDOMRoot.prototype.render = function (children: ReactNodeList){
+  const fiberRoot = this._internalRoot;
+  updateContainer(children, root, null, null);
+}
+```
+`children`说的就是上边提到的ReactNode——`<App />`.
+
+自`updateContainer`开始，发生的事情都位于`packages/react-reconciler`, 也就是这个包才是react的核心所在，其它的包都是围绕着它转。
+
+`updateContainer`做三件事：
+1. 找到旧fiber树的根节点oldRootFiber。获取方式就是 fiberRoot.current。
+2. 搞出来一个js对象，将 `<App />`挂到这个对象上，并将该对象加入 oldRootFiber的updateQueue属性。React 称这个js对象是Update。
+3. 最关键的一步，将 fiberRoot 加入到调度系统，异步执行 fiber 树的更新。
+
+Update的想法很简单，就是不立即执行任务，而是生成一个任务，用update.payload记录任务函数所需的入参，用update.tag作为枚举标识，确认要执行哪个任务函数。如果update多了话，就将它们按照单链表的形式连接起来，挂到updateQueue上。等到fiber节点被调度到的时候，就会取出这些update任务，一一执行。
+
+react的调度系统是一个比较麻烦的事情，要单独开一节解释，这里先不做介绍了。调度系统的本质，就是将一个js函数安排到一个宏任务或者微任务。这里，只需要将调度系统理解为一个API，调用这个API，传入一个函数，这个函数不久就会在一个宏任务里执行。
+
+接下来，我们关心的是，fiberRoot 在加入到调度系统之前，发生了什么事情，当fiberRoot被调度到的时候，发生什么事情。
+
+第一个问题的答案位于`packages/react-reconciler/src/ReactFiberWorkLoop.js`的`scheduleUpdateOnFiber`函数。这个函数内部有一步是执行`prepareFreshStack`。这个函数做的事情是：
+1. 判断oldRootFiber.alternate是否存在
+2. 不存在，就照着oldRootFiber复制出一个newRootFiber，oldRootFiber.alternate = newRootFiber, newRootFiber.alternate = oldRootFiber
+3. 如果存在，将oldRootFiber的状态同步到oldRootFiber.alternate
+> 这样处理之后，oldRootFiber.alternate.child === oldRootFiber.child, 即新老RootFiber的子节点保持一致。
+
+第二个问题的答案，其实也在`scheduleUpdateOnFiber`函数中，它存在这样的函数调用栈：
+1. `scheduleUpdateOnFiber`
+2. `ensureRootIsScheduled`
+3. `processRootScheduleInMicrotask`
+4. `scheduleTaskForRootDuringMicrotask`
+5. `scheduleCallback`
+6. `performConcurrentWorkOnRoot`
+
+`scheduleCallback`会把`performConcurrentWorkOnRoot`安排到调度系统中，`performConcurrentWorkOnRoot`在之后得以异步执行。因此第二个问题的答案就出来了，fiberRoot被调度到的时候，发生了什么事情？`performConcurrentWorkOnRoot`里边执行了什么，它就发生了什么事情。
+
+OK，在说`performConcurrentWorkOnRoot`发生了什么之前，不妨看下fiber树的状态：
+```txt 
+          FiberRoot
+           /    
+  current /       
+         / 
+        /           alternate
+  oldRootFiber <--------------> newRootFiber
+```
+
+`performConcurrentWorkOnRoot`位于`packages/react-reconciler/src/ReactFiberWorkLoop.js`, 它主要做了这样的事情：
+1. `flushPassiveEffects`, 将待执行的effect全部执行一遍，这里的effect明确地讲，就是useEffect注册那些effect，我们在后边会单独聊聊hook的本质。
+> 这里提前透露一下执行顺序，具体的会在后边聊hook的时候提到。以当前fiber为基准，深度优先遍历执行各个后代fiber的umount，最后执行当前fiber的unmount，然后再次深度优先遍历执行各个后代fiber的mount，最后执行当前fiber的mount。useEffect的入参函数就是mount，这个函数的返回值就是unmount。
+2. `renderRootConcurrent`, 这个函数就是执行react的fiber树渲染逻辑了，也就是生成新的fiber树，我们上边说过，目前只有一个 newRootFiber 和 oldRootFiber，它们下边没有其余fiber，这个函数就会生成这些fiber。这个函数会返回一个状态枚举，根据枚举值来决定第三步做什么事情。关于`renderRootConcurrent`究竟做了什么事情，稍后会展开讲。
+3. 
+  1. 如果第二步返回的枚举值表示fiber树没有生成完，调用`ensureRootIsScheduled`, 把`performConcurrentWorkOnRoot`再次加入调度系统，等未来执行
+  2. 如果返回的枚举值表示fiber树正常生成完，则会发生如下调用栈：
+    1. `finishConcurrentRender`
+    2. `commitRootWhenReady`
+    3. `commitRoot`, 这里发生的事情就是把fiber树的状态同步到DOM树。这个函数也是重点，稍后会展开讲。
+    4. 调用`ensureRootIsScheduled`, 把`performConcurrentWorkOnRoot`再次加入调度系统，等未来执行。因为在第3步，会执行useLayoutEffect，这可能导致新fiber树状态发生变化，需要安排一次调度兜底。
+
+
+好的，我们接着先说说`renderRootConcurrent`, 因为我们定义好的React函数组件，以及组件内部执行的React Hook都是在这个函数内，得到执行的。它的逻辑很简单：
+1. 执行`workLoopConcurrent`
+2. 判断fiber树是否渲染完成，把这个结果以枚举值的形式返回，要么是渲染完，要么是渲染中；
+
+显而易见，`workLoopConcurrent`才是焦点！它本身就是一个循环，循环的条件必须满足这两点：
+1. workInProgress !== null. 这个条件的意思是仍然有新fiber节点需要生成，workInProgress最开始的值就是newRootFiber。
+> workInProgress设置初始值，在`prepareFreshStack`函数内完成，这个函数也位于`packages/react-reconciler/src/ReactFiberWorkLoop.js`
+2. shouldYield() === false. 调度系统暴露requestPaint函数，这个函数内部会改写变量值，导致shouldYield函数返回true, 从而强制结束循环，令`workLoopConcurrent`返回。
+
+而循环体只需要做一件事，那就是执行`performUnitOfWork`.
+
+
 ## react-reconciler的全局变量
 |名称|解释|
 |:--|:--|

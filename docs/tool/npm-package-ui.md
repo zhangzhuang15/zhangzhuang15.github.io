@@ -49,4 +49,21 @@ A componet that gives you celebrating animation like 🎉.
 
 A component that provides tutorial interaction.
 
+## @antv/g6
+[website](https://g6.antv.antgroup.com/en/manual/getting-started/integration/vue)
+
+A SDK helps you create flow graph, supporting vue/react/angular framework.
+
+## mermaid
+[mermaid](https://mermaid.js.org/intro/getting-started.html#examples)
+
+A template engine rendering flow graph. 
+
+[k8s official website](https://kubernetes.io/docs/contribute/style/diagram-guide/) adopts this tech.
+
+## @vue-flow/core
+[website](https://vueflow.dev/guide/getting-started.html)
+
+A vue3 component, allow you to create flow graph.
+
 <Giscus />
