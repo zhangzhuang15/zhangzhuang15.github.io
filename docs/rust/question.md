@@ -860,7 +860,28 @@ n.change(10);
 
 典型的一个例子就是标准库里的 `AtomicUsize`, 它的 `compare_exchange_weak`方法
 并不要求 `self` 是 `&mut`，因为它内部使用 unsafe Rust 直接修改内存里的值，跳过了
-safe Rust 系统的那套约束；
+safe Rust 系统的那套约束.
+
+下面的例子无法成功，因为 `push` 要求持有 `&mut Vec`，但是对于一个用`let`声明的变量来讲，只能
+获取 `&v`， 不能获取 `&mut v`。要想获取到 `&mut v`，必须用`let mut`声明。
+
+```rust
+fn main() {
+  let v = vec![1,2,3];
+  v.push(4);
+}
+```
+
+下面的例子运行正常，虽然 n 用 `let` 修饰，但是它的类型已经是 `&mut Vec` 了，这时满足 `push` 入参
+类型的要求，可以运行正常。
+
+```rust
+fn main() {
+  let mut v = vec![1,2,3];
+  let n = &mut v;
+  n.push(4);
+}
+```
 
 ## `*x` 会改变所有权么
 
