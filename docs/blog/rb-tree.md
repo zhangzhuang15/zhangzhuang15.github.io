@@ -5,6 +5,9 @@ aside: true
 ---
 
 # Rust version Impl
+
+我们首先讨论一下红黑树的 Rust 版本实现，之后简单介绍一些别的数据结构。
+
 ```rust
 use std::boxed::Box;
 use std::cmp::{Ord, Ordering};
@@ -657,18 +660,22 @@ mod tests {
     }
 }
 ```
+
 ## 插入节点
-添加节点场景，在调整树的颜色时，关注的是新加入的节点node, node父节点parent，祖父节点gparent，叔叔节点psibling，并根据parent和psibling的颜色进行分类讨论，处理颜色。
+
+添加节点场景，在调整树的颜色时，关注的是新加入的节点 node, node 父节点 parent，祖父节点 gparent，叔叔节点 psibling，并根据 parent 和 psibling 的颜色进行分类讨论，处理颜色。
 
 插入的新节点是红色，之后分以下情况处理：
-1. parent是黑色。不需要做任何调整，插入结束。
-2. parent是红色，psibling是红色。parent和psibling设置为黑色，gparent设置为红色，然后把gparent看成是新的node, 继续分类处理。
-> 只有这种情形，会导致O(h)的复杂度，h为树的高度。其余情形都是O(1)调整，就完成了。
-3. parent是红色，psibling是黑色，node是parent的近端子节点，将parent旋转，让node跑到parent的位置，然后将node设置为parent，原本的parent设置为node, 按照情形4继续处理
-4. parent是红色，psibling是黑色，node是parent的远端子节点，将parent和gparent互换颜色，旋转gparent，让parent跑到gparent的位置，插入结束。
 
-解释下node是parent的近端子节点是什么意思，如下图所示，node就是parent的近端子节点：
-```txt 
+1. parent 是黑色。不需要做任何调整，插入结束。
+2. parent 是红色，psibling 是红色。parent 和 psibling 设置为黑色，gparent 设置为红色，然后把 gparent 看成是新的 node, 继续分类处理。
+   > 只有这种情形，会导致 O(h)的复杂度，h 为树的高度。其余情形都是 O(1)调整，就完成了。
+3. parent 是红色，psibling 是黑色，node 是 parent 的近端子节点，将 parent 旋转，让 node 跑到 parent 的位置，然后将 node 设置为 parent，原本的 parent 设置为 node, 按照情形 4 继续处理
+4. parent 是红色，psibling 是黑色，node 是 parent 的远端子节点，将 parent 和 gparent 互换颜色，旋转 gparent，让 parent 跑到 gparent 的位置，插入结束。
+
+解释下 node 是 parent 的近端子节点是什么意思，如下图所示，node 就是 parent 的近端子节点：
+
+```txt
       gparent
        /
       /
@@ -688,9 +695,10 @@ mod tests {
 ```
 
 ## 删除节点
-删除节点场景，在调整树的颜色时，关注的是替换被删除节点的节点node, node兄弟节点sibling。根据node和sibling的颜色进行分类讨论，处理颜色。
 
-删除节点场景的AI helper:
+删除节点场景，在调整树的颜色时，关注的是替换被删除节点的节点 node, node 兄弟节点 sibling。根据 node 和 sibling 的颜色进行分类讨论，处理颜色。
+
+删除节点场景的 AI helper:
 四类典型情况（按 CLRS/代码结构）——每一类为什么需要“染色”或“旋转+染色” （下面的 G = grandparent/parent 之类我用 P = parent, S = sibling, N = 被删除/替换后导致黑幅缺失的子树/位置）
 
 Case A: 兄弟 S 是红色（代码：if matches!(sibling.color, Red) branch）
@@ -711,18 +719,171 @@ Case D: S 是黑且其两个子都是黑（或 S 为 NULL）
 
 情形：兄弟和兄弟的两个孩子都黑，说明兄弟路径本身没有“额外的可用红”可以借来抵消 N 的缺黑。
 处理（代码里最典型的重新染色位置）：
-把 S 染成红（(*sibling).color = Red），这等价于把兄弟路径“贡献”的一个黑从那边拿掉（使其路径黑数减少 1），从而把“缺黑”向上移动到 parent（如果 parent 原来是黑，则现在 parent 路径也缺黑，需要继续向上处理；如果 parent 原来是红，把 parent 染黑就可以抵消，修复完成）。
+把 S 染成红（(\*sibling).color = Red），这等价于把兄弟路径“贡献”的一个黑从那边拿掉（使其路径黑数减少 1），从而把“缺黑”向上移动到 parent（如果 parent 原来是黑，则现在 parent 路径也缺黑，需要继续向上处理；如果 parent 原来是红，把 parent 染黑就可以抵消，修复完成）。
 在代码中如果 parent 是黑，则把 node = parent; parent = parent.parent; continue（继续循环向上）；否则把 parent 染黑并结束。
 为什么：当兄弟本身不能借红子给你（两子黑），你通过把 S 变红“把黑从兄弟路径上拿掉”使两边黑高度相等（因为 N 的一侧也缺黑），但这操作可能让 parent 侧的路径产生缺黑，所以需要把问题推进到上层。
 
 总结下：
-node节点顶替被删除节点的那个节点，parent是node的父节点，sibling是node的兄弟节点
-1. node是红色，设置成黑色就可以了，删除结束
-2. node是黑色，sibling是红色。parent旋转，让sibling来到parent的位置，设置sibling为黑色，parent设置为红色，接着按照后边的情形继续处理。
-3. node是黑色，sibling是黑色，sibling拥有近端红色子节点。交换sibling和近端红色子节点的颜色，旋转sibling，让近端红色子节点跑到sibling的位置，此时转化为情形4继续处理。
-4. node是黑色，sibling是黑色，sibling拥有远端红色子节点。旋转parent，让sibling跑到parent的位置，sibling远端红色子节点设置为parent的颜色，删除结束。
-5. node是黑色，sibling是黑色，sibling没有子节点，或者子节点都是黑色的。sibling设置为红色，此时parent左右子树黑高一样。如果parent是红色，设置为黑色，删除结束；如果parent是黑色，parent左右子树虽然黑高平衡，但是自身的黑高减少1，处于失衡状态，应该把parent当作新的node，从1开始继续分类判断处理。
-> 只有这个情形中，parent是黑色的情况，为恢复黑高平衡，会带来O(h)的操作，其余情形都是O(1)操作后，删除就结束了。
+node 节点顶替被删除节点的那个节点，parent 是 node 的父节点，sibling 是 node 的兄弟节点
 
-## 与跳表、B树的比较
-RB树适用于单线程内存操作，跳表适用于多线程内存操作。前者因为有颜色调整的操作，无法分段加锁，必须给整个树加锁；后者不涉及这种调整，而且是链表结构，可以分段加锁。B树使用于IO磁盘操作，不适合内存操作，因为它用了树节点和数组，缓存命中不如RB树好。
+1. node 是红色，设置成黑色就可以了，删除结束
+2. node 是黑色，sibling 是红色。parent 旋转，让 sibling 来到 parent 的位置，设置 sibling 为黑色，parent 设置为红色，接着按照后边的情形继续处理。
+3. node 是黑色，sibling 是黑色，sibling 拥有近端红色子节点。交换 sibling 和近端红色子节点的颜色，旋转 sibling，让近端红色子节点跑到 sibling 的位置，此时转化为情形 4 继续处理。
+4. node 是黑色，sibling 是黑色，sibling 拥有远端红色子节点。旋转 parent，让 sibling 跑到 parent 的位置，sibling 远端红色子节点设置为 parent 的颜色，删除结束。
+5. node 是黑色，sibling 是黑色，sibling 没有子节点，或者子节点都是黑色的。sibling 设置为红色，此时 parent 左右子树黑高一样。如果 parent 是红色，设置为黑色，删除结束；如果 parent 是黑色，parent 左右子树虽然黑高平衡，但是自身的黑高减少 1，处于失衡状态，应该把 parent 当作新的 node，从 1 开始继续分类判断处理。
+   > 只有这个情形中，parent 是黑色的情况，为恢复黑高平衡，会带来 O(h)的操作，其余情形都是 O(1)操作后，删除就结束了。
+
+## 与跳表、B 树的比较
+
+RB 树适用于单线程内存操作，跳表适用于多线程内存操作。前者因为有颜色调整的操作，无法分段加锁，必须给整个树加锁；后者不涉及这种调整，而且是链表结构，可以分段加锁。B 树使用于 IO 磁盘操作，不适合内存操作，因为它用了树节点和数组，缓存命中不如 RB 树好。
+
+## Treap
+
+Treap 是一种二叉搜索树的变体，对于树的每一个节点，它引入了一个叫做权重的概念，这个权重就是一个随机数，每个节点除了保证二叉搜索树的特性之外，还要保证 parent 节点权重大于 left child 和 right child，而 left child 和 right child 之间，没有必然的权重大小要求。
+
+rebalance(node): 在 node, node.left_child, node.right_child, 找到权重最大的那个 node，计作 target_node， 然后通过旋转，将 target_node 转到 node 的位置。
+
+插入操作。和二叉搜索树一样，插入 new_node，之后 rebalance(new_node.parent)。
+
+删除操作:
+
+1. 如果 deleted node 没有 child node，直接删除 deleted node
+2. 如果 deleted node 只有 left child，将 deleted node 删除后，left node 来到 deleted node 的位置, rebalance(left_node)
+3. 如果 deleted node 只有 right node, 将 deleted node 删除后，right node 来到 deleted node 的位置, rebalance(right_node)
+4. 如果 deleted node 有两个 child，选中权重较大的 child node，通过旋转，让这个 child node 来到 deleted node 的位置，然后删除 deleted node, rebalance(child_node)。
+
+搜索操作。和二叉搜索树完全一样。
+
+## Trie
+
+前缀树，用于前缀匹配。假设在前缀树中存入`{"abc": 11 }` 和 `{"apc": 12}`, 将会得到这样的结果：
+
+```txt
+       root
+       /
+      a
+    /   \
+   b     p
+  /       \
+ c         c
+ |         |
+ 11        12
+```
+
+前缀树并不是一个二叉树，它是多叉树，因此它的 tree node 可以定义为：
+
+```rust
+struct Node<K, V> {
+  value: Option<V>,
+  children: HashMap<K, Node<K, V>>,
+}
+```
+
+树根节点的 value 是 None, 也就是说，我们把它当作哨兵节点处理，不存储任何数据。而叶子节点的 HashMap 是空的。
+
+## Fenwick Tree
+
+这个数据结构用于前 n 项和的计算，它不能算作是一个树，而是一个数组。为了更加方便的表述前 N 项和，我们不使用 0-based 的数组，而是 1-based 的数组，即数组下标从 1 开始。
+
+如果有这样是的序列 s1,s2,s3...,`arr[i]`表示的就是 `s[i-lowbit(i) + 1] + s[i-lowbit(i) + 1 + 1] + ... + s[i]`。
+
+它最核心的地方，采用了`lowbit`计算:
+
+```rust
+fn lowbit(n: usize) -> usize {
+  n & (!n + 1)
+}
+
+#[cfg(test)]
+mod tests {
+  #[test]
+  fn count() {
+    // 6: 00110
+    // 2: 00010
+    // lowbit计算的结果就是保留原来数据最右侧的1，其余bit位变成0
+    let val = lowbit(6);
+    assert_eq!(val, 2);
+  }
+}
+```
+
+引入这种运算，会发生特别神奇的效果：
+
+|  i  | lowbit(i) | 表示哪个区间的和 |
+| :-: | :-------: | :--------------: |
+|  1  |     1     |      [1, 1]      |
+|  2  |     2     |      [1,2]       |
+|  3  |     1     |      [3,3]       |
+|  4  |     4     |      [1, 4]      |
+|  5  |     1     |      [5, 5]      |
+
+假设有这样的序列 s = { 1, 2, 1, 9, 10 }, `arr[2]` 表示的就是 `s[1] + s[2]`.
+
+如果你想计算 `s[1]+s[2]+s[3]+s[4]+s[5]`, 只需要计算`arr[5] + arr[5-lowbit(5)]`.
+
+如果你想计算 `s[3]`, 只需要计算像上边的计算方式，先计算`s[1]+s[2]+s[3]`,再计算`s[1]+s[2]`，然后前者减去后者即可。
+
+如果你想让第 2 项增加 10，你要让`arr[2] = arr[2] + 10`, `arr[2 + lowbit(2)] += 10`。
+
+了解完这些，实现起来就不难了，麻烦的地方在于 arr 申请空间的时候，要多申请一个，因为索引是从 1 开始的，索引为 0 的位置我们用不到。
+
+最后说一下，求前 n 项和的时间复杂度是 O(logN),空间复杂度是 O(N)。之所以是 log(N)，因为我们在求和的时候，每次都要把索引减去 lowbit(i)，那么经过多少次减法运算后，索引就变成 0 了呢？要看 i 的二进制表达式中有多少个 1，有 4 个 1，那么经过 4 次减法运算，就会变成 0，而一个数字 N 有多少个 1，恰好就是 logN。这不难理解，如果 N 的二进制 bit 位全是 1，每次除以 2，相当于往右移动 1 位，就少了一个 1，移动多少次呢？数字是 2^a 的话，就移动 a 次，对于 N 来说，可以写成 2^(logN)，那么自然是移动 logN 次了。
+
+## segment tree
+
+区间树，维护区间的运算，运算可以是区间求和，区间最大值，区间最小值，或者自定义的区间运算。区间树其实也不是一个树，而是一个数组。前缀和 Fenwick tree 可以做到，segment tree 也可以。
+
+假设你需要按照区间管理 n 个数，你需要申请 2n 大小的数组 arr，将这 n 个数存储到`arr[n..2n-1]`。对于 1 <= i <= n - 1 来说，`arr[2*i]`就是`arr[i]`的 left child，`arr[2*i+1]`就是`arr[i]`的 right child。对`arr[2*i]`和`arr[2*i+1]`做区间计算的结果，就是`arr[i]`的值。这样初始化后，arr 虽然是数组，但的确可以当作一个二叉树处理。
+
+如果你想更新索引号为 i 的数，你需要更新`arr[i+n]`的数据，然后沿着父节点往上，更新每个祖先节点的区间计算结果。
+
+如果你想查询索引范围是 a..b（不包含 b） 的区间计算结果，稍微麻烦一下。直接看下代码：
+
+```rust
+pub fn query(&self, range: Range<usize>) -> Result<Option<T>, SegmentTreeError> {
+      if range.start >= self.size || range.end > self.size {
+          return Err(SegmentTreeError::InvalidRange);
+      }
+
+      let mut left = range.start + self.size;
+      let mut right = range.end + self.size;
+      let mut result = None;
+
+      while left < right {
+          // arr[left] 是右节点
+          //        grandparent
+          //          /    \
+          //    parent       uncle
+          //     /  \        /
+          //        left  left + 1
+          if left % 2 == 1 {
+              result = Some(match result {
+                  None => self.nodes[left],
+                  Some(old) => (self.merge_fn)(old, self.nodes[left]),
+              });
+              left += 1;
+          }
+          // arr[right] 是右节点
+          //        grandparent
+          //         /      \
+          //     parent      uncle
+          //      /  \      /      \
+          //     a   b   right - 1  right
+          if right % 2 == 1 {
+            // 因为区间右边界right是开区间，因此 [right-1, right)
+            // 的区间计算结果就是 right - 1
+              right -= 1;
+              result = Some(match result {
+                  None => self.nodes[right],
+                  Some(old) => (self.merge_fn)(old, self.nodes[right]),
+              });
+          }
+          // 回到left的父节点
+          left /= 2;
+          // 来到 right 的父节点
+          right /= 2;
+      }
+
+      Ok(result)
+}
+```
