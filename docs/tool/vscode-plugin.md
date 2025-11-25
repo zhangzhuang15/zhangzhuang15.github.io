@@ -177,22 +177,38 @@ vue2/3 SFC 开发必备。
 
 > 个人观点：即便你用 vue2，也不要再使用 Vetur 了
 
-
 ## clangd
-c/c++的插件，比 Microsoft 官方插件 C/C++ 更好。如果你使用过 rust analyzer 插件，在编写代码的时候，你会发现某些类型，你都没有声明，这个插件就能帮你推导出来，并且用浅色字体给你标出来。clangd插件也可以做到这点，你用 auto 声明的变量，它能把这种类型给你提示出来，函数入参名也能给你标注出来，开发体验上，要比 C/C++ 这款插件好。
+
+c/c++的插件，比 Microsoft 官方插件 C/C++ 更好。如果你使用过 rust analyzer 插件，在编写代码的时候，你会发现某些类型，你都没有声明，这个插件就能帮你推导出来，并且用浅色字体给你标出来。clangd 插件也可以做到这点，你用 auto 声明的变量，它能把这种类型给你提示出来，函数入参名也能给你标注出来，开发体验上，要比 C/C++ 这款插件好。
 
 :::tip <TipIcon />
-温馨提示 
+温馨提示
 
-在安装clangd插件后，cpp文件中的 `auto` 关键字会出现黄色的warning下划线，提示这个关键字是c++11开始支持的特性。原因是，默认情况下，clangd会用较低版本的c++标准对待cpp文件，你需要在项目根目录下创建一个 `.clangd` 文件，内容如下：
+在安装 clangd 插件后，cpp 文件中的 `auto` 关键字会出现黄色的 warning 下划线，提示这个关键字是 c++11 开始支持的特性。原因是，默认情况下，clangd 会用较低版本的 c++标准对待 cpp 文件，你需要在项目根目录下创建一个 `.clangd` 文件，内容如下：
 
-```txt 
+```txt
 CompileFlags:
   # Treat code as C++, use C++17 standard, enable more warnings.
   Add: [-xc++, -std=c++17, -Wall, -Wno-missing-prototypes]
 ```
 
-重新加载一下vscode窗口即可。
+重新加载一下 vscode 窗口即可。
 :::
+
+## Extension Pack for Java
+
+extension ID: vscjava.vscode-java-pack
+
+Java 开发环境大礼包，是 7 个 Java 开发的插件合集。安装之后，即可搭配 maven 开发 Java 程序，包含 Java 代码跳转、智能提示、单元测试用例一键执行和一键调试，整体感受与 intelliJ 持平。
+
+### 如何设置 java formatter 用 4 个空格缩进，而不是用一个 tab 缩进
+
+第一步，打开 vscode 的 settings 面板，搜索 tabsize, 将 `Editor: Tab Size`改成 4，更重要的是，**取消**`Editor:Detect Indentation`的勾选！
+
+第二步，修改插件`Language Support for Java(TM) by Red Hat`(extension ID: redhat.java)的`Formatting.Java.Format.Settings.Url`的配置路径为`/Users/zhangzhuang/.vscode/extensions/redhat.java-1.49.0-darwin-arm64/formatters/eclipse-formatter.xml`（这个是我本人的路径，请替换成你的路径）。
+
+第三步，修改`/Users/zhangzhuang/.vscode/extensions/redhat.java-1.49.0-darwin-arm64/formatters/eclipse-formatter.xml`文件的配置，用 vim 打开该文件，然后搜索`tab`，将`tabulation.char`由`tab`修改为`space`, 将`tabulation.size`修改为 4.
+
+第四步，重启 vscode，或者 reload window 即可。
 
 <Giscus />
