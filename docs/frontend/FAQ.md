@@ -1132,3 +1132,38 @@ XSS: cross site scripting, 跨网页脚本攻击，意思是攻击者通过某�
 2. 网页设置 Content-Security-Policy，这可以让浏览器只去加载和执行特定服务源的内容。
 
 CSRF： cross site request forgery, 跨网页请求攻击，这里给出一个例子。用户在网站 A 登录后，浏览器记录下网站 A 的 cookie，攻击者诱导受害者访问网站 B，并向网站 A 发送请求，虽然网站 B 和网站 A 域名不一样，网站 B 无法用 js 访问到网站 A 的 cookie，但是浏览器拥有一个默认行为，它发现要发送请求到 A，而且拥有 A 的 cookie，它就会自动把这个 cookie 带上。防止的办法就是在种下 cookie 的时候，给 cookie 设置 SameSite 限制，这样就可以禁止刚才提到的默认行为。
+
+## pinia 之罪
+
+使用 pinia 的注意事项
+
+### 解构失去 respectivity
+
+```ts
+import { useIdentifyStore } from "./store/identify.store";
+
+const { id, updateId } = useIdentifyStore();
+
+const onClick = () => {
+  updateId("1232324345");
+};
+```
+
+上述写法，`onClick`执行之后，id 不会自动更新！如果把 id 用于 template，则对应的 UI 不会发生变化。
+
+应该改成这样：
+
+```ts
+import { storeToRefs } from "pinia";
+import { useIdentifyStore } from "./store/identify.store";
+
+const store = useIdentifyStore();
+const { updateId } = store;
+const { id } = storeToRefs(store);
+
+const onClick = () => {
+  updateId("1232324345");
+};
+```
+
+此时`id`是一个`ref`，具备 respectivity。
