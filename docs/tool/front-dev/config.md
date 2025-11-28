@@ -372,17 +372,34 @@ export default (commandLineArgs: any) => {
     "@eslint/js": "^9.16.0",
     "@stylistic/eslint-plugin": "^2.12.1",
     "@typescript-eslint/parser": "^5.1.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
     "eslint": "^8.57.1",
-    "eslint-plugin-json": "^4.0.1",
     "eslint-plugin-vue": "^9.32.0",
+    "vue-eslint-parser": "^9.4.3"
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.13.0",
     "lint-staged": "^15.2.10",
     "simple-git-hooks": "^2.11.1",
     "typescript": "^4.8.4",
-    "@types/node": "^22.10.2"
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "vite-plugin-mock": "^3.0.2",
   },
   "dependencies": {
-    "prettier": "^3.4.2"
+    "vite": "6.0.6",
+    "vue": "3.5.13",
+    "vue-router": "4.5.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router": "7.1.1",
+    "lodash": "^4.17.21",
+    "dayjs": "^1.11.13",
+    "@vitejs/plugin-react": "4.3.4",
+    "@vitejs/plugin-vue": "5.2.1",
   }
 }
 ```
@@ -402,8 +419,8 @@ import typescriptParser from "@typescript-eslint/parser";
 import js from "@eslint/js";
 import stylistic from "@stylistic/eslint-plugin";
 import vue from "eslint-plugin-vue";
-import json from "eslint-plugin-json";
 import vue_eslint_parser from "vue-eslint-parser";
+import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 
@@ -513,7 +530,36 @@ const rulesForJsOrTsSnippet = {
 
 export default [
   js.configs.recommended,
+  {
+    plugins: {
+      "@stylistic": stylistic,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
+    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      ...rulesForJsOrTsSnippet,
+    },
+  },
   ...vue.configs["flat/recommended"],
+  react.configs.flat?.recommended,
   {
     files: ["**/*.vue"],
     plugins: {
@@ -534,34 +580,12 @@ export default [
       ...rulesForJsOrTsSnippet,
       "vue/no-unused-vars": "off",
       "react/react-in-jsx-scope": "off",
+      "react-hooks/rules-of-hooks": "off",
+      "vue/multi-word-component-names": "off",
     },
   },
   {
-    plugins: {
-      "@stylistic": stylistic,
-    },
-    files: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-          tsx: "true",
-        },
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-    rules: {
-      ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
-      ...rulesForJsOrTsSnippet,
-    },
+    ignores: ["**/dist", "**/node_modules"],
   },
 ];
 ```
@@ -725,7 +749,7 @@ console.log(argv);
 :::
 
 :::tip <TipIcon />
-vue official 插件 和 eslint 插件同时存在时，只能用 vue official 格式化 vue 文件，而 vue official 感知不到你的 eslint 配置规则，它有自己默认的一套规则，这会造成 vue 文件内的 typescript 代码片段，不符合 eslint 的规范。这个问题暂时没有什么好的解决方法。
+如果 vue official 插件 和 eslint 插件同时存在，你想 format vue 文件，但你发现在 vscode 点击右键，选中`Format Document with...`，找不到 `Eslint` 选项，但是可以看到`Vue official`选项，你需要检查`settings.json`的`eslint.validate`中是否包含`"vue"`。如果加上了之后，还是不起作用，需要看看 eslint 插件在`OUTPUT`面板的输出日志，可能是遇到了一些错误，导致 eslint 插件没能正常工作。
 
 .vscode/settings.json 中必须要配置 `eslint.validate`，否则 eslint 插件无法根据 eslint 配置规则格式化 typescript,javascript,tsx,jsx 文件。
 :::

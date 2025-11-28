@@ -61,14 +61,14 @@ export default defineConfig({
   ],
   // 删除light/dark模式切换按钮
   appearance: false,
-  
+
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     logo: "/favicon.png",
     aside: false,
 
     // 每一页右侧 on this page 列表，按照标题层级展开
-    outline: 'deep',
+    outline: "deep",
 
     // refer: https://vitepress.dev/reference/default-theme-search
     // 使用vitepress内置的minisearch文档搜索方案，不采用algolia
@@ -92,7 +92,7 @@ export default defineConfig({
         activeMatch: "^/go/",
         items: [
           { text: "how to learn", link: "/go/how-to-learn" },
-          { text: 'FAQ', link: '/go/FAQ' }
+          { text: "FAQ", link: "/go/FAQ" },
         ],
       },
       {
@@ -100,27 +100,24 @@ export default defineConfig({
         activeMatch: "^/rust/",
         items: [
           { text: "how to learn", link: "/rust/how-to-learn" },
-          { text: "宏-备忘录", link: "/rust/macro" },
           { text: "Cargo Toml", link: "/rust/cargo-toml" },
-          { text: 'Rust内存操作', link: '/rust/memory'},
+          { text: "Rust内存操作", link: "/rust/memory" },
           { text: "FAQ", link: "/rust/question" },
-          { text: '编写宏', link: '/rust/write-macro'}
+          { text: "宏-备忘录", link: "/rust/macro" },
+          { text: "编写宏", link: "/rust/write-macro" },
+          { text: "Rust 的命令行工具", link: "/rust/commandline" },
         ],
       },
       {
         text: "Frontend",
         // link: "/frontend/index-page",
         activeMatch: "^/frontend/",
-        items: [
-         { text: 'code snippet', link: '/frontend/code-snippet'}
-        ]
+        items: [{ text: "code snippet", link: "/frontend/code-snippet" }],
       },
       {
         text: "Swift",
         activeMatch: "^/swift/",
-        items: [
-          { text: "code snippet", link: "/swift/code-snippet"}
-        ]
+        items: [{ text: "code snippet", link: "/swift/code-snippet" }],
       },
       {
         text: "开源项目",
@@ -128,13 +125,13 @@ export default defineConfig({
         items: [
           { text: "首页", link: "/open-source/index-page" },
           { text: "开源项目学习清单", link: "/open-source/learning-route" },
-        ]
+        ],
       },
       // index.md 将被特殊处理，其路由是 /blog/ 而不是 /blog/index，
       // 这会影响到sidebar的高亮问题，因此重命名为index-page;
       // important 命名成 page-index 也影响到sidebar的高亮显示，
       // 避免以 index 结尾吧！
-      // 
+      //
       // activeMatch必须存在，否则，阅读“首页”内容时，nav中的“博客”高亮，
       // 阅读“偷师tapable三个技术点”内容时，nav中的“博客”失去高亮
       { text: "博客", link: "/blog/index-page", activeMatch: "^/blog/" },
@@ -143,14 +140,14 @@ export default defineConfig({
         // link: '/tool/index-page',
         activeMatch: "^/tool/",
         items: [
-          { text: 'Oh-my-zsh', link: '/tool/ohMyZsh' },
+          { text: "Oh-my-zsh", link: "/tool/ohMyZsh" },
           { text: "homebrew tool", link: "/tool/brew-tool" },
           { text: "rust CLI tool", link: "/tool/rust-tool" },
-          { text: 'vscode', link: '/tool/vscode-install' },
-          { text: 'front dev', link: '/tool/front-dev/config' },
-          { text: 'NPM', link: '/tool/index-npm' },
-          { text: 'software', link: '/tool/software' },
-          { text: 'misc', link: '/tool/misc' }
+          { text: "vscode", link: "/tool/vscode-install" },
+          { text: "front dev", link: "/tool/front-dev/config" },
+          { text: "NPM", link: "/tool/index-npm" },
+          { text: "software", link: "/tool/software" },
+          { text: "misc", link: "/tool/misc" },
         ],
       },
       {
@@ -169,13 +166,13 @@ export default defineConfig({
             { text: "work thoughts", link: "/me/work-thoughts" },
             { text: "my life", link: "/me/my-life" },
             { text: "my travel", link: "/me/my-travel" },
-            { 
-              text: "第一次系列", 
+            {
+              text: "第一次系列",
               items: [
-                { text: '第一次洗牙', link: "/me/first-time/wash-teeth" },
-                { text: '第一次学会投篮', link: '/me/first-time/shoot' },
-                { text: '第一次立案', link: '/me/first-time/take-law' },
-                { text: '第一次听演唱会', link: '/me/first-time/concert'}
+                { text: "第一次洗牙", link: "/me/first-time/wash-teeth" },
+                { text: "第一次学会投篮", link: "/me/first-time/shoot" },
+                { text: "第一次立案", link: "/me/first-time/take-law" },
+                { text: "第一次听演唱会", link: "/me/first-time/concert" },
               ],
             },
           ],
@@ -183,30 +180,28 @@ export default defineConfig({
       ],
       "/go": [
         { text: "how to learn", link: "/go/how-to-learn" },
-        { text: "FAQ", link: '/go/FAQ'},
-        { text: "Module recommend", link: "/go/recommend-module"},
-        { text: "code snippet", link: "/go/code-snippet" }
+        { text: "FAQ", link: "/go/FAQ" },
+        { text: "Module recommend", link: "/go/recommend-module" },
+        { text: "code snippet", link: "/go/code-snippet" },
       ],
       "/rust": [
         { text: "how to learn", link: "/rust/how-to-learn" },
         { text: "宏-备忘录", link: "/rust/macro" },
         { text: "Cargo Toml", link: "/rust/cargo-toml" },
-        { text: 'Rust内存操作', link: '/rust/memory'},
+        { text: "Rust内存操作", link: "/rust/memory" },
         { text: "FAQ", link: "/rust/question" },
-        { text: "code-snippet", link: "/rust/code-snippet"},
-        { text: '编写宏', link: '/rust/write-macro' },
-        { 
-          text: '开源代码阅读',
-          items: [
-            { text: 'mio', link: '/rust/readings/mio'}
-          ]
-        }
+        { text: "code-snippet", link: "/rust/code-snippet" },
+        { text: "编写宏", link: "/rust/write-macro" },
+        {
+          text: "开源代码阅读",
+          items: [{ text: "mio", link: "/rust/readings/mio" }],
+        },
       ],
       "/blog": [
         {
           items: [
             { text: "首页", link: "/blog/index-page" },
-            { text: '程序员和英语', link: '/blog/programer-and-english'},
+            { text: "程序员和英语", link: "/blog/programer-and-english" },
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
             {
@@ -244,47 +239,47 @@ export default defineConfig({
             },
             {
               text: "并发编程的一些零碎概念",
-              link: "/blog/concurrent-concept"
+              link: "/blog/concurrent-concept",
             },
             {
               text: "百万并发？并发连接数上限怎么估计？",
-              link: "/blog/concurrent-links"
+              link: "/blog/concurrent-links",
             },
             {
-              text: '亮瞎你的眼——HDR图片',
-              link: "/blog/HDR-image"
+              text: "亮瞎你的眼——HDR图片",
+              link: "/blog/HDR-image",
             },
             {
-              text: 'Promise Resolve 的秘密',
-              link: '/blog/promise-resolve'
+              text: "Promise Resolve 的秘密",
+              link: "/blog/promise-resolve",
             },
             {
-              text: 'React梳理',
-              link: '/blog/react'
+              text: "React梳理",
+              link: "/blog/react",
             },
             {
               text: "vue2梳理",
-              link: "/blog/vue2"
+              link: "/blog/vue2",
             },
             {
               text: "浩叔语录",
-              link: "/blog/learning-experience-chen-hao"
+              link: "/blog/learning-experience-chen-hao",
             },
             {
               text: "十年后再看高考，大彻大悟",
-              link: "/blog/exam"
+              link: "/blog/exam",
             },
             {
               text: "凌晨4点，思维定势的惨案",
               link: "/blog/you-cant-think",
             },
-            { 
-              text: "vitepress如何支持markdown使用vue组件", 
-              link: "/blog/vitepress"
+            {
+              text: "vitepress如何支持markdown使用vue组件",
+              link: "/blog/vitepress",
             },
             {
               text: "react官网如何实现用markdown编写页面",
-              link: "/blog/react-dev"
+              link: "/blog/react-dev",
             },
             {
               text: "foamTree, behind webpack-bundle-analyzer",
@@ -292,19 +287,19 @@ export default defineConfig({
             },
             {
               text: "Terminal的魔法",
-              link: "/blog/terminal-io"
+              link: "/blog/terminal-io",
             },
             {
-              text: 'Kilo, Text Editor',
-              link: '/blog/terminal-kilo',
+              text: "Kilo, Text Editor",
+              link: "/blog/terminal-kilo",
             },
             {
               text: "对立统一的一点看法",
-              link: "/blog/conflict-thought"
+              link: "/blog/conflict-thought",
             },
             {
               text: "用circle svg绘制圆环",
-              link: "/blog/circle-svg"
+              link: "/blog/circle-svg",
             },
             {
               text: "flex布局小结",
@@ -312,131 +307,131 @@ export default defineConfig({
             },
             {
               text: "jest学习笔记",
-              link: "/blog/jest-learn"
+              link: "/blog/jest-learn",
             },
             {
               text: '什么是"monad"',
-              link: "/blog/monad-intro"
+              link: "/blog/monad-intro",
             },
             {
               text: "axios和content-type请求头",
-              link: '/blog/axios-content-type'
+              link: "/blog/axios-content-type",
             },
             {
               text: "下载html遇到的gzip问题",
-              link: '/blog/gzip-when-download-html'
+              link: "/blog/gzip-when-download-html",
             },
             {
               text: "浏览器加载资源小结",
-              link: "/blog/browser-download-resource"
+              link: "/blog/browser-download-resource",
             },
             {
               text: "coreutils解读",
-              link: '/blog/core-utils'
+              link: "/blog/core-utils",
             },
             {
               text: "fucking webpack concept",
-              link: "/blog/fucking-webpack-concept"
+              link: "/blog/fucking-webpack-concept",
             },
             {
               text: "从 ElementUI 源码学到的小知识",
-              link: '/blog/learn-from-element-ui'
+              link: "/blog/learn-from-element-ui",
             },
             {
               text: "Fucking swift package manager",
-              link: "/blog/swift-package-manager"
+              link: "/blog/swift-package-manager",
             },
             {
-              text: '结合实际经验，聊聊函数式编程和面向对象编程',
-              link: '/blog/functional-and-object-programming'
+              text: "结合实际经验，聊聊函数式编程和面向对象编程",
+              link: "/blog/functional-and-object-programming",
             },
             {
-              text: '速览：几种编程语言的容器类型',
-              link: '/blog/collection-intro'
+              text: "速览：几种编程语言的容器类型",
+              link: "/blog/collection-intro",
             },
             {
               text: "C++和Rust在值拷贝方面的一些思考",
-              link: "/blog/cpp-rust"
+              link: "/blog/cpp-rust",
             },
             {
-              text: '接触cpp',
-              link: '/blog/learning-cpp'
+              text: "接触cpp",
+              link: "/blog/learning-cpp",
             },
             {
-              text: 'learn zig',
-              link: '/blog/learning-zig'
+              text: "learn zig",
+              link: "/blog/learning-zig",
             },
             {
-              text: 'rust编译出来的executable file比cpp大？',
-              link: '/blog/rust-binary-is-big'
+              text: "rust编译出来的executable file比cpp大？",
+              link: "/blog/rust-binary-is-big",
             },
             {
-              text: '与二进制文件打交道',
-              link: '/blog/talk-to-executable'
+              text: "与二进制文件打交道",
+              link: "/blog/talk-to-executable",
             },
             {
-              text: '函数调用ABI',
-              link: '/blog/call-abi'
+              text: "函数调用ABI",
+              link: "/blog/call-abi",
             },
             {
-              text: '协程-用C语言实现',
-              link: '/blog/coroutine'
+              text: "协程-用C语言实现",
+              link: "/blog/coroutine",
             },
             {
-              text: 'System Program with C',
-              link: '/blog/system-program-with-c'
-            },
-            { 
-              text: '隧道、加速器和VPN——tunnel技术', 
-              link: '/blog/tunnel-tech'
+              text: "System Program with C",
+              link: "/blog/system-program-with-c",
             },
             {
-              text: 'Hardware you should Know',
-              link: "/blog/hardware"
+              text: "隧道、加速器和VPN——tunnel技术",
+              link: "/blog/tunnel-tech",
             },
             {
-              text: 'Talk about pthread',
-              link: '/blog/pthread'
+              text: "Hardware you should Know",
+              link: "/blog/hardware",
             },
             {
-              text: 'How to Write Interpreter',
-              link: '/blog/interpreter'
+              text: "Talk about pthread",
+              link: "/blog/pthread",
             },
             {
-              text: 'Explore JavaScriptCore',
-              link: '/blog/javascriptcore'
+              text: "How to Write Interpreter",
+              link: "/blog/interpreter",
+            },
+            {
+              text: "Explore JavaScriptCore",
+              link: "/blog/javascriptcore",
             },
             {
               text: "使用vue遇到的一些坑",
-              link: '/blog/vue-apply'
+              link: "/blog/vue-apply",
             },
             {
-              text: 'crossbeam 学习笔记',
-              link: '/blog/crossbeam-learning-notes'
+              text: "crossbeam 学习笔记",
+              link: "/blog/crossbeam-learning-notes",
             },
             {
-              text: 'GPU介绍',
-              link: '/blog/gpu'
+              text: "GPU介绍",
+              link: "/blog/gpu",
             },
             {
-              text: 'Never Confused: Rust, Zig and Go',
-              link: '/blog/rust-zig-go'
+              text: "Never Confused: Rust, Zig and Go",
+              link: "/blog/rust-zig-go",
             },
             {
-              text: 'Tauri',
-              link: '/blog/tauri',
+              text: "Tauri",
+              link: "/blog/tauri",
             },
             {
-              text: 'How to Create .dmg File',
-              link: '/blog/create-dmg'
+              text: "How to Create .dmg File",
+              link: "/blog/create-dmg",
             },
             {
-              text: 'VSCode Extension Develop',
-              link: '/blog/vscode-extension-develop'
+              text: "VSCode Extension Develop",
+              link: "/blog/vscode-extension-develop",
             },
             {
-              text: 'Map Concept: H3',
-              link: '/blog/h3'
+              text: "Map Concept: H3",
+              link: "/blog/h3",
             },
             {
               text: "博客文章阅读系列",
@@ -444,113 +439,122 @@ export default defineConfig({
               items: [
                 {
                   text: "介绍",
-                  link: "/blog/blog-reading/main"
+                  link: "/blog/blog-reading/main",
                 },
                 {
-                  text: '浩叔篇',
-                  link: "/blog/blog-reading/hao-shu"
+                  text: "浩叔篇",
+                  link: "/blog/blog-reading/hao-shu",
                 },
                 {
                   text: "Rust",
-                  link: "/blog/blog-reading/rust-program"
-                }
-              ]
-            }
+                  link: "/blog/blog-reading/rust-program",
+                },
+              ],
+            },
           ],
         },
       ],
       "/open-source": [
         { text: "首页", link: "/open-source/index-page" },
         { text: "个人学习项目", link: "/open-source/personnal-learn-project" },
-        { text: '个人开发的应用项目', link: '/open-source/application' },
+        { text: "个人开发的应用项目", link: "/open-source/application" },
         { text: "开源项目学习清单", link: "/open-source/learning-route" },
       ],
       "/frontend": [
         { text: "首页", link: "/frontend/index-page" },
-        { text: 'typescript类型系统', link: '/frontend/ts-type'},
-        { text: 'jsdoc常用的语法', link: '/frontend/js-doc'},
-        { text: 'code snippet', link: '/frontend/code-snippet'},
-        { text: 'FAQ', link: '/frontend/FAQ' }
+        { text: "typescript类型系统", link: "/frontend/ts-type" },
+        { text: "jsdoc常用的语法", link: "/frontend/js-doc" },
+        { text: "code snippet", link: "/frontend/code-snippet" },
+        { text: "FAQ", link: "/frontend/FAQ" },
       ],
-      "/swift": [
-        { text: "code snippet", link: "/swift/code-snippet"}
-      ],
+      "/swift": [{ text: "code snippet", link: "/swift/code-snippet" }],
       "/tool": [
         { text: "首页", link: "/tool/index-page" },
-        { text: 'Oh-my-zsh', link: '/tool/ohMyZsh' },
+        { text: "Oh-my-zsh", link: "/tool/ohMyZsh" },
         { text: "homebrew tool", link: "/tool/brew-tool" },
-        { text: 'curl tool', link: '/tool/curl-tool' },
+        { text: "curl tool", link: "/tool/curl-tool" },
         { text: "rust CLI tool", link: "/tool/rust-tool" },
-        { text: 'Github', link: '/tool/index-github'},
-        { 
-          text: 'vscode',
+        { text: "Github", link: "/tool/index-github" },
+        {
+          text: "vscode",
           items: [
-            { text: '安装', link: '/tool/vscode-install' },
-            { text: '常用配置', link: '/tool/vscode-config' },
-            { text: '插件推荐', link: '/tool/vscode-plugin' },
-            { text: 'vscode variables', link: '/tool/vscode-variables' },
-            { text: 'tasks.json', link: '/tool/vscode-tasks' }
-          ] 
+            { text: "安装", link: "/tool/vscode-install" },
+            { text: "常用配置", link: "/tool/vscode-config" },
+            { text: "插件推荐", link: "/tool/vscode-plugin" },
+            { text: "vscode variables", link: "/tool/vscode-variables" },
+            { text: "tasks.json", link: "/tool/vscode-tasks" },
+          ],
         },
         {
-          text: 'front dev',
-          items: [
-            { text: '常用开发配置', link: '/tool/front-dev/config' },
-          ]
+          text: "front dev",
+          items: [{ text: "常用开发配置", link: "/tool/front-dev/config" }],
         },
         {
-          text: 'NPM',
+          text: "NPM",
           items: [
-            { text: '首页', link: '/tool/index-npm' },
-            { 
-              text: 'package推荐',
+            { text: "首页", link: "/tool/index-npm" },
+            {
+              text: "package推荐",
               collapsed: true,
               items: [
-                { text: '辅助研发', link: '/tool/npm-package-dev' },
-                { text: '开发cmd', link: '/tool/npm-package-cmd' },
-                { text: '文件系统', link: '/tool/npm-package-file-system' },
-                { text: 'function tool', link: '/tool/npm-package-function-tool' },
-                { text: '日志处理', link: '/tool/npm-package-log' },
-                { text: '时间处理', link: '/tool/npm-package-time' },
-                { text: '测试相关', link: '/tool/npm-package-test' },
-                { text: 'module/package相关', link: '/tool/npm-package-module' },
-                { text: 'http相关', link: '/tool/npm-package-http' },
-                { text: 'UI', link: '/tool/npm-package-ui' },
-                { text: 'web app framework', link: '/tool/npm-package-web-app' },
-                { text: 'docs website', link: '/tool/npm-package-docs-web' },
-                { text: 'database', link: '/tool/npm-package-database' },
-                { text: 'specific file', link: '/tool/npm-package-specific-file' },
-                { text: 'data structure', link: '/tool/npm-package-data-structure' },
-                { text: '动画', link: '/tool/npm-package-animation' },
-                { text: '音视频', link: '/tool/npm-package-media' },
-                { text: '图像', link: '/tool/npm-package-image' }
-              ]
-            }
-          ]
+                { text: "辅助研发", link: "/tool/npm-package-dev" },
+                { text: "开发cmd", link: "/tool/npm-package-cmd" },
+                { text: "文件系统", link: "/tool/npm-package-file-system" },
+                {
+                  text: "function tool",
+                  link: "/tool/npm-package-function-tool",
+                },
+                { text: "日志处理", link: "/tool/npm-package-log" },
+                { text: "时间处理", link: "/tool/npm-package-time" },
+                { text: "测试相关", link: "/tool/npm-package-test" },
+                {
+                  text: "module/package相关",
+                  link: "/tool/npm-package-module",
+                },
+                { text: "http相关", link: "/tool/npm-package-http" },
+                { text: "UI", link: "/tool/npm-package-ui" },
+                {
+                  text: "web app framework",
+                  link: "/tool/npm-package-web-app",
+                },
+                { text: "docs website", link: "/tool/npm-package-docs-web" },
+                { text: "database", link: "/tool/npm-package-database" },
+                {
+                  text: "specific file",
+                  link: "/tool/npm-package-specific-file",
+                },
+                {
+                  text: "data structure",
+                  link: "/tool/npm-package-data-structure",
+                },
+                { text: "动画", link: "/tool/npm-package-animation" },
+                { text: "音视频", link: "/tool/npm-package-media" },
+                { text: "图像", link: "/tool/npm-package-image" },
+              ],
+            },
+          ],
         },
         {
-          text: 'Rollup',
-          items: [
-            { text: '插件推荐', link: '/tool/rollup/plugin' },
-          ]
+          text: "Rollup",
+          items: [{ text: "插件推荐", link: "/tool/rollup/plugin" }],
         },
         {
-          text: 'ansi escape control',
-          link: '/tool/ansi-escape-control'
+          text: "ansi escape control",
+          link: "/tool/ansi-escape-control",
         },
-        { text: 'software', link: '/tool/software' },
-        { text: 'misc', link: "/tool/misc"},
-        { text: 'arm指令清单', link: '/tool/arm' },
-        { text: 'CMake', link: '/tool/cmake-tool'}
+        { text: "software", link: "/tool/software" },
+        { text: "misc", link: "/tool/misc" },
+        { text: "arm指令清单", link: "/tool/arm" },
+        { text: "CMake", link: "/tool/cmake-tool" },
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
         { text: "技术热线", link: "/links/hotline" },
         { text: "社区", link: "/links/community" },
         { text: "开发者", link: "/links/personal" },
-        { text: '在线技术文档', link: '/links/document' },
-        { text: '好文共赏', link: "/links/great-articles"},
-        { text: 'other source', link: '/links/other-source' }
+        { text: "在线技术文档", link: "/links/document" },
+        { text: "好文共赏", link: "/links/great-articles" },
+        { text: "other source", link: "/links/other-source" },
       ],
     },
 
@@ -595,13 +599,13 @@ export default defineConfig({
       },
     },
   },
-  
+
   vue: {
     template: {
       compilerOptions: {
         // ssr: true,
-      }
-    }
+      },
+    },
   },
 
   markdown: {
@@ -615,7 +619,7 @@ export default defineConfig({
         //
         //  params: "card [title: 提示] [style: { font-size: 10px }]"
         validate(params: string) {
-          return params.trim().startsWith("card")
+          return params.trim().startsWith("card");
         },
         // idx 只会返回open标签和close标签在 tokens 里的索引号，
         // <a></a>, <a> 就是open标签，</a>就是close标签，
@@ -655,40 +659,41 @@ export default defineConfig({
         //     info: "",
         //     markup: "**"
         //   }
-        // ] 
-        render(
-          tokens: Array<{nesting: number, info: string}>, 
-          idx: number) {
-          const token = tokens[idx]
-          
+        // ]
+        render(tokens: Array<{ nesting: number; info: string }>, idx: number) {
+          const token = tokens[idx];
+
           if (token.nesting === 1) {
-            let title: string | undefined
-            const titleReg = /\[\s*title:(.*?)\]/
-            const result = titleReg.exec(token.info)
+            let title: string | undefined;
+            const titleReg = /\[\s*title:(.*?)\]/;
+            const result = titleReg.exec(token.info);
             if (result !== null) {
-              title = result[1]
+              title = result[1];
             }
-            const headerPart = title === undefined ? "" : `<div slot="header">${title.trim()}</div>`
+            const headerPart =
+              title === undefined
+                ? ""
+                : `<div slot="header">${title.trim()}</div>`;
 
-            let style: string | undefined
-            const styleReg = /\[\s*style:(.*?)\]/
-            const styleResult = styleReg.exec(token.info)
+            let style: string | undefined;
+            const styleReg = /\[\s*style:(.*?)\]/;
+            const styleResult = styleReg.exec(token.info);
             if (styleResult !== null) {
-              style = styleResult[1]
-              style = style.trim()
-              style = style.replace(/^"*/, '')
-              style = style.replace(/"*$/, '')
-              style = style.replace(/"/, "'")
+              style = styleResult[1];
+              style = style.trim();
+              style = style.replace(/^"*/, "");
+              style = style.replace(/"*$/, "");
+              style = style.replace(/"/, "'");
             }
-            const stylePart = style === undefined ? "" : `style="${style}"`
+            const stylePart = style === undefined ? "" : `style="${style}"`;
 
-            return `<Card ${stylePart}>${headerPart}`
+            return `<Card ${stylePart}>${headerPart}`;
           } else {
             // end tag
-            return "</Card>"
+            return "</Card>";
           }
         },
-      })
+      });
     },
-  }
+  },
 });
