@@ -129,6 +129,22 @@ func main() {
 ```
 代码会阻塞，最终 deadlock
 
+如果写成这样，也会 deadlock 
+```go 
+func main() {
+    var ch chan int 
+
+    go func() {
+        // deadlock
+        ch <- 10
+    }()
+
+    // deadlock
+    <- ch
+}
+```
+如果是无缓存的channel, 上述代码不会死锁
+
 
 ### 4. 关闭 nil channel 会panic
 ```go 
