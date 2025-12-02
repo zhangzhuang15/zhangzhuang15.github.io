@@ -1167,3 +1167,53 @@ const onClick = () => {
 ```
 
 此时`id`是一个`ref`，具备 respectivity。
+
+## vue router 与 url hash 的同步
+
+使用 vue router 经常会有这样的场景：有个`tabs`组件内包含几个`tab`，`tab`内的组件根据前端路由，展示对应的组件。当点击其中一个 tab 的时候，希望 url 的 hash 值变成对应的前端路由 hash 值。当我们直接修改浏览器的 url hash 之后，按下回车，对应的 tab 应该被展示。
+
+```ts
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const routes = router.getRoutes();
+
+const currentTabValue = ref(0);
+const tabEntryList = [
+  { name: "tab 1", value: 1, routeName: routes[1].name },
+  { name: "tab 2", value: 2, routeName: routes[2].name },
+];
+
+// url hash 变化后，要自动展示出哪个tab
+router.beforeEach((to, _from) => {
+  switch (to.name) {
+    case tabEntryList[0].routeName:
+      currentTabValue.value = 1;
+      return;
+    case tabEntryList[1].routeName:
+      currentTabValue.value = 2;
+      return;
+    default:
+  }
+});
+
+// tab 变更后，url hash 的同步
+const onTabClick = () => {
+  switch (currentTabValue.value) {
+    case 1:
+      router.push(routes[1]);
+      return;
+    case 2:
+      router.push(routes[2]);
+      return;
+    default:
+  }
+};
+```
+
+不要使用`window.onhashchange`完成 url hash 变更到 tab 的更新，因为如果某个前端路由采用`redirect`的配置后，`onhashchange`无法捕捉到`redirect`。
+
+不要使用 vue `watch`系列的 API 监督 `currentTabValue`, 完成 tab 变更到 url hash 的更新，因为你无法区分`currentTabValue`是什么情形更新的，可能是点击 tab 触发更新的，也可能是在 url has 变更的时候触发更新的。尽量岔开处理，不要耦合。
+
+`vue-router`提供了`onBeforeRouteLeave`和`onBeforeRouteUpdate`，根据实际测试，这两个 API 不如`router.beforeEach`管用。
