@@ -286,6 +286,10 @@ export default defineConfig({
               link: "/blog/foam-tree",
             },
             {
+              text: "git详细解析——git的实现",
+              link: "/blog/git-explanation",
+            },
+            {
               text: "Terminal的魔法",
               link: "/blog/terminal-io",
             },
