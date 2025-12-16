@@ -202,3 +202,96 @@ commit 1 ------> commit 2 -----> commit 3 -----> commit 4 -----> commit 5
 此时，将`.git/refs/heads/b`的 hash 值替换进`.git/refs/heads/a`, 然后根据 hash 值拿到 commit 记录，再根据 commit 记录解析出文件名、文件 hash 值，然后写入到`.git/index`就可以了。
 
 接下来就是正常情况下，把 b 合并到 a 了。注意，这个情况，b 和 a 之间会有冲突。
+
+第一步，将分支 b 的 hash 值写入 `.git/MERGE_HEAD` 文件;
+
+第二步，向`.git/MERGE_MSG`文件写入如下格式的内容：
+
+```txt
+Merge b into a
+
+Conflicts:
+a.txt
+main.cc
+
+```
+
+这一步会获取分支 a 和分支 b 哪些文件冲突了，如果没有，那么`Conflicts`开始的文字不会出现.
+
+第三步，将分支 b hash 值查询出来的文件、stage、文件 hash 合并到 `.git/index`里边，这里边也有讲究，对于没有冲突的、并属于修改状态的文件：
+
+```txt
+c.txt 0 <分支b版本的c.txt的hash值>
+```
+
+对于没有冲突的、并属于新增的文件：
+
+```txt
+c.txt 0 <分支b版本的c.txt的hash值>或者<分支a版本的c.txt的hash值>，哪个取到值就用哪个
+```
+
+这个情况是说，c.txt 属于新增的文件，它可能是分支 b 新增的，也可能是分支 a 新增的，因此就会出现该文件的 hash 值只在分支 a 和分支 b 其中一方出现。
+
+对于有冲突的文件：
+
+```txt
+c.txt 1 <磁盘当前c.txt的hash值>
+c.txt 2 <分支b版本的c.txt的hash值>
+c.txt 3 <分支a版本的c.txt的hash值>
+```
+
+最后一步，就是将磁盘中的文件同步, 对于没有冲突的文件，直接用分支 b 版本或者分支 a 版本（这里二选一，还是因为有的文件可能只在其中一个分支里有）的内容替换即可。对于有冲突的文件，需要采取如下格式写入：
+
+```txt
+<<<<<<<
+这里是分支a版本的内容
+=======
+这里是分支b版本的内容
+>>>>>>>
+```
+
+大功告成！
+
+注意，实际的 git 会比这里更复杂，会区分到哪些行不同，这里为了简化说明基本思路，只着眼文件内容整体的不同，不深入到具体哪些行不同的实现。
+
+在完成磁盘中文件的同步后，还有一步`git commit`，这里边做了什么事情，上边的章节已经介绍了，不再赘述，只需要知道，这个时候 commit 所需要的 msg 直接从`.git/MERGE_MSG`读取。也正是因为这个环节的存在，才揭示了为什么执行`git merge`会多出来一条 commit 记录。
+
+## `git push`
+
+`git push`可以看成本地分支到远程分支的`git merge`。
+
+假设我们在分支 b, 然后执行`git push origin b`， 意思就是将分支 a 合并到远程分支 b。
+
+首先要做的事情，就是在`.git/config`文件中查询到`origin`的 url 是什么，利用这个 url, 发送特定请求，获取分支 b 当前记录的 hash 值，这个中间是如何实现的，不是重点。
+
+如果 hash-a 和 hash-b 一样，说明不需要 push 了。
+
+如果 hash-a 是 hash-b 的祖先 hash 值，也不需要 push 了，b 已经是最新的了。
+
+如果 hash-b 不是 hash-a 的祖先 hash 值，说明分支 b 在这之前，被 push 过了，导致版本和分支 a 对不上号，也就是有冲突了。典型的情况就是，当你想推送分支的时候，发现在几分钟前，你的同事推过了一次。这个时候，直接抛出冲突错误。
+
+最后的情况就简单了，只需要将本地的`.git/objects`同步到远程仓库，将远程分支 b 的 hash 值替换为本地分支 a 的 hash 值，然后在本地`.git/refs/remotes/origin/b`也写入这个 hash 值。中间文件传送到远程的细节无需关心，它不影响我们的理解。
+
+大功告成！
+
+## `git fetch`
+
+它可以简单理解为`git push`的反向操作，只是不需要完成合并到本地分支的操作。
+
+假设我们在分支 a, 执行`git fetch origin b`。
+
+还是要从`.git/config`中查询`origin`的 url, 并通过这个 url 发送特定请求，拿到远程分支 b 的 hash 值。
+
+接下来往`.git/FETCH_HEAD`文件写入：
+
+```txt
+<b的hash值> branch b of <origin的url>
+```
+
+最后，把远程仓库的`.git/objects`同步到本地的`.git/objects`里边就可以了。你需要远程和本地会有冲突，因为如果内容上不同的话，它们的 hash 值就会不同，在`.git/objects`下的路径就会不同，于是，不可能出现路径一样，内容不一样的情况。
+
+## `git pull`
+
+`git pull origin b`, 相当于`git fetch origin b` + `git merge origin/b`。
+
+`git fetch`的工作，我们已经在上一节介绍过了。`git merge origin/b` 和 `git merge`那一节介绍过的没有区别，在此不赘述了。
