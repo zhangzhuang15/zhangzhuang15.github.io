@@ -295,3 +295,42 @@ c.txt 3 <分支a版本的c.txt的hash值>
 `git pull origin b`, 相当于`git fetch origin b` + `git merge origin/b`。
 
 `git fetch`的工作，我们已经在上一节介绍过了。`git merge origin/b` 和 `git merge`那一节介绍过的没有区别，在此不赘述了。
+
+## `git clone`
+
+假设我们执行`git clone https://fdsfas.com/ffds/cc.git`。
+
+第一步，会创建一个 cc 文件夹。
+
+第二步，在 cc 文件夹内执行`git init`。此时`.git/HEAD`的内容是`refs: refs/heads/master`。
+
+第三步，在`.git/config`添加`origin=https://fdsfas.com/ffds/cc.git`的设置。
+
+第四步，执行`git pull origin master`。
+
+## `git status`
+
+有了以上内容的铺垫，理解这里的逻辑，应该不算困难。
+
+这个指令就是要打印出这些信息：
+
+1. 哪些文件没有被 git 跟踪
+2. 哪些文件即将被 commit
+3. 哪些文件还没有 staged (该文件在磁盘的内容和`.git/index`内记录的内容不一样)
+4. 哪些文件存在冲突
+
+如何找到哪些文件没有被 git 跟踪呢？我们知道`.git/index`里边存储的是被跟踪的文件，那么我们可以读取项目根目录下所有的文件，然后筛除被跟踪的文件，剩下的就是没有被跟踪的文件了。
+
+如何找到哪些文件将被 commit 呢？我们知道`.git/HEAD`记录的 hash 值是上一次 commit hash，利用这个 hash 值，我们从`.git/objects`里边可以找到上一次 commit 的时候，文件的 hash 值，那么我们用这些文件的 hash 值，和`.git/index`里边记录的文件 hash 值做个比较，如果不一样的话，就是相较上一次 commit 之后，这个文件更新了，自然而然也就是即将被 commit 的文件了。
+
+如何找到哪些文件还没有 staged? 一个文件没有被 stage，意味着它首先被 git 跟踪了，出现在`.git/index`中，另外，意味着工作目录中的该文件内容 hash 值与`.git/index`里边不一致。典型的情景是，你修改了一个文件，然后执行`git add`，之后，你又修改了这个文件，此时这个文件的改动没有同步到`.git/index`，就处于没有被 stage 的状态。正如其定义一样，只需要根据这些文件当前内容，计算一下 hash 值，然后与`.git/index`里边记录的 hash 值比较一下，不一样的就是没有被 stage 的文件了。
+
+如何找到哪些文件存在冲突？这个更简单。在`git merge`一节我们介绍过，如果在 merge 的时候，存在文件冲突的状态，这些文件在`.git/index`中的 stage 值是 1、2、3，根据这点，我们就知道哪些文件存在冲突了。
+
+## `git diff`
+
+以`git diff a b`为例。
+
+从`.git/refs/heads/a`读取上一次 commit hash，并根据这个 hash 值从`.git/objects`中找到 commit 记录，从这个记录里就能获取到所有的文件以及文件内容 hash 值。
+
+同样的事情，在`.git/refs/heads/b`做一遍。然后将二者拿出来比较一下，hash 值不同的同名文件，就是存在差异，列举出来。当然，就像之前所说的，真实的 git 会更复杂，给出具体哪些行不同，这不在我们的讨论范围内。
