@@ -5,14 +5,16 @@ aside: true
 ---
 
 # Go Code Snippet
+
 Record some useful code snippet, help you get familiar with Go.
 
 Although Go supports functional programming, unlike javascript, it doesn't offer bultin functions, e.g. `Array.prototype.map`, `Array.prototype.filter`. Therefor, you should define these functions based Go standard library.
 
-## How to Resolve Path 
+## How to Resolve Path
+
 In javascript, you can get relative path or absolute path through `node:path` module. In Go, you can use `path/filepath`.
 
-```go 
+```go
 import "path/filepath"
 
 func main() {
@@ -42,10 +44,11 @@ func main() {
 }
 ```
 
-## How to Work with String 
+## How to Work with String
+
 In javascript, you can work with String through its native function, e.g. `String.prototype.startsWith`, `String.prototype.find`. In Go, you can use `strings`.
 
-```go 
+```go
 import "strings"
 
 func main() {
@@ -57,8 +60,9 @@ func main() {
 }
 ```
 
-## Template String 
-```go 
+## Template String
+
+```go
 import "fmt"
 
 func main() {
@@ -67,10 +71,11 @@ func main() {
 }
 ```
 
-## How to Get Random Value 
+## How to Get Random Value
+
 In javascript, you can get random value through `Math.random()`. In Go, you can use `math/rand`.
 
-```go 
+```go
 import (
     "math/rand"
     "time"
@@ -83,10 +88,11 @@ func main() {
 }
 ```
 
-## How to Get Time 
+## How to Get Time
+
 In javascript, you can access time with `Date`. In Go, you can use `time`.
 
-```go 
+```go
 import "time"
 
 func main() {
@@ -100,7 +106,8 @@ func main() {
 ```
 
 ## How to Use Regexp
-```go 
+
+```go
 import "regexp"
 
 func main() {
@@ -112,8 +119,9 @@ func main() {
 }
 ```
 
-## How to Create Child Process 
-```go 
+## How to Create Child Process
+
+```go
 import (
     "os"
     "os/exec"
@@ -126,8 +134,9 @@ func main() {
 }
 ```
 
-## How to Log 
-```go 
+## How to Log
+
+```go
 import "log"
 
 func main() {
@@ -136,8 +145,9 @@ func main() {
 }
 ```
 
-## Create File 
-```go 
+## Create File
+
+```go
 import "os"
 
 func main() {
@@ -145,8 +155,9 @@ func main() {
 }
 ```
 
-## Create Temp Directory 
-```go 
+## Create Temp Directory
+
+```go
 import (
     "time"
     "os"
@@ -158,8 +169,9 @@ func MkdirTemp() (string, error) {
 }
 ```
 
-## Remove File 
-```go 
+## Remove File
+
+```go
 import "os"
 
 func main() {
@@ -167,8 +179,9 @@ func main() {
 }
 ```
 
-## Remove Directory 
-```go 
+## Remove Directory
+
+```go
 import "os"
 
 func main() {
@@ -177,7 +190,8 @@ func main() {
 ```
 
 ## Write File with Buffer
-```go 
+
+```go
 import (
     "os"
     "bufio"
@@ -197,7 +211,8 @@ func main() {
 You can use io helpers to simplify your io operation and these helpers are offered by package `io`. For example, you make a http get request and want to write response body to a file. You have to prepare a buffer, and read response body data patch by patch in a loop statement, when it comes to EOF, you finish writing file. Instead, you can use helpers from package `io`, in this way, you don't need to care about above details.
 
 ## Read File Content as String
-```go 
+
+```go
 import (
     "os"
     "io"
@@ -214,8 +229,9 @@ func main() {
 }
 ```
 
-## Async Read File 
-```go 
+## Async Read File
+
+```go
 import (
     "os"
     "io"
@@ -227,20 +243,21 @@ func main() {
     if err != nil {
         return
     }
-    
+
     go func(){
         defer file.Close()
         content, err := io.ReadAll(file)
         ch<-content
     }()
-   
+
    content := <- ch
 }
 
 ```
 
 ## File Exists
-```go 
+
+```go
 import "os"
 
 func main() {
@@ -252,9 +269,9 @@ func main() {
 }
 ```
 
-
 ## Http(s) Request
-```go 
+
+```go
 import (
     "net/http"
     "io"
@@ -278,5 +295,41 @@ func main() {
 
         }
     }
+}
+```
+
+## Convert to json string
+
+```go
+import (
+  "encoding/json"
+  "fmt"
+)
+
+type Hello struct {
+	Name string
+	Age int
+}
+
+func main() {
+	hello := Hello {
+		"hello",
+		12,
+	}
+	if bts, err := json.Marshal(hello); err == nil {
+		fmt.Println(string(bts))
+	}
+
+}
+```
+
+## Cut suffix substring
+
+```go
+import "strings"
+
+func main() {
+	helloWorld := "hello world"
+	hello := strings.TrimRight(helloWorld, "world")
 }
 ```

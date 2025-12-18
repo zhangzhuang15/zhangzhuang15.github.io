@@ -326,8 +326,10 @@ export default (commandLineArgs: any) => {
 }
 ```
 
-## 一个完整monorepo的配置
+## 一个完整 monorepo 的配置
+
 :::code-group
+
 ```json [package.json]
 {
   "name": "",
@@ -357,49 +359,51 @@ export default (commandLineArgs: any) => {
     "pre-commit": "pnpm exec lint-staged --concurrent false"
   },
   "lint-staged": {
-    "packages/*/{src,types}/**/*.ts": [
-      "eslint --cache --fix"
-    ],
-    "packages/**/*.d.ts": [
-      "eslint --cache --fix"
-    ],
-    "packages/*/src/**/*.tsx": [
-      "eslint --cache --fix"
-    ],
-    "packages/*/src/**/*.jsx": [
-      "eslint --cache --fix"
-    ],
-    "packages/*/src/**/*.js": [
-      "eslint --cache --fix"
-    ],
-    "packages/*/src/**/*.vue": [
-      "eslint --cache --fix"
-    ],
-    "packages/*/src/**/*.json": [
-      "prettier --cache --write"
-    ],
-    "playground/**/__tests__/**/*.ts": [
-      "eslint --cache --fix"
-    ]
+    "packages/*/{src,types}/**/*.ts": ["eslint --cache --fix"],
+    "packages/**/*.d.ts": ["eslint --cache --fix"],
+    "packages/*/src/**/*.tsx": ["eslint --cache --fix"],
+    "packages/*/src/**/*.jsx": ["eslint --cache --fix"],
+    "packages/*/src/**/*.js": ["eslint --cache --fix"],
+    "packages/*/src/**/*.vue": ["eslint --cache --fix"],
+    "packages/*/src/**/*.json": ["prettier --cache --write"],
+    "playground/**/__tests__/**/*.ts": ["eslint --cache --fix"]
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
     "@stylistic/eslint-plugin": "^2.12.1",
     "@typescript-eslint/parser": "^5.1.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
     "eslint": "^8.57.1",
-    "eslint-plugin-json": "^4.0.1",
     "eslint-plugin-vue": "^9.32.0",
+    "vue-eslint-parser": "^9.4.3"
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.13.0",
     "lint-staged": "^15.2.10",
     "simple-git-hooks": "^2.11.1",
     "typescript": "^4.8.4",
-    "@types/node": "^22.10.2"
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "vite-plugin-mock": "^3.0.2",
   },
   "dependencies": {
-    "prettier": "^3.4.2"
+    "vite": "6.0.6",
+    "vue": "3.5.13",
+    "vue-router": "4.5.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router": "7.1.1",
+    "lodash": "^4.17.21",
+    "dayjs": "^1.11.13",
+    "@vitejs/plugin-react": "4.3.4",
+    "@vitejs/plugin-vue": "5.2.1",
   }
 }
 ```
+
 ```yaml [pnpm-workspace.yaml]
 packages:
   - "packages/*"
@@ -410,15 +414,15 @@ packages:
 ```
 
 ```js [eslint.config.js]
-import globals from "globals"
-import typescriptParser from "@typescript-eslint/parser"
-import js from "@eslint/js"
-import stylistic from "@stylistic/eslint-plugin"
-import vue from "eslint-plugin-vue"
-import json from "eslint-plugin-json"
-import vue_eslint_parser from "vue-eslint-parser"
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
+import globals from "globals";
+import typescriptParser from "@typescript-eslint/parser";
+import js from "@eslint/js";
+import stylistic from "@stylistic/eslint-plugin";
+import vue from "eslint-plugin-vue";
+import vue_eslint_parser from "vue-eslint-parser";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
 
 // migration from eslintrc.json to eslint.config.js:
 // https://eslint.org/docs/latest/use/configure/migration-guide#processors
@@ -437,20 +441,23 @@ const rulesForJsOrTsSnippet = {
   "block-scoped-var": "error",
   "default-case-last": "error",
   "default-param-last": "error",
-  "eqeqeq": "error",
+  eqeqeq: "error",
   "prefer-const": "warn",
   "prefer-destructuring": "warn",
   "prefer-object-spread": "warn",
   "prefer-spread": "warn",
   "prefer-rest-params": "warn",
   "prefer-template": "warn",
-  "sort-imports": ["error", {
-    "ignoreCase": false,
-    "ignoreDeclarationSort": true,
-    "ignoreMemberSort": false,
-    "memberSyntaxSortOrder": ["none", "all", "single", "multiple"],
-    "allowSeparatedGroups": false
-  }],
+  "sort-imports": [
+    "error",
+    {
+      ignoreCase: false,
+      ignoreDeclarationSort: true,
+      ignoreMemberSort: false,
+      memberSyntaxSortOrder: ["none", "all", "single", "multiple"],
+      allowSeparatedGroups: false,
+    },
+  ],
   "require-await": "warn",
   "@stylistic/semi": ["error", "never"],
   "@stylistic/semi-spacing": "error",
@@ -464,19 +471,25 @@ const rulesForJsOrTsSnippet = {
   "@stylistic/comma-spacing": "error",
   "@stylistic/computed-property-spacing": "error",
   "@stylistic/dot-location": ["error", "object"],
-  "@stylistic/key-spacing": ["error", { 
-    afterColon: true, 
-    beforeColon: false,
-  }],
+  "@stylistic/key-spacing": [
+    "error",
+    {
+      afterColon: true,
+      beforeColon: false,
+    },
+  ],
   "@stylistic/keyword-spacing": "error",
   "@stylistic/lines-between-class-members": "error",
-  "@stylistic/max-len": ["error", { 
-    code: 90,
-    ignoreUrls: true,
-    ignoreRegExpLiterals: true
-  }],
+  "@stylistic/max-len": [
+    "error",
+    {
+      code: 90,
+      ignoreUrls: true,
+      ignoreRegExpLiterals: true,
+    },
+  ],
   "@stylistic/new-parens": "error",
-  "@stylistic/newline-per-chained-call": ["error", { "ignoreChainWithDepth": 1 }],
+  "@stylistic/newline-per-chained-call": ["error", { ignoreChainWithDepth: 1 }],
   "@stylistic/no-confusing-arrow": "error",
   "@stylistic/no-floating-decimal": "error",
   "@stylistic/no-mixed-operators": "error",
@@ -501,26 +514,57 @@ const rulesForJsOrTsSnippet = {
   "@stylistic/jsx-equals-spacing": "error",
   "@stylistic/jsx-indent": ["error", 2],
   "@stylistic/jsx-indent-props": ["error", 2],
-  "@stylistic/jsx-tag-spacing": ["error", { "beforeSelfClosing": "always" }],
-  "@stylistic/jsx-wrap-multilines": ["error", {
-    declaration: "parens-new-line",
-    assignment: "parens-new-line",
-    return: "parens-new-line",
-    arrow: "parens-new-line",
-    logical: "parens-new-line",
-    prop: "parens-new-line"
-  }],
-  
-}
+  "@stylistic/jsx-tag-spacing": ["error", { beforeSelfClosing: "always" }],
+  "@stylistic/jsx-wrap-multilines": [
+    "error",
+    {
+      declaration: "parens-new-line",
+      assignment: "parens-new-line",
+      return: "parens-new-line",
+      arrow: "parens-new-line",
+      logical: "parens-new-line",
+      prop: "parens-new-line",
+    },
+  ],
+};
 
 export default [
   js.configs.recommended,
+  {
+    plugins: {
+      "@stylistic": stylistic,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
+    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      ...rulesForJsOrTsSnippet,
+    },
+  },
   ...vue.configs["flat/recommended"],
+  react.configs.flat?.recommended,
   {
     files: ["**/*.vue"],
     plugins: {
-      '@stylistic': stylistic,
-      vue
+      "@stylistic": stylistic,
+      vue,
     },
     languageOptions: {
       parser: vue_eslint_parser,
@@ -529,68 +573,48 @@ export default [
       parserOptions: {
         parser: "@typescript-eslint/parser",
         ecmaVersion: 2020,
-        sourceType: "module"
+        sourceType: "module",
       },
     },
     rules: {
       ...rulesForJsOrTsSnippet,
       "vue/no-unused-vars": "off",
-      "react/react-in-jsx-scope": "off"
-    }
+      "react/react-in-jsx-scope": "off",
+      "react-hooks/rules-of-hooks": "off",
+      "vue/multi-word-component-names": "off",
+    },
   },
   {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    files: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-          tsx: 'true'
-        }
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      }
-    },
-    rules: {
-      ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
-      ...rulesForJsOrTsSnippet
-    }
+    ignores: ["**/dist", "**/node_modules"],
   },
-]
+];
 ```
 
 ```txt [.eslintignore]
 node_modules
 **/node_modules
 ```
+
 ```txt [.prettierignore]
 node_modules
 **/node_modules
 ```
+
 ```txt [.gitignore]
 node_modules
 **/node_modules
 ```
 
 ```ts [vite.config.ts]
-import { defineConfig, UserConfig } from 'vite';
+import { defineConfig, UserConfig } from "vite";
 import { join } from "node:path";
-import react from '@vitejs/plugin-react';
-import { env } from "node:process";   
+import react from "@vitejs/plugin-react";
+import { env } from "node:process";
 
 function resolveEntries() {
   return {
-    main: join(import.meta.dirname, "apps/main.html")
-  }
+    main: join(import.meta.dirname, "apps/main.html"),
+  };
 }
 
 // https://vite.dev/config/
@@ -599,76 +623,83 @@ export default defineConfig(({ command }) => {
     plugins: [react()],
     resolve: {
       alias: [
-        { 
-          find: /^@pages/, 
-          replacement: join(import.meta.dirname, 'src/pages')
+        {
+          find: /^@pages/,
+          replacement: join(import.meta.dirname, "src/pages"),
         },
         {
           find: /^@utils/,
-          replacement: join(import.meta.dirname, 'src/utils')
+          replacement: join(import.meta.dirname, "src/utils"),
         },
         {
           find: /^@components/,
-          replacement: join(import.meta.dirname, 'src/components')
+          replacement: join(import.meta.dirname, "src/components"),
         },
         {
           find: /^@api/,
-          replacement: join(import.meta.dirname, 'src/api')
+          replacement: join(import.meta.dirname, "src/api"),
         },
         {
           find: /^@assets/,
-          replacement: join(import.meta.dirname, 'src/assets')
-        }
-      ]
+          replacement: join(import.meta.dirname, "src/assets"),
+        },
+      ],
     },
     build: {
-      cssMinify: 'esbuild',
-      minify: 'esbuild',
+      cssMinify: "esbuild",
+      minify: "esbuild",
     },
     server: {
       // 设置接口路由代理，如此一来，就不需要用nginx做转发了
       proxy: {
-        '/api': 'http://localhost:6007'
+        "/api": "http://localhost:6007",
       },
       host: "local.toy.com",
-      port: 8007
-    }
-  }; 
+      port: 8007,
+    },
+  };
 
-  if (command === 'build') {
+  if (command === "build") {
     const entries = resolveEntries();
     const oldRollupOptions = baseConfig.build?.rollupOptions;
     baseConfig.build!.rollupOptions = {
       ...oldRollupOptions,
-       // 修改 build 时的入口点
+      // 修改 build 时的入口点
       input: entries,
     };
-    baseConfig.build!.emptyOutDir = eval(env['emptyOutDir'] ?? "true");
+    baseConfig.build!.emptyOutDir = eval(env["emptyOutDir"] ?? "true");
   }
 
   return baseConfig;
 });
-
-
 ```
+
 ```json [.vscode/settings.json]
 {
-    "[json]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+  "[json]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "html",
+    "vue"
+  ]
 }
 ```
 
 ```json [.vscode/extensions.json]
 {
-    "recommendations": [
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "vue.volar",
-        "pucelle.vscode-css-navigation",
-        "dsznajder.es7-react-js-snippets"
-    ]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "Vue.volar",
+    "pucelle.vscode-css-navigation",
+    "dsznajder.es7-react-js-snippets"
+  ]
 }
 ```
 
@@ -702,25 +733,31 @@ export default defineConfig(({ command }) => {
 ```json [tsconfig.json]
 {
   "files": [],
-  "references": [
-    { "path": "./tsconfig.node.json" }
-  ]
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
 ```
 
 ```js [scripts/help.js]
-#!/usr/bin/env node 
+#!/usr/bin/env node
 
-import { env,argv } from "node:process"
+import { env, argv } from "node:process";
 
-console.log(env)
-console.log(argv)
+console.log(env);
+console.log(argv);
 ```
+
+:::
+
+:::tip <TipIcon />
+如果 vue official 插件 和 eslint 插件同时存在，你想 format vue 文件，但你发现在 vscode 点击右键，选中`Format Document with...`，找不到 `Eslint` 选项，但是可以看到`Vue official`选项，你需要检查`settings.json`的`eslint.validate`中是否包含`"vue"`。如果加上了之后，还是不起作用，需要看看 eslint 插件在`OUTPUT`面板的输出日志，可能是遇到了一些错误，导致 eslint 插件没能正常工作。
+
+.vscode/settings.json 中必须要配置 `eslint.validate`，否则 eslint 插件无法根据 eslint 配置规则格式化 typescript,javascript,tsx,jsx 文件。
 :::
 
 ### `tsconfig.node.json` ?
-我们通常编写js文件完成一些基本功能，然后使用node执行，但是随着typescript的普及，我们就想使用typescript编写脚本，为了在编写的时候，获得类型提示这些帮助，我们必须为之设置好ts config，因此就会有 `tsconfig.node.json`。
 
-在编写前端页面时，我们的组件也基本上用typescript编写，对于这些ts, tsx文件，为了在编写代码的时候，获得类型提示的帮助，也要为之设置好ts config, 因此就会有`tsconfig.app.json`。
+我们通常编写 js 文件完成一些基本功能，然后使用 node 执行，但是随着 typescript 的普及，我们就想使用 typescript 编写脚本，为了在编写的时候，获得类型提示这些帮助，我们必须为之设置好 ts config，因此就会有 `tsconfig.node.json`。
 
-默认情况下，tsc识别的是`tsconfig.json`，因此就会在这个文件中，使用`"references"` 将上述 `tsconfig.node.json` 和 `tsconfig.app.json` 连接进去，完成整体上的支持。
+在编写前端页面时，我们的组件也基本上用 typescript 编写，对于这些 ts, tsx 文件，为了在编写代码的时候，获得类型提示的帮助，也要为之设置好 ts config, 因此就会有`tsconfig.app.json`。
+
+默认情况下，tsc 识别的是`tsconfig.json`，因此就会在这个文件中，使用`"references"` 将上述 `tsconfig.node.json` 和 `tsconfig.app.json` 连接进去，完成整体上的支持。

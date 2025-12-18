@@ -1132,3 +1132,146 @@ XSS: cross site scripting, 跨网页脚本攻击，意思是攻击者通过某�
 2. 网页设置 Content-Security-Policy，这可以让浏览器只去加载和执行特定服务源的内容。
 
 CSRF： cross site request forgery, 跨网页请求攻击，这里给出一个例子。用户在网站 A 登录后，浏览器记录下网站 A 的 cookie，攻击者诱导受害者访问网站 B，并向网站 A 发送请求，虽然网站 B 和网站 A 域名不一样，网站 B 无法用 js 访问到网站 A 的 cookie，但是浏览器拥有一个默认行为，它发现要发送请求到 A，而且拥有 A 的 cookie，它就会自动把这个 cookie 带上。防止的办法就是在种下 cookie 的时候，给 cookie 设置 SameSite 限制，这样就可以禁止刚才提到的默认行为。
+
+## pinia 之罪
+
+使用 pinia 的注意事项
+
+### 解构失去 respectivity
+
+```ts
+import { useIdentifyStore } from "./store/identify.store";
+
+const { id, updateId } = useIdentifyStore();
+
+const onClick = () => {
+  updateId("1232324345");
+};
+```
+
+上述写法，`onClick`执行之后，id 不会自动更新！如果把 id 用于 template，则对应的 UI 不会发生变化。
+
+应该改成这样：
+
+```ts
+import { storeToRefs } from "pinia";
+import { useIdentifyStore } from "./store/identify.store";
+
+const store = useIdentifyStore();
+const { updateId } = store;
+const { id } = storeToRefs(store);
+
+const onClick = () => {
+  updateId("1232324345");
+};
+```
+
+此时`id`是一个`ref`，具备 respectivity。
+
+## vue router 与 url hash 的同步
+
+使用 vue router 经常会有这样的场景：有个`tabs`组件内包含几个`tab`，`tab`内的组件根据前端路由，展示对应的组件。当点击其中一个 tab 的时候，希望 url 的 hash 值变成对应的前端路由 hash 值。当我们直接修改浏览器的 url hash 之后，按下回车，对应的 tab 应该被展示。
+
+```ts
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const routes = router.getRoutes();
+
+const currentTabValue = ref(0);
+const tabEntryList = [
+  { name: "tab 1", value: 1, routeName: routes[1].name },
+  { name: "tab 2", value: 2, routeName: routes[2].name },
+];
+
+// url hash 变化后，要自动展示出哪个tab
+router.beforeEach((to, _from) => {
+  switch (to.name) {
+    case tabEntryList[0].routeName:
+      currentTabValue.value = 1;
+      return;
+    case tabEntryList[1].routeName:
+      currentTabValue.value = 2;
+      return;
+    default:
+  }
+});
+
+// tab 变更后，url hash 的同步
+const onTabClick = () => {
+  switch (currentTabValue.value) {
+    case 1:
+      router.push(routes[1]);
+      return;
+    case 2:
+      router.push(routes[2]);
+      return;
+    default:
+  }
+};
+```
+
+不要使用`window.onhashchange`完成 url hash 变更到 tab 的更新，因为如果某个前端路由采用`redirect`的配置后，`onhashchange`无法捕捉到`redirect`。
+
+不要使用 vue `watch`系列的 API 监督 `currentTabValue`, 完成 tab 变更到 url hash 的更新，因为你无法区分`currentTabValue`是什么情形更新的，可能是点击 tab 触发更新的，也可能是在 url has 变更的时候触发更新的。尽量岔开处理，不要耦合。
+
+`vue-router`提供了`onBeforeRouteLeave`和`onBeforeRouteUpdate`，根据实际测试，这两个 API 不如`router.beforeEach`管用。
+
+## js 能表示的最大整数是多少
+
+结论： 2^53 -1.
+
+下面解释为什么。js 的 Number 类型采用 IEEE 754 双精度浮点数标准，这个标准使用 64 bit 描述一个数字，它有如下规则：
+
+1. 使用 1 bit 表示正负，它要么是 0，要么是 1，我们用 S 称呼它，即 S 的取值范围是 0 和 1；
+2. 使用 11 bit 表示指数部分。这 11bit 没有符号位的概念，因此它最大值是 2^11 - 1, 最小值是 0。我们用 E 称呼它；
+3. 使用 52 bit 表示小数部分。这 52 bit 没有符号位的概念，由于它要描述的是小数部分（比如 2.432，它描述的是 0.432），因此 52 bit 的最低 bit 是 2^-1, 不是 2^0。因此它能描述的最小值是 2^-52, 最大值是 1 - (2^-52)。我们用 M 称呼它。
+
+于是一个数字会以这种形式表示出来：`(-1)^S * (1 + M) * 2^(E-1023)`.
+
+比如想表示数字 6，只需要令 S = 0, E = 1025, M = 0.5:
+
+```txt
+(-1)^0 * (1+0.5) * 2^(1025 - 1023)
+= 1 * 1.5 * 2^2
+= 1 * 1.5 * 4
+= 6
+```
+
+S: 0
+
+E: 10000000001
+
+M: 00 0000000000 0000000000 0000000000 0000000000 0000000001
+
+把 S、E、M 合在一起，刚好就是一个 64bit 的数据，这个数据就是数字 6 在 IEEE 754 双精度浮点数标准的表达。
+
+`(-1)^S * (1 + M) * 2^(E-1023)`，为什么要用 E - 1023 呢？E 虽然要表示指数位，但是指数位可能是负数，为了让正负数统一处理，采用 实际指数部分+1023 的处理方式存储。实际指数部分达到最小值 -1023，存储的时候，存的是 0，这就避免了存储正数和负数还要考虑符号位、反码的问题。因为 E 存储的并不是真正的指数部分，因此在使用的时候，要用 E - 1023 还原为实际指数部分。
+
+有了以上的认识，我们解释 2^53 -1 的问题。
+
+想要表示出最大的整数，符号位 S 必须是 0，而 M 所描述的小数部分必须取到其范围内的最大值，即 1 - 2^-52, 因为这个数如果乘上指数后就会立即变成整数，它越大，转化后的整数就越大。如果想让这个数完全转化为整数，就要乘 2^52，也就是说 E - 1023 = 52, E = 1075, 这行的通么？E 是 11bit,最大值是 2^11 - 1 = 2048 - 1 = 2047 > 1075，显然是可行的。因此，最大整数值就出来了：`(-1)^0 * (1 + 1 - 2^-52) * 2^(1075 - 1023) = 1 * (2 - 2^-52) * 2^52 = 2^53 - 2^0 = 2^ 53 - 1`。
+
+最小的整数也出来了，只需要将 S 由 0 改为 1，其余不变，得到的结果就是`1 - 2^53`.
+
+就是这么简单。
+
+了解这个东西还是非常重要的。在开发中，后端设计数据总会用一个 long 类型的整数 ID 作为唯一标识，比如订单有订单 ID。如果后端传给前端 long 类型整数，前端在 json 反序列化之后，就会出现溢出问题，解析出来的 ID 和后端传的不一样。于是，你非常有必要了解后端回传的整数到底是什么范围。64bit 整数就不可以，32bit 整数是可以的。
+
+另外，主流浏览器都已经支持 `BigInt`, 我们可以用它解决上述这个问题：
+
+```ts
+const a = BigInt("213141324535342542362460000654036035400");
+a > 1; // ok
+const c = a + 2; // error!
+const d = a + 2n; // ok
+d.toString(); // "213141324535342542362460000654036035402"
+
+const data = JSON.stringify({
+  orderId: "32131232134453543254320000654060435060",
+});
+const orderId = BigInt(JSON.parse(data).orderId);
+```
+
+显然，就算用`BigInt`处理，后端也需要在 response json 里回传 string，而不是整数。

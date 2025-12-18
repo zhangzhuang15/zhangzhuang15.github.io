@@ -4,69 +4,76 @@ page: true
 aside: true
 ---
 
-## Description 
+## Description
+
 记录一些实用的代码片段
 
-## 判断某个类是浏览器器native的
-```js 
+## 判断某个类是浏览器器 native 的
+
+```js
 function isNative(API) {
-    return typeof API === 'function' && /native code/.test(API.toString());
+  return typeof API === "function" && /native code/.test(API.toString());
 }
 ```
+
 > From Vue2 source code
 
-## 查看localStorage用了多少字节
+## 查看 localStorage 用了多少字节
+
 ```ts
-new Blob(Object.value(localStorage)).size
+new Blob(Object.value(localStorage)).size;
 ```
 
 ## 复制一段文字（保留换行）
-```ts 
-async function copy(text: string) {
-    if (navigator?.clipboard?.writeText) {
-        try {
-            await navigator.clipboard.writeText(text)
-            return
-        } catch(e) {}
-    }
 
-    // 必须用 textarea, 如果用 div, 换行符就丢了
-    const textArea = document.createElement("textarea")
-    textArea.value = text
-    textArea.style['width'] = 0
-    textArea.style['height'] = 0
-    document.body.appendChild(textArea)
-    textArea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textArea)
+```ts
+async function copy(text: string) {
+  if (navigator?.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch (e) {}
+  }
+
+  // 必须用 textarea, 如果用 div, 换行符就丢了
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style["width"] = 0;
+  textArea.style["height"] = 0;
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textArea);
 }
 ```
 
 ## 触发浏览器下载
+
 ```ts
 function download(file: any) {
-    const blob = new Blob([file])
-    // url 会绑定 blob 的内存
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.style.display = 'none'
-    a.href = url
-    document.body.appendChild(a)
-    a.click()
-    // 释放 url，这样浏览器就会自动释放url绑定的内存
-    URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+  const blob = new Blob([file]);
+  // url 会绑定 blob 的内存
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  document.body.appendChild(a);
+  a.click();
+  // 释放 url，这样浏览器就会自动释放url绑定的内存
+  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
 }
 ```
-:::tip <TipIcon />
-这种下载方式的缺点是，使用了blob, 会消耗浏览器的堆内存资源，如果 file 太大，会导致卡顿；
 
-如果要下载比较大的文件，可以让后端给出资源的url，然后使用 `<a href="url"></a>`完成下载，不要
-在前端用 `URL.createObjectURL` 生成url。
+:::tip <TipIcon />
+这种下载方式的缺点是，使用了 blob, 会消耗浏览器的堆内存资源，如果 file 太大，会导致卡顿；
+
+如果要下载比较大的文件，可以让后端给出资源的 url，然后使用 `<a href="url"></a>`完成下载，不要
+在前端用 `URL.createObjectURL` 生成 url。
 :::
 
-
 ## setup-cleanup
+
 ```ts
 const listeners = [];
 let size = 0;
@@ -83,7 +90,7 @@ function loadListener(listener) {
     size -= 1;
 
     if (size === 0) {
-        listeners.splice(0, listeners.length)
+      listeners.splice(0, listeners.length);
     }
   };
 }
@@ -228,9 +235,10 @@ function link(initialValue, works) {
 }
 ```
 
-## 格式化、高亮化sql语句
-```js 
-import highlightjs from "highlight.js"
+## 格式化、高亮化 sql 语句
+
+```js
+import highlightjs from "highlight.js";
 
 const sourceCode = `
  WITH basic AS (
@@ -239,29 +247,31 @@ const sourceCode = `
          sn.poi_type AS poi_type
               FROM
                ()
-            )`
+            )`;
 
-import * as formatter from "sql-formatter"
+import * as formatter from "sql-formatter";
 
 // 格式化
-let result = formatter.format(sourceCode, { 
-    language: 'sql',
-    tabWidth: 2,
-    keywordCase: 'upper',
-    linesBetweenQueries: 1 });
+let result = formatter.format(sourceCode, {
+  language: "sql",
+  tabWidth: 2,
+  keywordCase: "upper",
+  linesBetweenQueries: 1,
+});
 
 // 高亮化
-const h_result = highlightjs.highlight(result, {language: "sql"});
+const h_result = highlightjs.highlight(result, { language: "sql" });
 
 // 高亮化之后的 html
-console.log(h_result.value)
+console.log(h_result.value);
 ```
 
 高亮代码也可以用 prismjs 实现：
-```js 
-const {highlight, languages} = require("prismjs");
+
+```js
+const { highlight, languages } = require("prismjs");
 const loadLanguages = require("prismjs/components/index");
-loadLanguages(['javascript']);
+loadLanguages(["javascript"]);
 const source = `
   import A from "./src/a.js"
   // value
@@ -276,24 +286,26 @@ const source = `
 
   hello();
 `;
-const code = highlight(source, languages.sql, 'javascript');
+const code = highlight(source, languages.sql, "javascript");
 // 高亮处理后的html
-console.log(code)
+console.log(code);
 ```
 
-## input失焦后，点击dropdown列表中的元素，如何阻止dropdown收起
+## input 失焦后，点击 dropdown 列表中的元素，如何阻止 dropdown 收起
+
 考虑这样的问题：输入框聚焦后，有个下拉列表出现，然后你点击下拉列表中的某一项，结果下拉列表消失，
 列表项的点击事件没有触发。
 
-本质上看，当你点击下拉列表项的时候，先触发了 onblur 事件，后触发 onclick 事件，但是由于 onblur 
-里的逻辑，导致列表从DOM树中消失，进而使得 onclick 事件没有执行。
+本质上看，当你点击下拉列表项的时候，先触发了 onblur 事件，后触发 onclick 事件，但是由于 onblur
+里的逻辑，导致列表从 DOM 树中消失，进而使得 onclick 事件没有执行。
 
 解决方法如下，出自[stackoverflow](https://stackoverflow.com/questions/39439115/how-to-execute-click-function-before-the-blur-function/57983847#57983847)
+
 ```html
 <body>
   <input type="text" onblur="onBlur" />
   <ul>
-    <li tabindex='-1' onclick="onClick"></li>
+    <li tabindex="-1" onclick="onClick"></li>
   </ul>
   <script>
     function onBlur(e) {
@@ -303,151 +315,156 @@ console.log(code)
       }
 
       // do something
-    } 
+    }
 
     function onClick() {
-      console.log("I'm clicked")
+      console.log("I'm clicked");
     }
   </script>
 </body>
 ```
-tabindex的作用详见[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex)
+
+tabindex 的作用详见[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex)
 
 简单来讲：
+
 - 设置 tabindex 的 element，可以聚焦；
 - 设置 tabindex='-1', 表示不能通过按下 tab 键获得聚焦，但可以通过鼠标聚焦；
 - 设置 tabindex='2', 表示可以通过 tab 键获得聚焦，正数形式下，数字越小，越先获得聚焦；
+
 ## 判断电脑是否联网
-```js 
+
+```js
 const online = navigator.onLine;
 if (online) {
-  console.log("联网")
+  console.log("联网");
 }
 ```
 
 ## 判断电脑是否在充电
-```js 
 
-navigator
- .getBattery()
- .then(batteryManager => {
+```js
+navigator.getBattery().then((batteryManager) => {
   if (batteryManager.charging) {
-    console.log("正在充电")
+    console.log("正在充电");
   }
- })
+});
 ```
 
-## 判断电脑连接的是4G还是3G
-```js 
-const webType = navigator.connection.effectiveType
+## 判断电脑连接的是 4G 还是 3G
 
-if (webType === '4g') {
-  console.log("连接了4g")
+```js
+const webType = navigator.connection.effectiveType;
+
+if (webType === "4g") {
+  console.log("连接了4g");
 }
-
 ```
 
-## 获取浏览器宿主机的cpu核心数
-```js 
-const cores = navigator.hardwareConcurrency
+## 获取浏览器宿主机的 cpu 核心数
+
+```js
+const cores = navigator.hardwareConcurrency;
 ```
 
 ## 获取浏览器使用的最大内存（GB）
-```js 
-const memory = navigator.deviceMemory
+
+```js
+const memory = navigator.deviceMemory;
 ```
 
 ## 获取当前经纬度
+
 在 https 环境下生效
 
-```js 
-navigator
-  .geolocation
-  .getCurrentPosition(
-    position => {
-      const a = position.coords.latitude;
-      const b = position.coords.longitude;
-      // 精确到几米
-      const accuracy = position.coords.accuracy;
-    }, 
-    err => console.log(err))
-
+```js
+navigator.geolocation.getCurrentPosition(
+  (position) => {
+    const a = position.coords.latitude;
+    const b = position.coords.longitude;
+    // 精确到几米
+    const accuracy = position.coords.accuracy;
+  },
+  (err) => console.log(err)
+);
 ```
+
 ## 判断电脑是否联网
-```js 
+
+```js
 const online = navigator.onLine;
 if (online) {
-  console.log("联网")
+  console.log("联网");
 }
 ```
 
 ## 判断电脑是否在充电
-```js 
 
-navigator
- .getBattery()
- .then(batteryManager => {
+```js
+navigator.getBattery().then((batteryManager) => {
   if (batteryManager.charging) {
-    console.log("正在充电")
+    console.log("正在充电");
   }
- })
+});
 ```
 
-## 判断电脑连接的是4G还是3G
-```js 
-const webType = navigator.connection.effectiveType
+## 判断电脑连接的是 4G 还是 3G
 
-if (webType === '4g') {
-  console.log("连接了4g")
+```js
+const webType = navigator.connection.effectiveType;
+
+if (webType === "4g") {
+  console.log("连接了4g");
 }
-
 ```
 
-## 获取浏览器宿主机的cpu核心数
-```js 
-const cores = navigator.hardwareConcurrency
+## 获取浏览器宿主机的 cpu 核心数
+
+```js
+const cores = navigator.hardwareConcurrency;
 ```
 
 ## 获取浏览器使用的最大内存（GB）
-```js 
-const memory = navigator.deviceMemory
+
+```js
+const memory = navigator.deviceMemory;
 ```
 
 ## 获取当前经纬度
+
 在 https 环境下生效
 
-```js 
-navigator
-  .geolocation
-  .getCurrentPosition(
-    position => {
-      const a = position.coords.latitude;
-      const b = position.coords.longitude;
-      // 精确到几米
-      const accuracy = position.coords.accuracy;
-    }, 
-    err => console.log(err))
-
+```js
+navigator.geolocation.getCurrentPosition(
+  (position) => {
+    const a = position.coords.latitude;
+    const b = position.coords.longitude;
+    // 精确到几米
+    const accuracy = position.coords.accuracy;
+  },
+  (err) => console.log(err)
+);
 ```
 
+## 计算 element 位置，触底判断
 
-## 计算element位置，触底判断
 先说明几个基本认知：
 
 1. window.innerHeight
-表示浏览器网页展示区域的高度，如果有横向滚动条，滚动条的高度也算进去。这个高度可不包含滚动的高度。我们看到的内容是`document.body`，body里的内容很多时，body的
-高度就会非常多，超出 window.innerHeight 高度的那部分内容，需要利用垂直滚动条向下移动才可以看到。
+   表示浏览器网页展示区域的高度，如果有横向滚动条，滚动条的高度也算进去。这个高度可不包含滚动的高度。我们看到的内容是`document.body`，body 里的内容很多时，body 的
+   高度就会非常多，超出 window.innerHeight 高度的那部分内容，需要利用垂直滚动条向下移动才可以看到。
 
 2. window.scrollY
-表示浏览器网页的垂直滚动条的滚动距离。在 `document.body`内容很多时，你要借助
-垂直滚动条的垂直移动才能继续看到 body 里的内容。在滚动条没有移动的时候，你只能
-看到 body 里边 0 ~ window.innerHeight 高度间的内容；当 window.scrollY = 10px的时候，你只能看到 body 里面 10px ~ window.innerHeight + 10px 高度
-间的内容
+   表示浏览器网页的垂直滚动条的滚动距离。在 `document.body`内容很多时，你要借助
+   垂直滚动条的垂直移动才能继续看到 body 里的内容。在滚动条没有移动的时候，你只能
+   看到 body 里边 0 ~ window.innerHeight 高度间的内容；当 window.scrollY = 10px 的时候，你只能看到 body 里面 10px ~ window.innerHeight + 10px 高度
+   间的内容
 
 3. offsetHeight
-element.borderTop + element.paddingTop + element.height + element.paddingBottom + element.borderBottom = element.offsetHeight
+   element.borderTop + element.paddingTop + element.height + element.paddingBottom + element.borderBottom = element.offsetHeight
 
 4. offsetParent
+
 ```html
 <body>
   <style>
@@ -482,13 +499,14 @@ element.borderTop + element.paddingTop + element.height + element.paddingBottom 
 </body>
 ```
 
-计算element的位置（以垂直方向为例），可能说的是：
-- element在屏幕上的位置（即在 viewport 里的位置）
-- element在网页里的位置（即在body里的位置）
+计算 element 的位置（以垂直方向为例），可能说的是：
+
+- element 在屏幕上的位置（即在 viewport 里的位置）
+- element 在网页里的位置（即在 body 里的位置）
 
 ```js
 // element在屏幕上的位置
-const { top } = element.getBoundingClientRect()
+const { top } = element.getBoundingClientRect();
 ```
 
 ```js
@@ -497,7 +515,7 @@ const { top } = element.getBoundingClientRect()
 const top = element.offsetTop;
 ```
 
-```js 
+```js
 // 如果 element 的 offsetParent 不是 body 的话，
 // 需要做一些向上追溯计算
 let parent = element.offsetParent;
@@ -512,41 +530,51 @@ while (parent !== null) {
 const top = height;
 ```
 
-计算是否触底，其实就是说，element处于一个滚动区域里，它的底部是否接触到了滚动区域
-的底部。如果我们管滚动区域所归属的那个DOM节点叫做 scrollable, 那么element触底时就会有：
+计算是否触底，其实就是说，element 处于一个滚动区域里，它的底部是否接触到了滚动区域
+的底部。如果我们管滚动区域所归属的那个 DOM 节点叫做 scrollable, 那么 element 触底时就会有：
+
 ```
 scrollable.scrollY + scrollable.offsetHeight == element顶部到scrollable的距离 + element.offsetHeight
 ```
 
-element顶部到scrollable的距离，不能用 `element.offsetTop`计算，因为 scrollable 可能不是 element 的 offsetParent, 但不用担心，我们可以换个角度计算：
+element 顶部到 scrollable 的距离，不能用 `element.offsetTop`计算，因为 scrollable 可能不是 element 的 offsetParent, 但不用担心，我们可以换个角度计算：
+
 ```
 element顶部到scrollable的距离 == element顶部到viewport顶部的距离 - scrollable顶部到viewport顶部的距离
 ```
+
 落实到代码里：
 
 ```js
-const { top: elementTop } = element.getBoundingClientRect()
-const { top: scrollableTop } = scrollable.getBoundingClientRect()
+const { top: elementTop } = element.getBoundingClientRect();
+const { top: scrollableTop } = scrollable.getBoundingClientRect();
 // element顶部到scrollable的距离
 const elementTopToScrollable = elementTop - scrollableTop;
 ```
 
-所以element是否触底，就可以如此计算：
+所以 element 是否触底，就可以如此计算：
+
 ```js
 const touchBottom = (el, scrollable) => {
-  const { top: elementTop } = el.getBoundingClientRect()
-  const { top: scrollableTop } = scrollable.getBoundingClientRect()
+  const { top: elementTop } = el.getBoundingClientRect();
+  const { top: scrollableTop } = scrollable.getBoundingClientRect();
   const elementTopToScrollable = elementTop - scrollableTop;
-  const loss = scrollable.scrollY + scrollable.offsetHeight - el.offsetHeight - elementTopToScrollable;
+  const loss =
+    scrollable.scrollY +
+    scrollable.offsetHeight -
+    el.offsetHeight -
+    elementTopToScrollable;
   if (Math.abs(loss) < 1) {
-    return true
+    return true;
   }
-  return false
-}
+  return false;
+};
 ```
 
-## tag超出范围的时候，末尾追加"..."
+## tag 超出范围的时候，末尾追加"..."
+
 对于文字的超出范围，可以采用：
+
 ```html
 <div class="container">fdsafasfasfadsfadsfadsf</div>
 
@@ -562,6 +590,7 @@ const touchBottom = (el, scrollable) => {
 ```
 
 其实，换成这样，也可以实现效果：
+
 ```html
 <div class="container">
   <span class="child">fdsafdaf</span>
@@ -588,7 +617,8 @@ const touchBottom = (el, scrollable) => {
 </style>
 ```
 
-上边说了，.container必须要有固定宽度才行，有一种情形，我们是使用flex布局来打造固定宽度：
+上边说了，.container 必须要有固定宽度才行，有一种情形，我们是使用 flex 布局来打造固定宽度：
+
 ```html
 <div class="flex-container">
   <div class="one"></div>
@@ -614,9 +644,11 @@ const touchBottom = (el, scrollable) => {
   }
 </style>
 ```
-虽然我们没有指定 .one 的宽度，但在上述 flex 布局中，.one宽度是固定的，最多不会超过 100vw - 100px, 会随着 .one 内部元素的宽度而被撑开，直到抵达上限宽度100vw - 100px；如果我们没有为 .one 指定 overflow, 那么，其内部元素不会被截断，会把 .two 往后边挤。
+
+虽然我们没有指定 .one 的宽度，但在上述 flex 布局中，.one 宽度是固定的，最多不会超过 100vw - 100px, 会随着 .one 内部元素的宽度而被撑开，直到抵达上限宽度 100vw - 100px；如果我们没有为 .one 指定 overflow, 那么，其内部元素不会被截断，会把 .two 往后边挤。
 
 如果你像下边一样，直接套用，你会发现“...”没有出现：
+
 ```html
 <div class="flex-container">
   <div class="one">
@@ -657,6 +689,7 @@ const touchBottom = (el, scrollable) => {
 ```
 
 你需要在 .one 内部，加入一层容器：
+
 ```html
 <div class="flex-container">
   <div class="one">
@@ -704,20 +737,24 @@ const touchBottom = (el, scrollable) => {
 ```
 
 ## 如何实现点击外边区域，下拉框消失
+
 下拉框组件有个神奇的地方：当你点击下拉框内的区域，它不会收起来；当你点击它外侧的区域，它会收起来。
 
 如何实现呢？
 
 你可能想到这些实现方式：
-1. window注册一个click事件，然后用 event.clientX 和 dom.getBoundingRect() 计算鼠标点击的时候，在下拉框外边；
 
-2. 给下拉框DOM节点，绑定一个data-id属性，window上注册一个click事件，如果 event.target.dataset.id 存在，表明这个点击事件是在下拉框内部点击的
+1. window 注册一个 click 事件，然后用 event.clientX 和 dom.getBoundingRect() 计算鼠标点击的时候，在下拉框外边；
+
+2. 给下拉框 DOM 节点，绑定一个 data-id 属性，window 上注册一个 click 事件，如果 event.target.dataset.id 存在，表明这个点击事件是在下拉框内部点击的
 
 不过，有个更好的方式是：
-1. 记录下拉框DOM节点 A；
-2. 在window注册一个click事件，如果 A.contains(event.target), 表明点击事件是在下拉框内部触发的
+
+1. 记录下拉框 DOM 节点 A；
+2. 在 window 注册一个 click 事件，如果 A.contains(event.target), 表明点击事件是在下拉框内部触发的
 
 对应代码如下：
+
 ```js
 // A 表示下拉框DOM节点
 const A = document.getElementById("popover");
@@ -725,221 +762,282 @@ const A = document.getElementById("popover");
 window.addEventListener("click", (e) => {
   if (!A.contains(e.target)) {
     // 关闭下拉框
-    setData({ visible: false })
+    setData({ visible: false });
   }
-})
+});
 ```
 
 ## 如何让 input 只能输入数字
+
 ```html
 <input id="m" type="number" />
 
 <style>
-/* 隐藏默认的step控件 */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+  /* 隐藏默认的step控件 */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
-}
+  }
 
-input[type=number] {
+  input[type="number"] {
     -moz-appearance: textfield;
-}
+  }
 </style>
 ```
 
-默认情况下，input的末尾会提供一个step控件，允许用户点击，调整输入框内的数字，我们可以使用上述的 css 隐藏掉控件。
+默认情况下，input 的末尾会提供一个 step 控件，允许用户点击，调整输入框内的数字，我们可以使用上述的 css 隐藏掉控件。
 
-这样一来，如果用户输入的内容中，存在非数字字符，那么输入框的内容不会发生变化，也不会触发input事件。
-
+这样一来，如果用户输入的内容中，存在非数字字符，那么输入框的内容不会发生变化，也不会触发 input 事件。
 
 ## 下载文件
+
 ```js
 function download(url) {
-    const urlObj = new URL(url, location.href)
-    
-    function simpleDownload(url) {
-        const a = document.createElement('a')
-        a.href = url 
-        // 等效于 <a download>
-        a.download = ''
-        a.click()
-    }
+  const urlObj = new URL(url, location.href);
 
-    // Firefox浏览器不支持跨域资源的<a>download属性下载，
-    // 因此，你无法通过设置<a>的download属性，主动下载资源；
-    //
-    // Chrome浏览器支持跨域资源下载，但是在跨域情形中，你
-    // 无法设置<a>的download属性，为要下载的资源重新命名;
+  function simpleDownload(url) {
+    const a = document.createElement("a");
+    a.href = url;
+    // 等效于 <a download>
+    a.download = "";
+    a.click();
+  }
 
-    // same origin
-    if (urlObj.origin === location.origin) {
-        simpleDownload(url)
-        return
-    }
-    // google chrome
-    if (navigator && navigator.userAgent.toLowerCase().includes("chrome")) {
-        simpleDownload(url)
-        return
-    }
+  // Firefox浏览器不支持跨域资源的<a>download属性下载，
+  // 因此，你无法通过设置<a>的download属性，主动下载资源；
+  //
+  // Chrome浏览器支持跨域资源下载，但是在跨域情形中，你
+  // 无法设置<a>的download属性，为要下载的资源重新命名;
 
-    // 非同源的解决方式
-    const req = new XMLHttpRequest()
-    req.timeout = 10 * 1000
-    req.responseType = 'blob'
-    req.onreadystatechange = () => {
-        if (req.readyState === 4) {
-            /**@type {Blob} */
-            const res = req.response
-            const $url = URL.createObjectURL(res)
-            simpleDownload($url)
-            // 执行后，正在下载的文件不会受到影响
-            URL.revokeObjectURL($url)
-        }
+  // same origin
+  if (urlObj.origin === location.origin) {
+    simpleDownload(url);
+    return;
+  }
+  // google chrome
+  if (navigator && navigator.userAgent.toLowerCase().includes("chrome")) {
+    simpleDownload(url);
+    return;
+  }
+
+  // 非同源的解决方式
+  const req = new XMLHttpRequest();
+  req.timeout = 10 * 1000;
+  req.responseType = "blob";
+  req.onreadystatechange = () => {
+    if (req.readyState === 4) {
+      /**@type {Blob} */
+      const res = req.response;
+      const $url = URL.createObjectURL(res);
+      simpleDownload($url);
+      // 执行后，正在下载的文件不会受到影响
+      URL.revokeObjectURL($url);
     }
-    req.onerror = () => {
-        console.log('下载失败，请稍后重试')
-    }
-    req.ontimeout = () => {
-        console.log('下载超时，请稍后重试')
-    }
-    req.open('GET', url)
-    req.send(null)
+  };
+  req.onerror = () => {
+    console.log("下载失败，请稍后重试");
+  };
+  req.ontimeout = () => {
+    console.log("下载超时，请稍后重试");
+  };
+  req.open("GET", url);
+  req.send(null);
 }
 ```
 
 `URL.revokeObjectURL` 不会导致下载的文件被删除。
 
-`URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件是存储在blob的，只有blob对象被垃圾回收后，文件才会被删除。如果没有调用 `URL.revokeObjectURL` ，$url 就会持有 blob 的引用，导致 blob 对象无法被垃圾回收，造成内存泄漏，也导致文件占据内容，无法被释放。
+`URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件存储在 blob，blob 占用浏览器一块儿特殊的内存空间，只有 blob 对象被垃圾回收后，文件才会被删除。所以使用 Blob 要注意两点：
 
+1. 不要占用太大内存空间。比如构造一个特别大的文件，存储在 Blob 里边。
+2. 及时调用 `URL.revokeObjectURL` ，释放$url 对 blob 的引用，让 blob 对象被垃圾回收。
 
-## react custom hooks
-```ts 
-function useAdvancedEffect(effect, deps) {
-  const cache = useRef(deps.map(dep => ({
-    prevValue: dep,
-    currentValue: dep,
-    changed: false
-  })))
-  cache.current = deps.map((dep ,index) => {
-    const cachedValue = cache.current[index]
-    return {
-      prevValue: cachedValue.currentValue,
-      currentValue: dep,
-      changed: cachedValue.currentValue !== dep
-    }
-  })
-  const useChanged = useCallback(() => {
-    return cache.current.map(c => c.changed)
-  }, [])
-  const useChangedValue = useCallback(() => {
-    return cache.current
-  }, [])
-  useEffect(() => {
-    return effect({ useChanged, useChangedValue})
-  }, deps)
-}
+## 上传文件
 
+### 简单文件上传
 
-const component = () => {
-  const [userId, setUserId] = useState(1)
-  const [score, setScore] = useState(50)
+不要被文件上传吓到，本质上它就是一次 http 请求，请求体的内容就是要上传的文件内容。对于非常小的文件，直接用一次 http 请求完全可以办到。一般来讲，我们习惯以`multipart/form-data`的 mime 格式设置请求体。
 
-  useAdvancedEffect(({ useChanged }) => {
-    const [userIdChanged, scoreChanged] = useChanged()
-    if (userIdChanged) {
-      console.log("userId Change")
-    }
+从服务端的角度看，无非是解析请求体，拿到文件名和文件内容，然后写入磁盘，不算麻烦。
 
-    if (scoreChanged) {
-      console.log("score Change")
-    }
-  }, [ userId, score])
+从浏览器的角度看，也不麻烦。要上传的文件，通常要借助`<input type="file">`的点击事件，这个事件的`e.target.files`存储的就是用户选择的文件，它们是`File`对象。这种类型是特殊的`Blob`对象。`Blob`提供了管理二进制数据的能力，你可以这样理解，`Blob`将文件的内容写入到很长的字节数组，并提供一些方法，供你访问这个字节数组。`File`继承了这种能力，还增加了一些能力，比如提供文件名、文件大小、文件被修改的时间等元信息。上传文件大致就是：
+
+```ts
+function upload(files: File[], url: string) {
+  const formData = new FormData();
+  files.forEach((file) => formData.append(file.name, file));
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", url);
+  xhr.send(formData);
+
+  // 或者用 fetch
+  fetch(url, { method: "POST", body: formData });
 }
 ```
 
+麻烦的其实不是发送，而是检测上传的进度，告知用户上传了多少。很遗憾，`fetch`返回的`Response`对象没有提供这样的能力，只能使用`XMLHttpRequest` 实现。
+
+```ts
+let progress = 0;
+
+xhr.upload.addEventListener("loadstart", (e) => {
+  progress = 0;
+  console.log("start uploading....");
+});
+
+xhr.upload.addEventListener("progress", (e) => {
+  progress = (e.loaded / e.total) * 100;
+  console.log(`uploading ${progress}%`);
+});
+
+xhr.upload.addEventListener("load", (e) => {
+  console.log("successful 100%");
+});
+```
+
+如果`loadstart progress load`事件直接添加在`xhr`上，检测到的是下载响应的进度。
+
+## react custom hooks
+
+```ts
+function useAdvancedEffect(effect, deps) {
+  const cache = useRef(
+    deps.map((dep) => ({
+      prevValue: dep,
+      currentValue: dep,
+      changed: false,
+    }))
+  );
+  cache.current = deps.map((dep, index) => {
+    const cachedValue = cache.current[index];
+    return {
+      prevValue: cachedValue.currentValue,
+      currentValue: dep,
+      changed: cachedValue.currentValue !== dep,
+    };
+  });
+  const useChanged = useCallback(() => {
+    return cache.current.map((c) => c.changed);
+  }, []);
+  const useChangedValue = useCallback(() => {
+    return cache.current;
+  }, []);
+  useEffect(() => {
+    return effect({ useChanged, useChangedValue });
+  }, deps);
+}
+
+const component = () => {
+  const [userId, setUserId] = useState(1);
+  const [score, setScore] = useState(50);
+
+  useAdvancedEffect(
+    ({ useChanged }) => {
+      const [userIdChanged, scoreChanged] = useChanged();
+      if (userIdChanged) {
+        console.log("userId Change");
+      }
+
+      if (scoreChanged) {
+        console.log("score Change");
+      }
+    },
+    [userId, score]
+  );
+};
+```
+
 ## track downloading progress with `fetch`
-```ts 
+
+```ts
 // refer: https://zh.javascript.info/fetch-progress
 async function downloadWithTrackingProgress(url: string) {
-  const response = await fetch(url)
-  const total = +response.headers.get("Content-Length")!
-  const reader = response.body!.getReader()
-  
-  let downloaded = 0
+  const response = await fetch(url);
+  const total = +response.headers.get("Content-Length")!;
+  const reader = response.body!.getReader();
 
-  while(true) {
+  let downloaded = 0;
+
+  while (true) {
     // value is a chunk of response body, not including response header
-    const { done, value } = await reader.read()
+    const { done, value } = await reader.read();
 
     // download 100%
     if (done) {
       break;
     }
 
-    downloaded += value.length
-    const percentage = (downloaded / total) * 100
+    downloaded += value.length;
+    const percentage = (downloaded / total) * 100;
     // this is simple example, you can do any interesting thing here,
     // such as showing progress indicator
-    console.log("downloading ", percentage, "%")
+    console.log("downloading ", percentage, "%");
   }
 }
 ```
 
 ## executable target exists
+
 You can know whether a file path is executable with some npm packages, e.g. `is-executable`. But these packages require you to provide absolute file path instead of file name. For example, `/usr/local/bin/code` is valid, `code` is not valid.
 
 We can use this simple snippet to cover both cases.
-```ts 
-import { spawnSync } from "node:child_process"
+
+```ts
+import { spawnSync } from "node:child_process";
 
 function isExecutable(nameOrPath: string) {
-  const child = spawnSync(nameOrPath)
+  const child = spawnSync(nameOrPath);
 
   // not exist
   if (child.error) {
-    return false
+    return false;
   }
-  
-  return true
-}
 
+  return true;
+}
 ```
 
-## 如何模拟手动清空input，并输入新的值
+## 如何模拟手动清空 input，并输入新的值
+
 ```ts
 /**
  * 使用js代码模拟真人聚焦input，清空内容，输入新内容的过程，并且可以触发react的合成事件，使得
  * 有关state更新。该方案来自cursor。
- * 
- * @param el 
- * @param value 
- * @returns 
+ *
+ * @param el
+ * @param value
+ * @returns
  */
 function clearInputAndSetNewValue(el: HTMLInputElement, value: string) {
-    // 1. 先 focus
-    el.focus();
+  // 1. 先 focus
+  el.focus();
 
-    // 2. 创建原生的 input 事件
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+  // 2. 创建原生的 input 事件
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype,
+    "value"
+  )?.set;
 
-    if (nativeInputValueSetter !== undefined) {
-        // 3. 清空
-        nativeInputValueSetter.call(el, "");
-        el.dispatchEvent(new Event('input', { bubbles: true }));
+  if (nativeInputValueSetter !== undefined) {
+    // 3. 清空
+    nativeInputValueSetter.call(el, "");
+    el.dispatchEvent(new Event("input", { bubbles: true }));
 
-        // 4. 设置新内容
-        nativeInputValueSetter.call(el, value);
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        return true;
-    }
+    // 4. 设置新内容
+    nativeInputValueSetter.call(el, value);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+  }
 
-    return false;  
+  return false;
 }
 ```
 
 ## 函数命名习惯
-```js 
+
+```js
 // 表述某种条件必须成立时，才能调用本函数，这类函数可以采取如下的命名
 function validateOnlyIfOpenMode() {}
 function validateWithOpenMode() {}
@@ -948,52 +1046,71 @@ function validateWithOpenMode() {}
 function validateIfOpenMode() {}
 function validateConditionally() {}
 function tryValidate() {}
+
+function applyCallbackWithErrorHandling(callback) {
+  try {
+    callback();
+  } catch (err) {}
+}
+
+function applyCallbackSafely(callback) {
+  try {
+    callback();
+  } catch (err) {}
+}
 ```
 
 ## 如何解决输入法对`<input>`的影响
+
 往`<input>`输入中文的时候，因为输入法的缘故，会先往里边输入拼音字母，按下回车键的时候，才会输入中文，我们想忽略输入拼音字母，可以这样做：
-```js 
+
+```js
 let isCompositing = false;
 
-inputElement.addEventListener('compositionstart', () => {
+inputElement.addEventListener("compositionstart", () => {
   isCompositing = true;
 });
 
-inputElement.addEventListener('compositionend', () => {
+inputElement.addEventListener("compositionend", () => {
   isCompositing = false;
 });
 
-inputElement.addEventListener('input', () => {
+inputElement.addEventListener("input", () => {
   if (isCompositing) return;
 
   // 上层收到的是中文，而不是拼音
   onChange(inputElement.value);
 });
 ```
+
 refer:
-1. [input输入中文，高频出发onchange和oninput | CSDN](https://blog.csdn.net/weixin_44058725/article/details/134072159)
+
+1. [input 输入中文，高频出发 onchange 和 oninput | CSDN](https://blog.csdn.net/weixin_44058725/article/details/134072159)
 2. [CompositionEvent | MDN](https://developer.mozilla.org/en-US/docs/Web/API/CompositionEvent)
 
 ## 如果实现拖拽
-npm社区已经有很多库实现了拖拽功能，开箱直接用，比如 sortablejs。但这些库有局限性，比如只支持列表的拖拽，或者只能由一个地方拖拽到另外一个地方，如果要完成任意一个地方的东西，拖拽到另外一个地方，实现起来反而不轻松。这个时候，就要使用html5原生的Drop and Drag API了。方法如下：
 
-对于可以被Drag的元素，要设置draggable属性和dragstart事件：
-```html 
+npm 社区已经有很多库实现了拖拽功能，开箱直接用，比如 sortablejs。但这些库有局限性，比如只支持列表的拖拽，或者只能由一个地方拖拽到另外一个地方，如果要完成任意一个地方的东西，拖拽到另外一个地方，实现起来反而不轻松。这个时候，就要使用 html5 原生的 Drop and Drag API 了。方法如下：
+
+对于可以被 Drag 的元素，要设置 draggable 属性和 dragstart 事件：
+
+```html
 <div draggable="true" ondragstart="dragStartHandler"></div>
 ```
 
-对于元素可以Drop的区域，要绑定drop事件和dragover事件：
-```html 
+对于元素可以 Drop 的区域，要绑定 drop 事件和 dragover 事件：
+
+```html
 <div class="drop-area" ondrop="dropHandler" ondragover="dragoverHandler"></div>
 ```
 
-在`dragStartHandler`中，记录被拖拽对象有关的信息；在`dropHandler`中，读取记录的信息，更新Drop区域，比如生成一个和拖拽对象一模一样的元素。
+在`dragStartHandler`中，记录被拖拽对象有关的信息；在`dropHandler`中，读取记录的信息，更新 Drop 区域，比如生成一个和拖拽对象一模一样的元素。
 
-```js 
+```js
 function dragStartHandler(e) {
   e.dataTransfer.setData("text", e.target.id);
   if (e.dataTransfer) {
-     e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.effectAllowed = "copy";
   }
 }
 
@@ -1011,10 +1128,45 @@ function dropHandler(e) {
   e.target.appendChild(node);
 }
 ```
+
 > `effectAllowed` 和 `dropEffect` 会影响拖拽行为，二者如果设置的值
 > 不一致，则拖拽行为会被阻止。另外，设置 "copy" 或者 "move"的时候，释放鼠标时，鼠标长得样子也不同，这个是浏览器自动控制的。
 > [dropEffect | MDN](https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/dropEffect)
 
 [HTML Drag and Drop API | MDN](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)
+
+## 原生滚动控制 scrollIntoView
+
+点击某个图片，内容区立即滚动到描述该图片的段落，是一个常见的交互方式，想要达成这样的效果，就要使用`scrollIntoView` API。值得注意的是，这个方法并不是在滚动区域的容器节点调用的。
+
+```html
+<div class="scrollable">
+  <p>段落一，假设这里有很多文字</p>
+  <p>段落二，假设这里有很多文字</p>
+  <p>段落三，假设这里有很多文字</p>
+  <p>段落四，假设这里有很多文字</p>
+  <p>段落五，假设这里有很多文字</p>
+  <p id="section-6">段落六，假设这里有很多文字</p>
+  <p>段落七，假设这里有很多文字</p>
+</div>
+```
+
+如果你想让段落 6 滚动到顶部，可以这样做：
+
+```ts
+const target = document.getElementById("section-6");
+target.scrollIntoView({
+  behavior: "smooth",
+  block: "start",
+});
+```
+
+这样还有问题，实际滚动之后，你会发现段落 6 紧贴着顶部，很不舒服，我们需要和顶部保持 10px 的距离，也就是说滚动到距离顶部还有 10px 的位置停下，你可以使用`scroll-margin-top`属性做到：
+
+```css
+#section-6 {
+  scroll-margin-top: 10px;
+}
+```
 
 <Giscus />
