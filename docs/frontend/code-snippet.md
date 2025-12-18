@@ -848,7 +848,56 @@ function download(url) {
 
 `URL.revokeObjectURL` 不会导致下载的文件被删除。
 
-`URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件是存储在blob的，只有blob对象被垃圾回收后，文件才会被删除。如果没有调用 `URL.revokeObjectURL` ，$url 就会持有 blob 的引用，导致 blob 对象无法被垃圾回收，造成内存泄漏，也导致文件占据内容，无法被释放。
+`URL.createObjectURL`创建了一个链接$url，指向 blob, 而要下载的文件存储在 blob，blob 占用浏览器一块儿特殊的内存空间，只有 blob 对象被垃圾回收后，文件才会被删除。所以使用 Blob 要注意两点：
+
+1. 不要占用太大内存空间。比如构造一个特别大的文件，存储在 Blob 里边。
+2. 及时调用 `URL.revokeObjectURL` ，释放$url 对 blob 的引用，让 blob 对象被垃圾回收。
+
+## 上传文件
+
+### 简单文件上传
+
+不要被文件上传吓到，本质上它就是一次 http 请求，请求体的内容就是要上传的文件内容。对于非常小的文件，直接用一次 http 请求完全可以办到。一般来讲，我们习惯以`multipart/form-data`的 mime 格式设置请求体。
+
+从服务端的角度看，无非是解析请求体，拿到文件名和文件内容，然后写入磁盘，不算麻烦。
+
+从浏览器的角度看，也不麻烦。要上传的文件，通常要借助`<input type="file">`的点击事件，这个事件的`e.target.files`存储的就是用户选择的文件，它们是`File`对象。这种类型是特殊的`Blob`对象。`Blob`提供了管理二进制数据的能力，你可以这样理解，`Blob`将文件的内容写入到很长的字节数组，并提供一些方法，供你访问这个字节数组。`File`继承了这种能力，还增加了一些能力，比如提供文件名、文件大小、文件被修改的时间等元信息。上传文件大致就是：
+
+```ts
+function upload(files: File[], url: string) {
+  const formData = new FormData();
+  files.forEach((file) => formData.append(file.name, file));
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", url);
+  xhr.send(formData);
+
+  // 或者用 fetch
+  fetch(url, { method: "POST", body: formData });
+}
+```
+
+麻烦的其实不是发送，而是检测上传的进度，告知用户上传了多少。很遗憾，`fetch`返回的`Response`对象没有提供这样的能力，只能使用`XMLHttpRequest` 实现。
+
+```ts
+let progress = 0;
+
+xhr.upload.addEventListener("loadstart", (e) => {
+  progress = 0;
+  console.log("start uploading....");
+});
+
+xhr.upload.addEventListener("progress", (e) => {
+  progress = (e.loaded / e.total) * 100;
+  console.log(`uploading ${progress}%`);
+});
+
+xhr.upload.addEventListener("load", (e) => {
+  console.log("successful 100%");
+});
+```
+
+如果`loadstart progress load`事件直接添加在`xhr`上，检测到的是下载响应的进度。
 
 ## react custom hooks
 
@@ -997,6 +1046,18 @@ function validateWithOpenMode() {}
 function validateIfOpenMode() {}
 function validateConditionally() {}
 function tryValidate() {}
+
+function applyCallbackWithErrorHandling(callback) {
+  try {
+    callback();
+  } catch (err) {}
+}
+
+function applyCallbackSafely(callback) {
+  try {
+    callback();
+  } catch (err) {}
+}
 ```
 
 ## 如何解决输入法对`<input>`的影响

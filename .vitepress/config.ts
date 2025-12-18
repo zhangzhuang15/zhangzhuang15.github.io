@@ -141,6 +141,7 @@ export default defineConfig({
         activeMatch: "^/tool/",
         items: [
           { text: "Oh-my-zsh", link: "/tool/ohMyZsh" },
+          { text: "Vim", link: "/tool/vim-tool" },
           { text: "homebrew tool", link: "/tool/brew-tool" },
           { text: "rust CLI tool", link: "/tool/rust-tool" },
           { text: "vscode", link: "/tool/vscode-install" },
