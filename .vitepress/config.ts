@@ -456,6 +456,36 @@ export default defineConfig({
                 },
               ],
             },
+            {
+              text: 'vue系列',
+              collapsed: true,
+              items: [
+                {
+                  text: '虚拟节点',
+                  link: '/blog/vue-around/vnode'
+                },
+                {
+                  text: '响应式系统',
+                  link: '/blog/vue-around/reactivity'
+                },
+                {
+                  text: 'Vue Instance',
+                  link: '/blog/vue-around/vueInstance'
+                },
+                {
+                  text: 'Vue SFC Compiler',
+                  link: '/blog/vue-around/sfc-compiler'
+                },
+                {
+                  text: '水合与SSR',
+                  link: '/blog/vue-around/hydrate'
+                },
+                {
+                  text: 'Vue Devtools',
+                  link: '/blog/vue-around/devtools'
+                }
+              ]
+            }
           ],
         },
       ],
