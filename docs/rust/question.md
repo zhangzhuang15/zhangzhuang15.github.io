@@ -2383,4 +2383,10 @@ impl Drop for Node {
 5. Rust 生态特点
    Rust 强调安全、性能和可靠性，静态链接更符合这些目标。
 
+## Rust 跨平台编译遇到链接问题 ？
+
+[Zig Makes Rust Cross-compilation Just Work](https://actually.fyi/posts/zig-makes-rust-cross-compilation-just-work/)
+
+原因是，Rust 提供了跨平台的 Rust 标准库以及编译器，但是没有提供链接器，它会使用操作系统自带的链接器，这种链接器并不支持跨平台编译的场景。文章给出一个解决方案，使用 zig cc 作为环境变量 CC 的值，Rust 于是使用 zig cc 完成链接工作。zig cc 基于 clang，增加了额外独创的工作，使其拥有非常强大的跨平台编译能力。
+
 <Giscus />
