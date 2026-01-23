@@ -114,3 +114,32 @@ int main() {
 ```
 
 大家会以为变量`c`指的是内存，实际上编译器会优化，让变量`c`指的是寄存器，`c=4`只是更新了寄存器的值，这会导致如果有另外一个线程读取变量`c`，读出来的数据是 2，不是 4. 改成`volatile int c = 2`, 编译器就知道 `c` 很特别，不能把它映射到寄存器，必须老老实实映射到内存。
+
+## 锁的实现
+
+实现锁需要的工具：
+
+1. CPU 提供的 CAS 原子指令
+2. 操作系统提供的系统调用，用于挂起线程
+
+伪代码如下：
+
+```javascript
+a = 0
+
+function lock() {
+  while (true) {
+    if (compareAndSet(&a, 0, 1)) {
+        return true;
+    }
+    suspend_current_thread();
+  }
+}
+
+function unlock() {
+    compareAndSet(&a, 1, 0);
+    invoke_other_suspended_threads();
+}
+```
+
+其中，`suspend_current_thread()` 和 `invoke_other_suspended_threads()` 是操作系统提供的能力。从主流操作系统的角度看，操作系统封装好系统调用，实现了这两种能力，但是它没有向开发者暴露这两种能力，以至于，系统调用已经包含在某个系统库了，但是没有提供 c 的头文件，导致开发者无法使用它们。实现线程挂起的能力，一般都是借助 pthread 的互斥锁或者条件变量间接地实现。
