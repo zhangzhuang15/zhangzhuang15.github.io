@@ -1363,13 +1363,19 @@ if atomic_load(&has_data, Ordering::Acquire):
     assert(d == "hello")
 ```
 
-`atomic_store`配合`Ordering::Release`使用，效果就是在 atomic_store 执行之前，所有写操作必须完成，当执行 atomic_store 的时候，data 就已经是"hello"了；
+`atomic_store`配合`Ordering::Release`使用，效果就是在 atomic_store 执行之前，write 执行之后，加入写屏障，所有写操作必须完成，不能重排到屏障之后执行，因此当执行 atomic_store 的时候，data 就已经是"hello"了；
 
-`atomic_load`配合`Ordering::Acquire`使用，效果就是在 atomic_load 执行之后，所有读操作看到的内存值都是最新的。
+`atomic_load`配合`Ordering::Acquire`使用，效果就是在 atomic_load 执行之后，read 执行之前，加入一个读屏障，所有读操作必须在这个屏障之后执行，不能重排到屏障之前执行，因此看到的 has_data 内存值一锭是最新的。
 
 二者结合看，就能有这样的推论，如果 has_data 是 true, 就意味着 atomic_store 执行了，atomic_store 执行了，就说明 data 已经是"hello"了，那么 d 读出来的数据就一定是“hello”了。这样看来，之前的问题就解决了。
 
+为什么一定要在写操作之后加入写屏障呢？因为放在之前没有意义。编写代码的时候，你是顺序写的，同一变量的写操作一定在前边，读操作一定在后边，潜在的问题就是写操作可能重排到后边去，为了防止它往后排，一定要在后边加入写屏障组织它。读操作也是同理的，写代码的时候，你肯定把读操作放在写操作后边（读一个旧值没有意义，读一个没有改变的值没有意义），潜在的问题是读操作可能重排到写操作之前，为了阻止它往前排，就要在读操作之前加入读屏障。
+
+`Acquire`为什么表示读呢？这个单词的本意是**获取**，读操作本质就是获取一个变量的值。`Release`单词的本意是**释放**、**发布**，释放其实没有什么关联性，不好理解，发布会更好理解一些，因为发布就意味着把某个东西放到某处，比如发布文章，就是把文章放到报纸上、杂志上，这和把一个值放到一个内存，有着非常相近的语义，而写操作的本质就是把值放置在一个内存里。
+
 > [伪代码出处](https://dev.to/kprotty/understanding-atomics-and-memory-ordering-2mom)
+
+这篇[文章](/blog/concurrent-concept)也介绍了内存屏障。
 
 ## Option 类型数据后边加上一个？是什么意思
 

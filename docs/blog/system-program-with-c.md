@@ -161,6 +161,26 @@ int main() {
 }
 ```
 
+```c
+#include <time.h>
+
+int main() {
+    // now is past seconds from 1970-01-01 00:00:00
+    int now = time(NULL);
+}
+```
+
+```c
+#include <time.h>
+
+// current time counted by millisecond unit
+long long mstime(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec * 1000LL + ts.tv_nsec / 1000000;
+}
+```
+
 ### Get time duration
 
 ```c
@@ -2670,6 +2690,21 @@ static void daemonize(void) {
 }
 ```
 
+### Process sleep
+
+```c
+#include <unistd.h>
+
+int main() {
+    // 100ms
+    useconds_t microseconds = 100000;
+    usleep(microseconds);
+
+    // sleep 5 seconds
+    sleep(5);
+}
+```
+
 ### Suspend Process
 
 ### Kill Process
@@ -3094,6 +3129,18 @@ inline void wait_free(struct wait_lock *w) {
     pthread_mutex_destroy(&w->lock);
     pthread_cond_destroy(&w->ready);
 };
+```
+
+### Use atomic operation
+
+```c
+#include <stdatomic.h>
+
+int main() {
+    atomic_int val = 0;
+    atomic_fetch_sub(&val, 1);
+    atomic_fetch_add(&val, 2);
+}
 ```
 
 ### Use ThreadLocal Var
