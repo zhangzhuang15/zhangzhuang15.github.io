@@ -3149,6 +3149,32 @@ int main() {
 
 Normally, os provides libc for wrapping systemcall. If you want to make systemcall, you should invoke functions defined in libc. But if you want to make systemcall directly, not through libc, you can use assembly code. To make it simple, os provides c function like `syscall` , `__syscall` for wrapping assembly code. Unfortunately, not every os exposes this c function. In new version of macOS, `syscall` is deprecated and dropped([Github | related issue](https://github.com/google/glog/issues/185)), so you cannot search by `man syscall` getting more details. In linux, it's ok. Libc is not equal to c standard library, it contains c standard library and other parts.
 
+### Debugger Theory
+
+You can write your own debugger with system call `ptrace`, `gdb` and `lldb` both depend on it.
+
+With help of `ptrace`, you can do these things:
+
+1. set breakpoint
+2. make process one-step execute
+3. fetch register's value
+4. read or write memory
+5. suspend system calls
+
+Let's talk about why `ptrace` can suspend system call. When `ptrace` tracks a program, it will add a tag on process. When process invokes a system call, kernel will check that tag, if there's a tag, kernel will stop process and send SIGTRAP signal. This SIGTRAP signal will be catched by debugger program. In other words, a debugger is parent process of debugged process and invokes `ptrace` conditionally in a loop. Debugger program catches signal and read value of register, then search for system call name in a hard-coded table, whose key is value of register and value is system call name.
+
+Let's talk about how `ptrace` can set breakpoint. `ptrace` replaces the target-address instruction with software break call instruction, such as `int 3` in x86, and saves the original instruction for restore in future. When CPU executes break call, there's a signal sending to parent process (yeah, our debugger program). When debugger program decides to continue executing with `ptrace`, `ptrace` will pop out the saved instruction,restore it, and subtract value of instruction register, then send a signal to debugged process making it continue.
+
+Let's talk about how `ptrace` can make one-step execute. It will set a special register, then CPU will stop and throw an exception. Kernel can catch that exception and send a SIGTRAP signal to debugger program. Debugger program receives signal and send a SIGSTOP signal to debugged program and make it stop. Debugger program can set a special register again with `ptrace` before send a signal to make debugged program continue. Repeat and repeat and ... this is one-step execute.
+
+`ptrace` is system call and created by system operation writer, but `strace` is user-space software built on `ptrace`, anyone can write your own `strace`.
+
+Let's take a look at `lldb` or `gdb` again, they're nothing but:
+
+1. a TUI program
+2. a program that invokes `ptrace`
+3. a parent process of debugged process
+
 ## Systemcall, Libc and Program Language Standard Library
 
 Systemcall is part of operating system. Saving values in specific registers and invoking specific machine instructions (assembly code), cpu will trap into kernel side, and take actions —— this is essence of systemcall.

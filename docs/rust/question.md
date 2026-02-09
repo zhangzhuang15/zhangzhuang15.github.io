@@ -2376,6 +2376,8 @@ impl Drop for Node {
 
 定义好 Drop 之后，Node 在 drop 的时候，会先执行你给出的 drop，然后对 Node 的每一个成员执行 drop。因此，list 指针关联的内存，由我们实现的 drop 释放；class 管理的内存由 Rust 自动调用 Vec 的 drop 释放；对于 raw pointer 来说，Rust 不会主动对 list 寻址，完成内存释放，只是像 i32 一样看待，直接释放掉这块儿内存。换一句话讲，如果你没有定义 drop，那么 list 关联的内存就泄漏了，只能等到进程结束，由操作系统回收。
 
+邪恶的想法：在 Node 的 drop 函数内，`mem::forget` 它的 class，能做到么？很遗憾，答案是无法办到，rust 编译器会直接报错。原因是，传给`mem::forget`的参数，必须拥有内存的所有权，你只好这样写`mem::forget(self.class)`，这样又会从`self`身上剥夺对`class`的所有权，违背了 rust 的所有权规则，触发报错。
+
 ## 为什么 Rust 默认采用静态链接编译
 
 1. 部署简单
