@@ -445,6 +445,10 @@ export default defineConfig({
               link: "/blog/h3",
             },
             {
+              text: "限流算法简介",
+              link: "/blog/limiter",
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
