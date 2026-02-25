@@ -1363,13 +1363,19 @@ if atomic_load(&has_data, Ordering::Acquire):
     assert(d == "hello")
 ```
 
-`atomic_store`配合`Ordering::Release`使用，效果就是在 atomic_store 执行之前，所有写操作必须完成，当执行 atomic_store 的时候，data 就已经是"hello"了；
+`atomic_store`配合`Ordering::Release`使用，效果就是在 atomic_store 执行之前，write 执行之后，加入写屏障，所有写操作必须完成，不能重排到屏障之后执行，因此当执行 atomic_store 的时候，data 就已经是"hello"了；
 
-`atomic_load`配合`Ordering::Acquire`使用，效果就是在 atomic_load 执行之后，所有读操作看到的内存值都是最新的。
+`atomic_load`配合`Ordering::Acquire`使用，效果就是在 atomic_load 执行之后，read 执行之前，加入一个读屏障，所有读操作必须在这个屏障之后执行，不能重排到屏障之前执行，因此看到的 has_data 内存值一锭是最新的。
 
 二者结合看，就能有这样的推论，如果 has_data 是 true, 就意味着 atomic_store 执行了，atomic_store 执行了，就说明 data 已经是"hello"了，那么 d 读出来的数据就一定是“hello”了。这样看来，之前的问题就解决了。
 
+为什么一定要在写操作之后加入写屏障呢？因为放在之前没有意义。编写代码的时候，你是顺序写的，同一变量的写操作一定在前边，读操作一定在后边，潜在的问题就是写操作可能重排到后边去，为了防止它往后排，一定要在后边加入写屏障组织它。读操作也是同理的，写代码的时候，你肯定把读操作放在写操作后边（读一个旧值没有意义，读一个没有改变的值没有意义），潜在的问题是读操作可能重排到写操作之前，为了阻止它往前排，就要在读操作之前加入读屏障。
+
+`Acquire`为什么表示读呢？这个单词的本意是**获取**，读操作本质就是获取一个变量的值。`Release`单词的本意是**释放**、**发布**，释放其实没有什么关联性，不好理解，发布会更好理解一些，因为发布就意味着把某个东西放到某处，比如发布文章，就是把文章放到报纸上、杂志上，这和把一个值放到一个内存，有着非常相近的语义，而写操作的本质就是把值放置在一个内存里。
+
 > [伪代码出处](https://dev.to/kprotty/understanding-atomics-and-memory-ordering-2mom)
+
+这篇[文章](/blog/concurrent-concept)也介绍了内存屏障。
 
 ## Option 类型数据后边加上一个？是什么意思
 
@@ -2370,6 +2376,8 @@ impl Drop for Node {
 
 定义好 Drop 之后，Node 在 drop 的时候，会先执行你给出的 drop，然后对 Node 的每一个成员执行 drop。因此，list 指针关联的内存，由我们实现的 drop 释放；class 管理的内存由 Rust 自动调用 Vec 的 drop 释放；对于 raw pointer 来说，Rust 不会主动对 list 寻址，完成内存释放，只是像 i32 一样看待，直接释放掉这块儿内存。换一句话讲，如果你没有定义 drop，那么 list 关联的内存就泄漏了，只能等到进程结束，由操作系统回收。
 
+邪恶的想法：在 Node 的 drop 函数内，`mem::forget` 它的 class，能做到么？很遗憾，答案是无法办到，rust 编译器会直接报错。原因是，传给`mem::forget`的参数，必须拥有内存的所有权，你只好这样写`mem::forget(self.class)`，这样又会从`self`身上剥夺对`class`的所有权，违背了 rust 的所有权规则，触发报错。
+
 ## 为什么 Rust 默认采用静态链接编译
 
 1. 部署简单
@@ -2382,5 +2390,11 @@ impl Drop for Node {
    静态链接减少对外部库的依赖，降低被恶意库攻击的风险。
 5. Rust 生态特点
    Rust 强调安全、性能和可靠性，静态链接更符合这些目标。
+
+## Rust 跨平台编译遇到链接问题 ？
+
+[Zig Makes Rust Cross-compilation Just Work](https://actually.fyi/posts/zig-makes-rust-cross-compilation-just-work/)
+
+原因是，Rust 提供了跨平台的 Rust 标准库以及编译器，但是没有提供链接器，它会使用操作系统自带的链接器，这种链接器并不支持跨平台编译的场景。文章给出一个解决方案，使用 zig cc 作为环境变量 CC 的值，Rust 于是使用 zig cc 完成链接工作。zig cc 基于 clang，增加了额外独创的工作，使其拥有非常强大的跨平台编译能力。
 
 <Giscus />

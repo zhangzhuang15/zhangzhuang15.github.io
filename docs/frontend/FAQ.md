@@ -1275,3 +1275,56 @@ const orderId = BigInt(JSON.parse(data).orderId);
 ```
 
 显然，就算用`BigInt`处理，后端也需要在 response json 里回传 string，而不是整数。
+
+## `process.env.NODE_ENV` 在哪里定义的呀
+
+看过`react`源码，或者其他开源的 typescript 代码，你会发现，他们的代码按照生产和研发两套环境编译，得到的产物大致是这样的名字`xxx.production.js`, `xxx.development.js`, 而在入口文件，会用`process.env.NODE_ENV`将二者统一：
+
+```js
+// index.js
+if (process.env.NODE_ENV === "production") {
+  module.exports = require("./xxx.production.js");
+} else {
+  module.exports = require("./xxx.development.js");
+}
+```
+
+如果入口文件被 nodejs 引入，还好理解，但是入口文件在浏览器环境引入，就不对劲了。为什么呢？一方面是 index.js 找不到哪里定义了 process 变量，二是浏览器环境没有叫做 process 的全局变量。
+
+聪明的你一定会想到，把 process 赋值给一个变量，随后来个 debugger，在浏览器环境执行的时候，打开控制台看看。
+
+```js
+import { hello } from "./index.js";
+function some() {
+  const t = process;
+  debugger;
+}
+```
+
+你会惊愕地发现, `index.js` 内部使用了`process.env.NODE_ENV`, `import`这行代码没有报错，但是在`t = process`报错了，说是找不到变量`process`。是不是有点儿懵了？
+
+```js
+function hello() {
+  if (process.env.NODE_ENV === "production") {
+    console.log("hello");
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log("develop");
+  }
+}
+```
+
+答案非常简单，`process.env.NODE_ENV`是一个宏定义，在编译代码的时候，它的值就是确定的，不是`"production"`就是`"development"`, 如果它是`"production"`, 上面的代码在编译之后就会变成这个样子：
+
+```js
+function hello() {
+  console.log("hello");
+}
+```
+
+因此，`index.js`内使用`process.env.NODE_ENV`不会有问题，但是`const t = process`就会有问题。
+
+最后的问题是，谁定义了`process.env.NODE_ENV` ? 答案就是打包工具，`webpack` `rollup`。比如`webpack`的 mode 等于`development`的时候，它会默认定义出一个宏`process.env.NODE_ENV = "development"`；如果是`rollup`, 它默认不提供这样的宏定义，需要库的开发者通过 rollup 的`replace`插件完成；如果是`vite`，它会在内置的 define 插件定义好，当 vite 的 mode 是`"development"`的时候，`process.env.NODE_ENV`就是`"development"`, 当然这个替换仅仅在使用`vite`开发非 library 的代码生效。
+
+总结一句话，`process.env.NODE_ENV`属于编译阶段的字符串替换和代码优化，而不是定义变量。

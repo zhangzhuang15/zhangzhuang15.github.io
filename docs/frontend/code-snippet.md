@@ -1058,6 +1058,12 @@ function applyCallbackSafely(callback) {
     callback();
   } catch (err) {}
 }
+
+function tryWrap(fn) {
+  try {
+    fn();
+  } catch (err) {}
+}
 ```
 
 ## 如何解决输入法对`<input>`的影响
