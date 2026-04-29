@@ -781,7 +781,7 @@ ReactDOM.render(
   <StrictMode>
     <App />
   </StrictMode>,
-  document.querySelector("#root"),
+  document.querySelector("#root")
 );
 ```
 
@@ -1745,7 +1745,7 @@ function updateFunctionComponent(current, workInProgress) {
     current,
     workInProgress,
     Component,
-    props,
+    props
   );
   //                   ↑
   //    这一行做了两件事：
@@ -2149,7 +2149,7 @@ function cloneChildFibers(current, workInProgress) {
     currentChild = currentChild.sibling;
     newChild = newChild.sibling = createWorkInProgress(
       currentChild,
-      currentChild.pendingProps,
+      currentChild.pendingProps
     );
     newChild.return = workInProgress;
   }
@@ -2265,3 +2265,11 @@ parent.removeChild(Parent.stateNode)  ← 一次 DOM 操作搞定整棵子树
 ```
 
 清理的顺序是后序遍历（子先父后），removeChild 只在最外层祖先上调用一次。
+
+## react 相关仓库
+
+[The Future of React](https://github.com/reactjs/react-future/blob/master/README.md): react 项目早期，对 react 项目演进的设想
+
+[React RFCs](https://github.com/reactjs/rfcs/blob/main/README.md): react 草案，诸多现有的特性都源自这些草案，从中可以 get 一些 react 的设计思想
+
+[React Fiber Architecture](https://github.com/acdlite/react-fiber-architecture): react 核心成员 Andrew Clark 大神编写的 react fiber 架构 blog。
