@@ -449,6 +449,10 @@ export default defineConfig({
               link: "/blog/limiter",
             },
             {
+              text: "Rust版本红黑树",
+              link: "/blog/rb-tree",
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [

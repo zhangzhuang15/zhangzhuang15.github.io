@@ -1315,65 +1315,70 @@ c 语言使用 `void*` 表示一种特殊的指针，这个指针不指向具体
 
 ## `Ordering::Release` 和 `Ordering::Acquire`
 
-结论：
+为了解释，我们先定义几个伪码：
 
-1. Rust 提供了原子指令，但没有确保原子指令默认不被重排，调用方必须之名`Ordering`, 给出指令重排的限制。`Ordering::Release`用于原子写操作，限制该原子写操作之前的读写操作不能重排到它之后。`Ordering::Acquire`用于原子读操作，限制该原子读操作之后的读写操作不能重排到它前面。`Ordering::SeqCst`用于原子读操作或者原子写操作，严格限制该原子操作前的指令不能重排到它后边，该原子操作后的指令不能重排到它前边。
-2. Rust 也提供了内存屏障指令。 `atomic::fence(Ordering::Release)`是写屏障，表示在这条指令之前的所有写操作必须执行完，才能继续之后它后边的指令；`atomic::fence(Ordering::Acquire)`是读屏障，表示在这条指令之后的读操作，看到的内存是最新值。`atomic::fence(Ordering::SeqCst)`是最强屏障，表示在它之前的指令不能重排到它后边，它后边的指令不能重排到它前面。
+```txt
+// 写屏障
+fence(Ordering::Release)
 
-解释清楚这两个东西，必须要结合具体的例子。先看下面的伪代码：
+// 读屏障
+fence(Ordering::Acquire)
 
+// 按照Ordering::Release执行原子写
+atomic_store(&value, 1, Ordering::Release)
+
+// 按照Ordering::Acquire执行原子读
+atomic_load(&value, Ordering::Acquire)
+
+// 最基础的原子写
+atomic_store(&value, 1, Ordering::Relaxed)
+
+// 最基础的原子读
+atomic_load(&value, Ordering::Relaxed)
 ```
-data = None
-has_data = false
+
+`atomic_store(&value, 1, Ordering::Release)`等效于：
+
+```txt
+fence(Ordering::Release)
+atomic_store(&value, 1, Ordering::Relaxed)
+```
+
+`atomic_load(&value, Ordering::Acquire)`等效于：
+
+```txt
+atomic_load(&value, Ordering::Relaxed)
+fence(Ordering::Acquire)
+```
+
+在`atomic_store`和`atomic_load`设置`Ordering::Release`,`Ordering::Acquire`解决的是多个原子操作之间的可见性：
+
+```txt
+a = 10
+b = false
 
 // thread 1
-write(&data, "hello")
-atomic_store(&has_data, true)
+atomic_store(&b, true, Ordering::Relaxed)
+atomic_store(&a, 42, Ordering::Release)
 
-
-// thread2
-if atomic_load(&has_data):
-    d = read(&data)
-    assert(d == "hello")
+// thread 2
+if (atomic_load(&a, Ordering::Acquire) == 42) {
+    // 一定是 true
+    atomic_load(&b);
+}
 ```
 
-由于编译器重排、CPU 重排，thread 1 的执行顺序可能是：
+它解决的是 a 和 b 值变化的先后问题，单看 a 没有任何意义。
 
-```
-atomic_store(&has_data, true)
-write(&data, "hello")
-```
+`atomic_store(&a, 42, Ordering::Release)`防止写 b 的指令重排到写 a 的操作之后，这样我们就可以得知，如果 a 是 42 了，那么 b 一定是 true。
 
-当 `atomic_store` 执行完毕后，`has_data`就是 true, 这个时候，可能发生线程切换，执行 thread 2, thread 2 原子读取 has_data, 结果是 true， 然后执行 if 分支，读取 `data`，结果数据不是 `hello`，导致 assert 发生错误；
+`atomic_load(&a, Ordering::Acquire)`防止读 b 的指令重排到读 a 的操作之前，这样，如果 a 读出来的数据是 42，那就意味着写 a 的操作发生了，而写 a 的操作一定发生在写 b 的操作之后，就意味着 b 已经是 true 了。否则读 b 的操作重排的话，就会逃离出 a 等于 42 的约束，那么读出来的 b 就不一定是 true 了。
 
-解决方式，就是使用 `Ordering::Release` 和 `Ordering::Acquire`.
+综上，你可以看到维护的是 a 和 b 的值变动发生先后的顺序。
 
-```
-data = None
-has_data = false
+所谓写屏障，就是屏障后边的写操作不能重排到写屏障前边，写屏障前边的写操作不能重排到后边。但是，只要不跨越写屏障，写屏障两侧的写操作在各自区域内可以重排。
 
-// thread 1
-write(&data, "hello")
-atomic_store(&has_data, true, Ordering::Release)
-
-
-// thread2
-if atomic_load(&has_data, Ordering::Acquire):
-    d = read(&data)
-    assert(d == "hello")
-```
-
-`atomic_store`配合`Ordering::Release`使用，效果就是在 atomic_store 执行之前，write 执行之后，加入写屏障，所有写操作必须完成，不能重排到屏障之后执行，因此当执行 atomic_store 的时候，data 就已经是"hello"了；
-
-`atomic_load`配合`Ordering::Acquire`使用，效果就是在 atomic_load 执行之后，read 执行之前，加入一个读屏障，所有读操作必须在这个屏障之后执行，不能重排到屏障之前执行，因此看到的 has_data 内存值一锭是最新的。
-
-二者结合看，就能有这样的推论，如果 has_data 是 true, 就意味着 atomic_store 执行了，atomic_store 执行了，就说明 data 已经是"hello"了，那么 d 读出来的数据就一定是“hello”了。这样看来，之前的问题就解决了。
-
-为什么一定要在写操作之后加入写屏障呢？因为放在之前没有意义。编写代码的时候，你是顺序写的，同一变量的写操作一定在前边，读操作一定在后边，潜在的问题就是写操作可能重排到后边去，为了防止它往后排，一定要在后边加入写屏障组织它。读操作也是同理的，写代码的时候，你肯定把读操作放在写操作后边（读一个旧值没有意义，读一个没有改变的值没有意义），潜在的问题是读操作可能重排到写操作之前，为了阻止它往前排，就要在读操作之前加入读屏障。
-
-`Acquire`为什么表示读呢？这个单词的本意是**获取**，读操作本质就是获取一个变量的值。`Release`单词的本意是**释放**、**发布**，释放其实没有什么关联性，不好理解，发布会更好理解一些，因为发布就意味着把某个东西放到某处，比如发布文章，就是把文章放到报纸上、杂志上，这和把一个值放到一个内存，有着非常相近的语义，而写操作的本质就是把值放置在一个内存里。
-
-> [伪代码出处](https://dev.to/kprotty/understanding-atomics-and-memory-ordering-2mom)
+所谓读屏障，就是屏障后边的读操作不能重排到读屏障前边，读屏障前边的读操作不能重排到后边。但是，只要不跨越读屏障，读屏障两侧的读操作在各自区域内可以重排。
 
 这篇[文章](/blog/concurrent-concept)也介绍了内存屏障。
 
@@ -1431,8 +1436,7 @@ toolchain 是一套开发工具，包括 component target rust 编译器，提�
 
 ## `async` `await` `Future` `impl Future` `poll` `异步运行时`有什么联系？
 
-`async` 修饰的函数或者代码块，会被 Rust 编译器转化为实现`Future`的对象，并且给出 `poll`
-方法。
+`async`函数的调用，并不会执行函数体内部的逻辑，而是直接返回一个实现`Future`的对象，函数内部的逻辑会被编译器处理为这个对象的`poll`方法的内容。`async`块直接被编译器替换为一个实现`Future`的对象。注意，这里两次提到实现`Future`的对象，这个对象的 struct 定义是编译器生成的哦。
 
 `await`只能用于`async`函数或代码块中，会被 Rust 编译器转化为`poll` 方法的调用。
 
