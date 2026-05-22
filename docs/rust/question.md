@@ -2401,4 +2401,26 @@ impl Drop for Node {
 
 原因是，Rust 提供了跨平台的 Rust 标准库以及编译器，但是没有提供链接器，它会使用操作系统自带的链接器，这种链接器并不支持跨平台编译的场景。文章给出一个解决方案，使用 zig cc 作为环境变量 CC 的值，Rust 于是使用 zig cc 完成链接工作。zig cc 基于 clang，增加了额外独创的工作，使其拥有非常强大的跨平台编译能力。
 
+## Rust 的模块管理用哪个方式
+
+Rust 的老模块方式： mod.rs
+
+```txt
+your-module
+     |---- a.rs
+     |---- b.rs
+     |---- mod.rs
+```
+
+Rust 的新模块方式：
+
+```txt
+your-module
+     |---- a.rs
+     |---- b.rs
+your-module.rs
+```
+
+2018 edition 之前的老项目，继续使用老模块方式，但是针对新项目，官方推荐使用新模块方式。
+
 <Giscus />

@@ -204,8 +204,8 @@ export default defineConfig({
             { text: "首页", link: "/blog/index-page" },
             { text: "程序员和英语", link: "/blog/programer-and-english" },
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
-            { 
-              text: '系统编程相关（System Programming）',
+            {
+              text: "系统编程相关（System Programming）",
               collapsed: false,
               items: [
                 { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
@@ -260,6 +260,10 @@ export default defineConfig({
                 {
                   text: "coreutils解读",
                   link: "/blog/core-utils",
+                },
+                {
+                  text: "Tokio框架简介",
+                  link: "/blog/tokio",
                 },
               ],
             },
@@ -403,7 +407,7 @@ export default defineConfig({
             {
               text: "Hardware you should Know",
               link: "/blog/hardware",
-            },  
+            },
             {
               text: "How to Write Interpreter",
               link: "/blog/interpreter",
@@ -471,35 +475,35 @@ export default defineConfig({
               ],
             },
             {
-              text: 'vue系列',
+              text: "vue系列",
               collapsed: true,
               items: [
                 {
-                  text: '虚拟节点',
-                  link: '/blog/vue-around/vnode'
+                  text: "虚拟节点",
+                  link: "/blog/vue-around/vnode",
                 },
                 {
-                  text: '响应式系统',
-                  link: '/blog/vue-around/reactivity'
+                  text: "响应式系统",
+                  link: "/blog/vue-around/reactivity",
                 },
                 {
-                  text: 'Vue Instance',
-                  link: '/blog/vue-around/vueInstance'
+                  text: "Vue Instance",
+                  link: "/blog/vue-around/vueInstance",
                 },
                 {
-                  text: 'Vue SFC Compiler',
-                  link: '/blog/vue-around/sfc-compiler'
+                  text: "Vue SFC Compiler",
+                  link: "/blog/vue-around/sfc-compiler",
                 },
                 {
-                  text: '水合与SSR',
-                  link: '/blog/vue-around/hydrate'
+                  text: "水合与SSR",
+                  link: "/blog/vue-around/hydrate",
                 },
                 {
-                  text: 'Vue Devtools',
-                  link: '/blog/vue-around/devtools'
-                }
-              ]
-            }
+                  text: "Vue Devtools",
+                  link: "/blog/vue-around/devtools",
+                },
+              ],
+            },
           ],
         },
       ],
