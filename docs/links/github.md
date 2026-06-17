@@ -84,6 +84,12 @@ Rust 实现的浏览器内核引擎
 
 Rust 实现的浏览器内核引擎
 
+## ladybird
+
+[前往](https://github.com/LadybirdBrowser/ladybird)
+
+Rust+cpp 实现的浏览器
+
 ## DeepSeek-TUI
 
 [前往](https://github.com/Hmbown/DeepSeek-TUI.git)
