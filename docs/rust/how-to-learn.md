@@ -171,6 +171,42 @@ read this article: [Rust vs C for Game Development](https://iodroplet.com/rust-v
 > 用 Rust 实现的并发编程环境下的数据结构和工具库。可以学到无锁编程、unsafe 编程，以及用 let 限制
 > 完成 mutation 方面的知识
 
+<br>
+
+[RustPython](https://github.com/RustPython/RustPython.git)
+
+> 用 Rust 实现的 Python 解释器
+
+<br>
+
+[jj](https://github.com/jj-vcs/jj.git)
+
+> 用 Rust 实现的版本管理器，平替 git
+
+<br>
+
+[wezterm](https://github.com/wezterm/wezterm.git)
+
+> 用 Rust 实现的终端模拟器
+
+<br>
+
+[DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI.git)
+
+> 用 Rust 实现的 TUI 程序
+
+<br>
+
+[servo](https://github.com/zhangzhuang15/servo.git)
+
+> 用 Rust 实现的浏览器引擎
+
+<br>
+
+[gosub-engine](https://github.com/zhangzhuang15/gosub-engine.git)
+
+> 用 Rust 实现的浏览器引擎
+
 ## 推荐的库
 
 ### argh
