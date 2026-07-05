@@ -95,6 +95,12 @@ javascript 没有执行呢；
 
 介绍了 github 上有哪些仓库可以帮助软件工程师学习技术
 
+## Algorithms for Competitive Programming
+
+[阅读原文](https://cp-algorithms.com/)
+
+直观、形象、简洁地介绍很多数据结构和算法的内容，很基础，也包含高阶竞赛内容
+
 ## algorithm complexity theory
 
 [阅读原文](https://ycc.idv.tw/algorithm-complexity-theory.html)

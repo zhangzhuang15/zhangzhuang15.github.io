@@ -4,75 +4,87 @@ page: true
 aside: true
 ---
 
-## c工具链 
-### GNU工具链组成
-* binutils: 二进制工具包，包含 `assembler` `linker` `readelf`
-* gcc: 编译器 
-* C库：基于POSIX的标准化API
-  
-工具链是在具体一个平台上使用的，所以按照不同平台，工具链有不同实现。CPU架构 + 供应商 + 操作系统内核 确定了一个平台。
-在使用 binutils 的时候，必须下载正确平台的binutils实现。
+## c 工具链
 
-### C库种类
-glibc: 标准的GNU C库，非常大，最完整的POSIX API实现；
+### GNU 工具链组成
 
-musl libc： 轻小的C库实现；
+- binutils: 二进制工具包，包含 `assembler` `linker` `readelf`
+- gcc: 编译器
+- C 库：基于 POSIX 的标准化 API
 
-uClibc-ng: 微控器的C库；
+工具链是在具体一个平台上使用的，所以按照不同平台，工具链有不同实现。CPU 架构 + 供应商 + 操作系统内核 确定了一个平台。
+在使用 binutils 的时候，必须下载正确平台的 binutils 实现。
 
-eglibc： glibc的分支，用于嵌入式应用。
+### C 库种类
 
-### C库的组成
-libc：最常用的POSIX函数，如printf，open，close，read，write等
+glibc: 标准的 GNU C 库，非常大，最完整的 POSIX API 实现；
 
-libm：数学函数，如cos，exp，log
+musl libc： 轻小的 C 库实现；
 
-libpthread: POSIX线程函数；
+uClibc-ng: 微控器的 C 库；
 
-librt: POSIX的real-time扩展，包括shared memory和asynchronous I/O
+eglibc： glibc 的分支，用于嵌入式应用。
 
-### C库的使用
-当用gcc编译的时候，可以不用指明libc，这个应该是gcc会自动去引入的，其他的需要用-l指明，比如引入 libm, 就要指定 -lm.
+### C 库的组成
+
+libc：最常用的 POSIX 函数，如 printf，open，close，read，write 等
+
+libm：数学函数，如 cos，exp，log
+
+libpthread: POSIX 线程函数；
+
+librt: POSIX 的 real-time 扩展，包括 shared memory 和 asynchronous I/O
+
+### C 库的使用
+
+当用 gcc 编译的时候，可以不用指明 libc，这个应该是 gcc 会自动去引入的，其他的需要用-l 指明，比如引入 libm, 就要指定 -lm.
 
 ### gcc
+
 光有上边的函数库还不行，还要有编译器。
 编译器里边也包括连接器。
 有 gnu 版本 和 musl 版本。
-> gnu版本对c的支持非常全，musl版本更加轻量，而且采用静态编译。
 
-编译器的实现和CPU架构、操作系统相关。在交叉编译的时候，要用到指定CPU架构操作系统下的连接器。
+> gnu 版本对 c 的支持非常全，musl 版本更加轻量，而且采用静态编译。
+
+编译器的实现和 CPU 架构、操作系统相关。在交叉编译的时候，要用到指定 CPU 架构操作系统下的连接器。
 
 ### binutils
+
 二进制文件的工具包。
 
-因为我们用gcc将代码编译成二进制文件后，仍需要一些工具帮助我们阅读、分析二进制文件的信息。这个工具包内就提供了这些工具。
+因为我们用 gcc 将代码编译成二进制文件后，仍需要一些工具帮助我们阅读、分析二进制文件的信息。这个工具包内就提供了这些工具。
 
 通常这是一系列二进制工具小程序的集合。
 
 包括 `readelf` `nm` `hexdump` `strip` 等工具。
 
-## gcc的基本使用
-```shell 
+## gcc 的基本使用
+
+```shell
 # 生成汇编代码
 gcc -S main.c -o main.s
 
 # 生成目标文件
-gcc -c main.c -o main.o 
+gcc -c main.c -o main.o
 
 # 只做c语言的预处理
 gcc -E main.c -o main.i
 ```
 
-### 默认到哪里寻找被include的头文件
-```shell 
-gcc -x c -v -E /dev/null 
+### 默认到哪里寻找被 include 的头文件
+
+```shell
+gcc -x c -v -E /dev/null
 ```
-> `-x c` 的意思是，把 `/dev/null` 当作c文件处理
+
+> `-x c` 的意思是，把 `/dev/null` 当作 c 文件处理
 >
-> `-v` 的意思是，让gcc输出它接下来的每个执行步骤
+> `-v` 的意思是，让 gcc 输出它接下来的每个执行步骤
 
 output:
-```txt 
+
+```txt
 Apple clang version 16.0.0 (clang-1600.0.26.3)
 Target: arm64-apple-darwin24.0.0
 Thread model: posix
@@ -97,11 +109,15 @@ End of search list.
 # 1 "<built-in>" 2
 # 1 "/dev/null" 2
 ```
+
 `#include <...> search starts here:` 后边就是我们想要的内容。
 
 ## 动态链接和静态链接
+
 ### 静态库
-:::code-group 
+
+:::code-group
+
 ```c [src/static-util/util.c]
 #include "./util.h"
 #include "stdio.h"
@@ -140,31 +156,38 @@ int main() {
     }
 }
 ```
+
 :::
 
 生成静态库：
-```shell 
+
+```shell
 gcc -c src/static-util/util.c -o src/static-util/util.o
 ar r libutil.a src/static-util/util.o
 ```
-> 在 unix 上静态文件 .a 后缀，在Windows是.lib后缀
+
+> 在 unix 上静态文件 .a 后缀，在 Windows 是.lib 后缀
 > 文件名是 lib{静态库名}
 
 使用静态库：
-```shell 
+
+```shell
 gcc -o main -I "src/static-util" -L "src/static-util" -lutil src/main.c && ./main
 
 # 或者
 gcc -o main -I "src/static-util" src/main.c src/static-util/libutil.a && ./main
 ```
+
 > -I 指定`include <a.h>`的时候，到哪个文件夹去找`a.h`文件
-> 
+>
 > -L 指定 寻找静态库的时候，到哪个文件夹去找
-> 
-> -l 指定静态库文件名，此时lib和.a后缀可省略
+>
+> -l 指定静态库文件名，此时 lib 和.a 后缀可省略
 
 ### 动态库
-:::code-group 
+
+:::code-group
+
 ```c [src/dyn-util/util.c]
 
 #include "./util.h"
@@ -204,93 +227,129 @@ int main() {
     }
 }
 ```
+
 :::
 
 生成动态库：
-```shell 
+
+```shell
 gcc -fPIC -shared -o src/dyn-util/libutil.dylib src/dyn-util/util.c
 ```
+
 > 动态链接库名格式为 lib{库名}.{后缀};
-> linux的后缀是 so;
-> Mac的后缀是 dylib;
-> Windows的后缀是 dll;
-> -fPIC 中 PIC的含义是`Position Independent Code`;
+> linux 的后缀是 so;
+> Mac 的后缀是 dylib;
+> Windows 的后缀是 dll;
+> -fPIC 中 PIC 的含义是`Position Independent Code`;
 
 使用动态库:
-```shell 
+
+```shell
 gcc -I "src/dyn-util" -L "src/dyn-util" -lutil -Wl,-rpath,$PWD/src/dyn-util -o main src/main.c && ./main
 ```
-> -Wl, -rpath, $PWD/src/dyn-util 指定动态连接器的搜索路径，可以阅读[rust编译出来的executable file比cpp大](/blog/rust-binary-is-big)了解更多
 
-如果你将上边生成的main文件移动到别的目录下，并在该目录下执行：
-```shell 
-cp main src/main 
-cd src 
+> -Wl, -rpath, $PWD/src/dyn-util 指定动态连接器的搜索路径，可以阅读[rust 编译出来的 executable file 比 cpp 大](/blog/rust-binary-is-big)了解更多
+
+如果你将上边生成的 main 文件移动到别的目录下，并在该目录下执行：
+
+```shell
+cp main src/main
+cd src
 ./main
 ```
+
 结果是会报错。错误大致的意思是找不到动态链接库。
 
 解决方法是，改用下边的指令生成之前的动态链接库：
-```shell 
+
+```shell
 gcc -install_name @rpath/libutil.dylib -fPIC -shared -o src/dyn-util/libutil.dylib src/dyn-util/util.c
 ```
 
 `-install_name` 是修改动态链接库的注册名。
 
-默认情况下，动态链接库的注册名是`./libutil.dylib`。在macOS平台，你可以这样简单理解：当你连接这个库的时候，`gcc -Lsrc/dyn-util -lutil`, 链接器会找到这个文件，将文件的注册名记录在生成的可执行文件里。
+默认情况下，动态链接库的注册名是`./libutil.dylib`。在 macOS 平台，你可以这样简单理解：当你连接这个库的时候，`gcc -Lsrc/dyn-util -lutil`, 链接器会找到这个文件，将文件的注册名记录在生成的可执行文件里。
 
 当可执行文件执行的时候，dyld 程序就会根据这个名字加载动态链接库，而 dyld 发现这是相对路径，就会参考可执行程序的当前工作目录或者`DYLD_LIBRARY_PATH`环境变量指定的目录，寻找动态链接库。显然，可执行文件变更位置后，肯定影响到了动态链接库的定位了。
 
-为了解决这个问题，你要设置 `-install_name`, 告诉dyld，动链接库是rpath目录下的libutil.dylib文件。
-> dyld是动态链接器。编译程序的最后一步是链接，这个工作由静态链接器 ld 完成。而 dyld 是在操作系统加载可执行程序时，调用的一个程序，它由操作系统给出，不是编译器工具的一部分。
+为了解决这个问题，你要设置 `-install_name`, 告诉 dyld，动链接库是 rpath 目录下的 libutil.dylib 文件。
 
-dyld 读取注册名`@rpath/libutil.dylib`, 发现有个 `@rpath`，就会确定rpath都有哪些路径，于是，我们在链接动态库时，`gcc -Wl,-rpath,$PWD/src/dyn-util`，设置的rpath才会派上用场。
+> dyld 是动态链接器。编译程序的最后一步是链接，这个工作由静态链接器 ld 完成。而 dyld 是在操作系统加载可执行程序时，调用的一个程序，它由操作系统给出，不是编译器工具的一部分。
+
+dyld 读取注册名`@rpath/libutil.dylib`, 发现有个 `@rpath`，就会确定 rpath 都有哪些路径，于是，我们在链接动态库时，`gcc -Wl,-rpath,$PWD/src/dyn-util`，设置的 rpath 才会派上用场。
 
 像 cmake 生成的构建命令，不会搞的如此复杂，而是将动态链接库的注册名直接设置为它的绝对文件路径，而链接它的时候，`-L`也是设置为动态连结库所在目录的绝对路径。好处是生成的二进制文件可以随便移动，执行不会有问题。不好的地方就是，动态链接库的位置不能动。
 
-`-install_name`是macOS特有的配置项，在 Linux 上，类似的功能可以通过 `-soname` 选项来实现：
+`-install_name`是 macOS 特有的配置项，在 Linux 上，类似的功能可以通过 `-soname` 选项来实现：
+
 ```shell
 gcc -shared -o libexample.so.1.0 source.c -Wl,-soname,libexample.so.1
 ```
 
 :::tip <TipIcon />
 在 macOS 系统上，动态链接库的搜索路径有一定的优先级排序。搜索逻辑和优先级如下：
+
 1. **@executable_path**：首先搜索可执行文件所在的目录。
 2. **@loader_path**：其次搜索加载该动态库的库所在的目录。
 3. **@rpath**：然后搜索运行路径（rpath），可以在编译时或运行时指定。
 4. **DYLD_LIBRARY_PATH**：接着搜索由 DYLD_LIBRARY_PATH 环境变量指定的目录。
 5. **DYLD_FALLBACK_LIBRARY_PATH**：如果前面的路径都没有找到，则搜索 DYLD_FALLBACK_LIBRARY_PATH 环境变量指定的目录。默认值为 /usr/local/lib 和 /usr/lib。
 6. 系统默认路径：最后搜索系统默认的库路径，如 /usr/lib
-:::
+   :::
 
-### 静态链接器ld默认去哪里搜索库
+### 静态链接器 ld 默认去哪里搜索库
+
 执行`man ld`，文档里面有写。
 
 默认会到这里找库：
-1. /usr/lib 
+
+1. /usr/lib
 2. /usr/local/lib
 
-没有找到的话，如果你在编译的时候，通过gcc的`-L`指定其他目录，就会依次尝试在这些目录里继续寻找。
+没有找到的话，如果你在编译的时候，通过 gcc 的`-L`指定其他目录，就会依次尝试在这些目录里继续寻找。
 
 默认会到这里找框架(framework):
-1. /Library/Frameworks 
+
+1. /Library/Frameworks
 2. /System/Library/Frameworks
 
-没有找到的话，如果你在编译的时候，通过gcc的`-F`指定其他目录，就会依次尝试在这些目录里继续寻找。
+没有找到的话，如果你在编译的时候，通过 gcc 的`-F`指定其他目录，就会依次尝试在这些目录里继续寻找。
+
+### 动态链接器
+
+静态链接器是将库的信息记录到可执行文件中。链接静态库，就是把静态库的代码合并到程序的代码段；链接动态库，就是把动态库的信息记录到可执行文件中，没有合并到代码段。
+
+而动态链接器的作用就是读取可执行文件的库信息，将库加载到内存里。因此，整个程序的流程是：
+
+1. 内核读取可执行文件，按照里边的信息，设置好寄存器
+2. 检查这个可执行文件的特殊字段的信息，确认是否需要动态链接器介入
+3. 动态链接器无需介入，直接跳转到\_start，执行 main 函数
+4. 动态链接器需要介入，跳转到动态链接器的入口点、执行，动态链接器结束工作后，跳转到\_start，执行 main 函数
+
+动态链接器一般来说都是以 c 库的形式存在，通常不会作为一个可执行程序单独使用。另外，它是操作系统提供的 c 库的一部分，但不属于 c 标准的一部分，因此，它不是独立的组件，是和操作系统强绑定的组件。
+
+这里仍然有个问题。动态链接器把库加载到内存，如果都加载进来的话，内存压力会很大，导致程序启动时间变长，那么，有没有一种做法，当程序执行的时候，发现某个函数符号找不到，然后再去加载对应的库。答案是有的。动态链接器的工作有两部分，一个是把库加载到内存，第二个是将函数符号解析为内存地址。目前可以通过一种手段，将第二个工作往后延迟到第一次调用函数的时候执行。
+
+具体做法是，经过编译之后，函数调用，比如`printf`不会直接替换成内存地址，而是替换成一个提前准备好的函数中，这个函数会查找符号表，符号表是一个内存结构，可以简单理解为 key-value，key 是符号名`printf`，value 就是内存地址。在这个函数中，检测符号是否有对应的内存地址，没有的话，再去让动态链接器解析符号地址。
+
+还有一部分关于动态链接器的内容，可以在[这篇文章](/blog/rust-binary-is-big.html#连接器和动态连接器)查看。
 
 ## 查看可执行程序
+
 可执行程序也是一种文件，但它比较特殊，无法像一般的文本文件查看，需要用专门的工具查看。
 
 - **nm**: 查看可执行程序的符号表。**查看有哪些函数**。
-- **objdump**: 查看目标文件或者可执行文件的工具，常用于linux, macOS上也有。**查看汇编代码**
-- **readelf**: 查看类型为elf格式的可执行文件，常用于linux
-- **otool**: 查看macOS可执行文件和目标文件。**查看链接了哪些静态库或者动态库**
+- **objdump**: 查看目标文件或者可执行文件的工具，常用于 linux, macOS 上也有。**查看汇编代码**
+- **readelf**: 查看类型为 elf 格式的可执行文件，常用于 linux
+- **otool**: 查看 macOS 可执行文件和目标文件。**查看链接了哪些静态库或者动态库**
 
 接下来给出一些示例, 在直观上有些感知。
 
 ### 准备
+
 源码：
-```c  
+
+```c
 #include <stdio.h>
 
 void hello() {};
@@ -307,25 +366,32 @@ int main() {
 ```
 
 编译：
+
 ```shell
-gcc main.c -o main 
+gcc main.c -o main
 ```
 
 ### 查看可执行文件的格式
-```shell 
+
+```shell
 file main
 ```
+
 output:
-```txt 
+
+```txt
 main: Mach-O 64-bit executable arm64
 ```
 
-### nm查看符号
-```shell 
+### nm 查看符号
+
+```shell
 nm main
 ```
+
 output:
-```txt 
+
+```txt
 0000000100003f84 S _M
 0000000100000000 T __mh_execute_header
 0000000100003f28 T _hello
@@ -334,11 +400,14 @@ output:
 ```
 
 ### 查看可执行文件的文件头
-```shell 
+
+```shell
 otool -h main
 ```
+
 output:
-```txt 
+
+```txt
 main:
 Mach header
       magic  cputype cpusubtype  caps    filetype ncmds sizeofcmds      flags
@@ -346,11 +415,14 @@ Mach header
 ```
 
 ### 查看动态链接器的加载配置信息
-```shell 
+
+```shell
 otool -l main
 ```
+
 output:
-```txt 
+
+```txt
 main:
 Load command 0
       cmd LC_SEGMENT_64
@@ -559,71 +631,86 @@ Load command 16
   dataoff 33088
  datasize 408
 ```
+
 :::tip <TipIcon />
 这些加载命令（load commands）是由操作系统的动态链接器（dyld）在加载和运行可执行文件时解析和处理的。具体来说，操作系统的加载器会读取这些加载命令，并将它们传递给 dyld，dyld 再根据这些命令来完成具体的加载和链接工作。
 
 <b style="font-size: 18px;">过程概述</b>
 
 1. 操作系统加载器：
+
    - 操作系统启动时，加载器会读取可执行文件的头部信息。
    - 加载器会找到并解析加载命令（load commands）。
 
 2. 动态链接器（dyld）：
    - 加载器将控制权交给 dyld。
    - dyld 会根据加载命令中的信息进行以下操作：
-        - 加载段（segments）：根据 LC_SEGMENT 命令，将可执行文件的各个段加载到内存中。
-        - 加载动态库：根据 LC_LOAD_DYLIB 命令，加载所需的动态库。
-        - 设置入口点：根据 LC_MAIN 命令，设置程序的入口点（即 _main 函数的地址）。
-        - 处理其他命令：处理其他加载命令，如 LC_RPATH、LC_LOAD_DYLINKER 等。
+     - 加载段（segments）：根据 LC_SEGMENT 命令，将可执行文件的各个段加载到内存中。
+     - 加载动态库：根据 LC_LOAD_DYLIB 命令，加载所需的动态库。
+     - 设置入口点：根据 LC_MAIN 命令，设置程序的入口点（即 \_main 函数的地址）。
+     - 处理其他命令：处理其他加载命令，如 LC_RPATH、LC_LOAD_DYLINKER 等。
 
 <b style="font-size: 18px;">具体步骤</b>
+
 1. 读取文件头：
+
 - 操作系统加载器首先读取 Mach-O 文件的头部信息，确定文件类型和加载命令的数量。
 
 2. 解析加载命令：
+
 - 加载器解析每个加载命令，了解可执行文件的结构和依赖关系。
 
 3. 加载段：
-- 根据 LC_SEGMENT 命令，将可执行文件的各个段加载到内存中。这些段包括代码段（__TEXT）、数据段（__DATA）等。
+
+- 根据 LC_SEGMENT 命令，将可执行文件的各个段加载到内存中。这些段包括代码段（**TEXT）、数据段（**DATA）等。
 
 4. 加载动态库：
+
 - 根据 LC_LOAD_DYLIB 命令，加载所需的动态库。dyld 会查找并加载这些库，确保所有依赖项都已满足。
 
 5. 设置入口点：
-根据 LC_MAIN 命令，设置程序的入口点。这是 _main 函数的地址，dyld 会将控制权传递给 _main 函数。
+   根据 LC_MAIN 命令，设置程序的入口点。这是 \_main 函数的地址，dyld 会将控制权传递给 \_main 函数。
 
 6. 初始化和运行：
-- dyld 完成所有必要的初始化工作后，将控制权传递给 _main 函数，程序开始执行。
+
+- dyld 完成所有必要的初始化工作后，将控制权传递给 \_main 函数，程序开始执行。
 
 <b style="font-size: 18px;">加载命令的作用</b>
 
 加载命令主要包括以下几类：
+
 - LC_SEGMENT：定义了内存段（segment）及其属性，如虚拟地址、文件偏移、大小等。
 - LC_LOAD_DYLIB：指定需要加载的动态库。
 - LC_RPATH：指定动态库的搜索路径。
-- LC_MAIN：指定程序的入口点（即 _main 函数的地址）。
+- LC_MAIN：指定程序的入口点（即 \_main 函数的地址）。
 - LC_LOAD_DYLINKER：指定动态链接器的路径。
-- LC_ID_DYLIB：标识动态库的唯一ID。
-:::
-
+- LC_ID_DYLIB：标识动态库的唯一 ID。
+  :::
 
 ### 查看动态链接信息
-```shell 
+
+```shell
 otool -L main
 ```
+
 output:
-```txt 
+
+```txt
 main:
         /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)
 ```
-> macOS平台，gcc编译代码的时候，默认会链接libSystem.B.dylib，这个动态库里包含了c标准函数的实现，已经类unix常用的系统调用的c函数封装。因此，在编写c代码的时候，你只需要引入指定的头文件，就可以使用大部分常用的操作系统能力。但是对于特定能力的使用，你仍然需要在编译的时候，为gcc手动指定要链接的库名，比如你在使用posix多线程库的时候，就需要指定`-lpthread`。
 
-### 查看可执行文件的text section
-```shell 
+> macOS 平台，gcc 编译代码的时候，默认会链接 libSystem.B.dylib，这个动态库里包含了 c 标准函数的实现，已经类 unix 常用的系统调用的 c 函数封装。因此，在编写 c 代码的时候，你只需要引入指定的头文件，就可以使用大部分常用的操作系统能力。但是对于特定能力的使用，你仍然需要在编译的时候，为 gcc 手动指定要链接的库名，比如你在使用 posix 多线程库的时候，就需要指定`-lpthread`。
+
+### 查看可执行文件的 text section
+
+```shell
 otool -tv main
 ```
+
 output:
-```txt 
+
+```txt
 main:
 (__TEXT,__text) section
 _hello:
@@ -651,23 +738,29 @@ _main:
 ```
 
 ### 查看可执行文件的可打印字符串
-```shell 
-strings main 
+
+```shell
+strings main
 ```
+
 output:
-```txt 
+
+```txt
 Peter
 hello world %s
 ```
+
 > 一般就是硬编码的字符串
 
 ### objdump 查看目标文件的反汇编代码
-```shell 
+
+```shell
 objdump -d main
 ```
 
 output:
-```txt 
+
+```txt
 
 main:   file format mach-o arm64
 
@@ -705,12 +798,15 @@ Disassembly of section __TEXT,__stubs:
 100003f80: d61f0200     br      x16
 ```
 
-### objdump查看目标文件的符号表 
-```shell 
+### objdump 查看目标文件的符号表
+
+```shell
 objdump -t main
 ```
+
 output:
-```txt 
+
+```txt
 main:   file format mach-o arm64
 
 SYMBOL TABLE:
@@ -721,13 +817,15 @@ SYMBOL TABLE:
 0000000000000000         *UND* _printf
 ```
 
-### objdump查看节信息
-```shell 
+### objdump 查看节信息
+
+```shell
 objdump -h main
 ```
 
 output:
-```txt 
+
+```txt
 main:   file format mach-o arm64
 
 SYMBOL TABLE:
@@ -739,16 +837,19 @@ SYMBOL TABLE:
 ```
 
 ## 调试可执行程序
+
 必须先生成带有调试信息的可执行文件：
-```shell 
+
+```shell
 gcc -g main.c -o main
 ```
 
-接下来，根据平台，采用`gdb`或者`lldb`调试。在macOS平台，使用`lldb`。
+接下来，根据平台，采用`gdb`或者`lldb`调试。在 macOS 平台，使用`lldb`。
 
-```shell 
-lldb main 
+```shell
+lldb main
 ```
-这样就开启调试了，此时会来到lldb的对话窗界面，在该界面中，输入lldb支持的调试指令，即可慢慢调试。当然，这种调试一般都集成到vscode这种开发工具里了，不需要我们在终端去调试，因为前者在汇编代码和源码之间的映射处理上，更加直观、友好。尽管如此，有些时候，vscode提供的图形工具并不能完全满足需要，我们仍然要手动执行lldb内置的一些调试命令。
 
-关于lldb的调试命令的介绍，可以阅读[我的另一篇博客](/blog/coroutine.html#lldb-指令)
+这样就开启调试了，此时会来到 lldb 的对话窗界面，在该界面中，输入 lldb 支持的调试指令，即可慢慢调试。当然，这种调试一般都集成到 vscode 这种开发工具里了，不需要我们在终端去调试，因为前者在汇编代码和源码之间的映射处理上，更加直观、友好。尽管如此，有些时候，vscode 提供的图形工具并不能完全满足需要，我们仍然要手动执行 lldb 内置的一些调试命令。
+
+关于 lldb 的调试命令的介绍，可以阅读[我的另一篇博客](/blog/coroutine.html#lldb-指令)

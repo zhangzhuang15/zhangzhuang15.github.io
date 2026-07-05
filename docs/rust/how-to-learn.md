@@ -57,13 +57,16 @@ aside: true
 [ rust 标准库](https://doc.rust-lang.org/std/index.html)
 
 [Mini LSM By Rust](https://skyzh.github.io/mini-lsm/00-preface.html)
-> 用Rust实现LSM数据结构的指南
 
-[Rust编译器导引](https://rustc-dev-guide.rust-lang.org/getting-started.html)
-> 介绍Rust编译器工作细节
+> 用 Rust 实现 LSM 数据结构的指南
+
+[Rust 编译器导引](https://rustc-dev-guide.rust-lang.org/getting-started.html)
+
+> 介绍 Rust 编译器工作细节
 
 [Rust clippy docs](https://doc.rust-lang.org/clippy/index.html)
-> 介绍clippy如何使用，以及如何参与到clippy的开发、维护。
+
+> 介绍 clippy 如何使用，以及如何参与到 clippy 的开发、维护。
 
 ## 按需找链接
 
@@ -84,6 +87,7 @@ aside: true
 [cheats of rust | Tooling Directives](https://cheats.rs/#tooling-directives)
 
 ### 宏的语法记不清了
+
 [The little Book of Rust Macros](https://veykril.github.io/tlborm/decl-macros/minutiae/scoping.html)
 
 [The Rust Reference | Procedural Macros](https://doc.rust-lang.org/reference/procedural-macros.html)
@@ -109,6 +113,7 @@ aside: true
 [rust by example | Introduction](https://doc.rust-lang.org/stable/rust-by-example/index.html)
 
 ### rust documentation 不会搞？
+
 [The rustdoc book](https://doc.rust-lang.org/rustdoc/what-is-rustdoc.html)
 
 ### 看到语法表达记不起来啥意思，有些概念搞不清？
@@ -116,11 +121,19 @@ aside: true
 [cheats of rust](https://cheats.rs)
 
 ### 不知道怎么定义 unsafe 的数据结构或者操作
+
 keywords: `Unsafe` `drop` `PhantomData` `covariant` `invariant` `contravariant` `memory layout` `repr`
 
 [<<Rust 中的 Unsafe\>\> ](https://doc.rust-lang.org/nightly/nomicon/)
 
+### 下载 crate 太慢了？
+
+[RsProxy.cn](https://rsproxy.cn/)
+
+> 字节跳动出品的国内 crates.io 镜像源
+
 ## Rust in Game Development
+
 read this article: [Rust vs C for Game Development](https://iodroplet.com/rust-vs-c-for-game-development/)
 
 ## 推荐的 github 项目
@@ -155,8 +168,44 @@ read this article: [Rust vs C for Game Development](https://iodroplet.com/rust-v
 
 [crossbeam](https://github.com/crossbeam-rs/crossbeam)
 
-> 用Rust实现的并发编程环境下的数据结构和工具库。可以学到无锁编程、unsafe编程，以及用 let 限制
+> 用 Rust 实现的并发编程环境下的数据结构和工具库。可以学到无锁编程、unsafe 编程，以及用 let 限制
 > 完成 mutation 方面的知识
+
+<br>
+
+[RustPython](https://github.com/RustPython/RustPython.git)
+
+> 用 Rust 实现的 Python 解释器
+
+<br>
+
+[jj](https://github.com/jj-vcs/jj.git)
+
+> 用 Rust 实现的版本管理器，平替 git
+
+<br>
+
+[wezterm](https://github.com/wezterm/wezterm.git)
+
+> 用 Rust 实现的终端模拟器
+
+<br>
+
+[DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI.git)
+
+> 用 Rust 实现的 TUI 程序
+
+<br>
+
+[servo](https://github.com/zhangzhuang15/servo.git)
+
+> 用 Rust 实现的浏览器引擎
+
+<br>
+
+[gosub-engine](https://github.com/zhangzhuang15/gosub-engine.git)
+
+> 用 Rust 实现的浏览器引擎
 
 ## 推荐的库
 
@@ -168,7 +217,7 @@ read this article: [Rust vs C for Game Development](https://iodroplet.com/rust-v
 
 ### clap
 
-一个命令行参数解析器, 很多rust命令行项目都依赖这个库，比如 `coreutils-rs`, `procs`
+一个命令行参数解析器, 很多 rust 命令行项目都依赖这个库，比如 `coreutils-rs`, `procs`
 
 [crate 地址](https://crates.io/crates/clap)
 
@@ -192,18 +241,19 @@ read this article: [Rust vs C for Game Development](https://iodroplet.com/rust-v
 
 [crate 地址](https://crates.io/crates/wasm-bindgen)
 
-
 ### wit-bindgen
-功能和 wasm-bindgen 一样，就像 protobuf 一样，支持在 .wit 文件中定义导入、导出内容，然后打通不同语言和wasm，目前支持 Rust/C/C++/TinyGo/Java
+
+功能和 wasm-bindgen 一样，就像 protobuf 一样，支持在 .wit 文件中定义导入、导出内容，然后打通不同语言和 wasm，目前支持 Rust/C/C++/TinyGo/Java
 
 [github](https://github.com/bytecodealliance/wit-bindgen)
 
 [crate 地址](https://crates.io/crates/wit-bindgen)
 
 ### wasm3
-wasm解释器，速度快，兼容性好
 
-提供了众多语言的包封装，这里给出的是Rust封装；
+wasm 解释器，速度快，兼容性好
+
+提供了众多语言的包封装，这里给出的是 Rust 封装；
 
 其他语言有 Swift/Python3/C/C++/GoLang/Zig/.Net/txiki.js/D/Nim;
 
@@ -217,14 +267,13 @@ wasm解释器，速度快，兼容性好
 
 ### crossterm
 
-终端IO工具。如果你要编写一款终端应用，类似于 `top`, `more` , `vim`, 这个工具必不可少。
+终端 IO 工具。如果你要编写一款终端应用，类似于 `top`, `more` , `vim`, 这个工具必不可少。
 
 [crate 地址](https://crates.io/crates/crossterm)
 
-
 ### unicode-width
 
-计算字符串、emoji宽度的工具。如果你开发一个终端应用，想知道字符串或者emoji要占据终端
+计算字符串、emoji 宽度的工具。如果你开发一个终端应用，想知道字符串或者 emoji 要占据终端
 界面多少列，这个工具可以帮到你。
 
 [crate 地址](https://crates.io/crates/unicode-width)
@@ -235,81 +284,90 @@ wasm解释器，速度快，兼容性好
 
 [crate 地址](https://crates.io/crates/unicode-segmentation)
 
-### anyhow 
+### anyhow
 
-在Rust编程中，当你要向上传递Error的时候，你要费很大力气去思考返回的Error具体是什么类型，
-比如说是 io 的Error，还是 core 的Error。使用 anyhow, 你不用费心思在Error类型上，直接
+在 Rust 编程中，当你要向上传递 Error 的时候，你要费很大力气去思考返回的 Error 具体是什么类型，
+比如说是 io 的 Error，还是 core 的 Error。使用 anyhow, 你不用费心思在 Error 类型上，直接
 往上传递即可。
 
-
 ### regex
+
 提供正则表达式
 
-```shell 
+```shell
 cargo add regex
 ```
 
 ### chrono
-相当于 javascript 的 dayjs 
 
-```shell 
+相当于 javascript 的 dayjs
+
+```shell
 cargo add chrono
 ```
 
 ### env_logger
+
 日志打印工具，与标准库的打印相比，它会携带日志时间戳
 
-```shell 
+```shell
 cargo add env_logger log
 ```
 
 `env_logger` 是实现， `log` 是 API 声明。
 
 ### reqwest
-Http 请求库，帮你发出http请求
 
-```shell 
+Http 请求库，帮你发出 http 请求
+
+```shell
 cargo add reqwest
 ```
 
-### tokio 
-相当于 nodejs 中的事件循环，帮你编写async Rust代码，线程池化处理请求。
+### tokio
 
-```shell 
+相当于 nodejs 中的事件循环，帮你编写 async Rust 代码，线程池化处理请求。
+
+```shell
 cargo add tokio
 ```
 
-### rand 
-生成伪随机数 
+### rand
 
-```shell  
+生成伪随机数
+
+```shell
 cargo add rand
 ```
 
 ### winit
-创建GUI窗口，监听窗口事件，支持macOS,windows,linux,ios,android。这个crate不会提供接口，绘制窗口的内容，你需要使用其它crate辅助。
 
-在macOS平台，它使用`objc2`和 macOS 的 Objective-C 接口通讯，其创建窗口的方式等同于使用原生Objective-C接口创建。而这种原生接口创建出来的window对象，天然支持view的概念，为在窗口内嵌入webview提供支持。
+创建 GUI 窗口，监听窗口事件，支持 macOS,windows,linux,ios,android。这个 crate 不会提供接口，绘制窗口的内容，你需要使用其它 crate 辅助。
 
-```shell 
+在 macOS 平台，它使用`objc2`和 macOS 的 Objective-C 接口通讯，其创建窗口的方式等同于使用原生 Objective-C 接口创建。而这种原生接口创建出来的 window 对象，天然支持 view 的概念，为在窗口内嵌入 webview 提供支持。
+
+```shell
 cargo add winit
 ```
 
-如果你想知道主流平台如何实现展示一个窗口，并给予事件交互的绑定，以及Rust如何通过Objective-C的bindings使用操作系统更多的能力，可以看看源码。
+如果你想知道主流平台如何实现展示一个窗口，并给予事件交互的绑定，以及 Rust 如何通过 Objective-C 的 bindings 使用操作系统更多的能力，可以看看源码。
 
 ### wry
-tauri项目维护的crate，一个跨平台的webview。源代码文件不是特别多，揭示了Rust如何调用平台语言开发的系统库（macOS上就是objective-c），给出一个跨平台的抽象层。
+
+tauri 项目维护的 crate，一个跨平台的 webview。源代码文件不是特别多，揭示了 Rust 如何调用平台语言开发的系统库（macOS 上就是 objective-c），给出一个跨平台的抽象层。
 
 ## 一些链接
+
 ### GUI Yet
+
 [Jump](https://areweguiyet.com/)
 
 介绍 GUI 开发方面有哪些 Rust Crates 可以使用
 
 ### Game Yet
+
 [Jump](https://arewegameyet.rs/#get-started)
 
-介绍游戏开发方面有哪些 Rust Crates 可以使用，比如2D/3D游戏引擎，2D/3D渲染引擎，物理引擎等等。
-
+介绍游戏开发方面有哪些 Rust Crates 可以使用，比如 2D/3D 游戏引擎，2D/3D 渲染引擎，物理引擎等等。
 
 <Giscus />

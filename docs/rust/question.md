@@ -1315,61 +1315,72 @@ c 语言使用 `void*` 表示一种特殊的指针，这个指针不指向具体
 
 ## `Ordering::Release` 和 `Ordering::Acquire`
 
-结论：
+为了解释，我们先定义几个伪码：
 
-1. Rust 提供了原子指令，但没有确保原子指令默认不被重排，调用方必须之名`Ordering`, 给出指令重排的限制。`Ordering::Release`用于原子写操作，限制该原子写操作之前的读写操作不能重排到它之后。`Ordering::Acquire`用于原子读操作，限制该原子读操作之后的读写操作不能重排到它前面。`Ordering::SeqCst`用于原子读操作或者原子写操作，严格限制该原子操作前的指令不能重排到它后边，该原子操作后的指令不能重排到它前边。
-2. Rust 也提供了内存屏障指令。 `atomic::fence(Ordering::Release)`是写屏障，表示在这条指令之前的所有写操作必须执行完，才能继续之后它后边的指令；`atomic::fence(Ordering::Acquire)`是读屏障，表示在这条指令之后的读操作，看到的内存是最新值。`atomic::fence(Ordering::SeqCst)`是最强屏障，表示在它之前的指令不能重排到它后边，它后边的指令不能重排到它前面。
+```txt
+// 写屏障
+fence(Ordering::Release)
 
-解释清楚这两个东西，必须要结合具体的例子。先看下面的伪代码：
+// 读屏障
+fence(Ordering::Acquire)
 
+// 按照Ordering::Release执行原子写
+atomic_store(&value, 1, Ordering::Release)
+
+// 按照Ordering::Acquire执行原子读
+atomic_load(&value, Ordering::Acquire)
+
+// 最基础的原子写
+atomic_store(&value, 1, Ordering::Relaxed)
+
+// 最基础的原子读
+atomic_load(&value, Ordering::Relaxed)
 ```
-data = None
-has_data = false
+
+`atomic_store(&value, 1, Ordering::Release)`等效于：
+
+```txt
+fence(Ordering::Release)
+atomic_store(&value, 1, Ordering::Relaxed)
+```
+
+`atomic_load(&value, Ordering::Acquire)`等效于：
+
+```txt
+atomic_load(&value, Ordering::Relaxed)
+fence(Ordering::Acquire)
+```
+
+在`atomic_store`和`atomic_load`设置`Ordering::Release`,`Ordering::Acquire`解决的是多个原子操作之间的可见性：
+
+```txt
+a = 10
+b = false
 
 // thread 1
-write(&data, "hello")
-atomic_store(&has_data, true)
+atomic_store(&b, true, Ordering::Relaxed)
+atomic_store(&a, 42, Ordering::Release)
 
-
-// thread2
-if atomic_load(&has_data):
-    d = read(&data)
-    assert(d == "hello")
+// thread 2
+if (atomic_load(&a, Ordering::Acquire) == 42) {
+    // 一定是 true
+    atomic_load(&b);
+}
 ```
 
-由于编译器重排、CPU 重排，thread 1 的执行顺序可能是：
+它解决的是 a 和 b 值变化的先后问题，单看 a 没有任何意义。
 
-```
-atomic_store(&has_data, true)
-write(&data, "hello")
-```
+`atomic_store(&a, 42, Ordering::Release)`防止写 b 的指令重排到写 a 的操作之后，这样我们就可以得知，如果 a 是 42 了，那么 b 一定是 true。
 
-当 `atomic_store` 执行完毕后，`has_data`就是 true, 这个时候，可能发生线程切换，执行 thread 2, thread 2 原子读取 has_data, 结果是 true， 然后执行 if 分支，读取 `data`，结果数据不是 `hello`，导致 assert 发生错误；
+`atomic_load(&a, Ordering::Acquire)`防止读 b 的指令重排到读 a 的操作之前，这样，如果 a 读出来的数据是 42，那就意味着写 a 的操作发生了，而写 a 的操作一定发生在写 b 的操作之后，就意味着 b 已经是 true 了。否则读 b 的操作重排的话，就会逃离出 a 等于 42 的约束，那么读出来的 b 就不一定是 true 了。
 
-解决方式，就是使用 `Ordering::Release` 和 `Ordering::Acquire`.
+综上，你可以看到维护的是 a 和 b 的值变动发生先后的顺序。
 
-```
-data = None
-has_data = false
+所谓写屏障，就是屏障后边的写操作不能重排到写屏障前边，写屏障前边的写操作不能重排到后边。但是，只要不跨越写屏障，写屏障两侧的写操作在各自区域内可以重排。
 
-// thread 1
-write(&data, "hello")
-atomic_store(&has_data, true, Ordering::Release)
+所谓读屏障，就是屏障后边的读操作不能重排到读屏障前边，读屏障前边的读操作不能重排到后边。但是，只要不跨越读屏障，读屏障两侧的读操作在各自区域内可以重排。
 
-
-// thread2
-if atomic_load(&has_data, Ordering::Acquire):
-    d = read(&data)
-    assert(d == "hello")
-```
-
-`atomic_store`配合`Ordering::Release`使用，效果就是在 atomic_store 执行之前，所有写操作必须完成，当执行 atomic_store 的时候，data 就已经是"hello"了；
-
-`atomic_load`配合`Ordering::Acquire`使用，效果就是在 atomic_load 执行之后，所有读操作看到的内存值都是最新的。
-
-二者结合看，就能有这样的推论，如果 has_data 是 true, 就意味着 atomic_store 执行了，atomic_store 执行了，就说明 data 已经是"hello"了，那么 d 读出来的数据就一定是“hello”了。这样看来，之前的问题就解决了。
-
-> [伪代码出处](https://dev.to/kprotty/understanding-atomics-and-memory-ordering-2mom)
+这篇[文章](/blog/concurrent-concept)也介绍了内存屏障。
 
 ## Option 类型数据后边加上一个？是什么意思
 
@@ -1425,8 +1436,7 @@ toolchain 是一套开发工具，包括 component target rust 编译器，提�
 
 ## `async` `await` `Future` `impl Future` `poll` `异步运行时`有什么联系？
 
-`async` 修饰的函数或者代码块，会被 Rust 编译器转化为实现`Future`的对象，并且给出 `poll`
-方法。
+`async`函数的调用，并不会执行函数体内部的逻辑，而是直接返回一个实现`Future`的对象，函数内部的逻辑会被编译器处理为这个对象的`poll`方法的内容。`async`块直接被编译器替换为一个实现`Future`的对象。注意，这里两次提到实现`Future`的对象，这个对象的 struct 定义是编译器生成的哦。
 
 `await`只能用于`async`函数或代码块中，会被 Rust 编译器转化为`poll` 方法的调用。
 
@@ -2370,6 +2380,8 @@ impl Drop for Node {
 
 定义好 Drop 之后，Node 在 drop 的时候，会先执行你给出的 drop，然后对 Node 的每一个成员执行 drop。因此，list 指针关联的内存，由我们实现的 drop 释放；class 管理的内存由 Rust 自动调用 Vec 的 drop 释放；对于 raw pointer 来说，Rust 不会主动对 list 寻址，完成内存释放，只是像 i32 一样看待，直接释放掉这块儿内存。换一句话讲，如果你没有定义 drop，那么 list 关联的内存就泄漏了，只能等到进程结束，由操作系统回收。
 
+邪恶的想法：在 Node 的 drop 函数内，`mem::forget` 它的 class，能做到么？很遗憾，答案是无法办到，rust 编译器会直接报错。原因是，传给`mem::forget`的参数，必须拥有内存的所有权，你只好这样写`mem::forget(self.class)`，这样又会从`self`身上剥夺对`class`的所有权，违背了 rust 的所有权规则，触发报错。
+
 ## 为什么 Rust 默认采用静态链接编译
 
 1. 部署简单
@@ -2382,5 +2394,33 @@ impl Drop for Node {
    静态链接减少对外部库的依赖，降低被恶意库攻击的风险。
 5. Rust 生态特点
    Rust 强调安全、性能和可靠性，静态链接更符合这些目标。
+
+## Rust 跨平台编译遇到链接问题 ？
+
+[Zig Makes Rust Cross-compilation Just Work](https://actually.fyi/posts/zig-makes-rust-cross-compilation-just-work/)
+
+原因是，Rust 提供了跨平台的 Rust 标准库以及编译器，但是没有提供链接器，它会使用操作系统自带的链接器，这种链接器并不支持跨平台编译的场景。文章给出一个解决方案，使用 zig cc 作为环境变量 CC 的值，Rust 于是使用 zig cc 完成链接工作。zig cc 基于 clang，增加了额外独创的工作，使其拥有非常强大的跨平台编译能力。
+
+## Rust 的模块管理用哪个方式
+
+Rust 的老模块方式： mod.rs
+
+```txt
+your-module
+     |---- a.rs
+     |---- b.rs
+     |---- mod.rs
+```
+
+Rust 的新模块方式：
+
+```txt
+your-module
+     |---- a.rs
+     |---- b.rs
+your-module.rs
+```
+
+2018 edition 之前的老项目，继续使用老模块方式，但是针对新项目，官方推荐使用新模块方式。
 
 <Giscus />

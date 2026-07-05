@@ -5,9 +5,11 @@ aside: true
 ---
 
 # System Program with C
+
 I talk about learning to write system program with c language.
 
 ## Overview
+
 System programming with C is different from normal programming with other languages.Today, popular operating system is created by C, e.g. Windows, MacOS and Linux.As default, operating system provides wrappers of systemcalls in C language out of box. In other words, using C is considered as communicating with operating system directly, bringing your program high performance and minimist runtime.
 
 Other languages, provide wrappers of systemcalls on their own. They might wrap systemcalls with asm, e.g. Go language. They might wrap systemcalls based on C library. They give you more human-friendly way to write program, but it's not direct, simple and performant. You cannot communicate with operating system directy, and have to burden unignored runtime.
@@ -15,86 +17,99 @@ Other languages, provide wrappers of systemcalls on their own. They might wrap s
 Of course, you can write system program in C++ or Rust languages. It seems to be more friendly, readable than C. But it's still important to know how to write system program in C.
 
 ## Header File
+
 You should know some c header files, some of them belong to C standard and some of them belong to operating system, so that you can write portable c program.
 
 Every operating system that supports using c developing software, has to implement C standard, promise that people can include c standard header files out of box.
 
-
 ### C Standard Library Header File
+
 #### Input/Output
+
 - `<stdio.h>`
 
 #### Input/Output Extensions
+
 - `<errno.h>`
-    - Example: errno, EIO, ENOMEM
-- `<fcntl.h>`,  File control options (POSIX)
-    - Example: open, O_RDONLY, O_WRONLY
+  - Example: errno, EIO, ENOMEM
+- `<fcntl.h>`, File control options (POSIX)
+  - Example: open, O_RDONLY, O_WRONLY
 
 #### Input/Output Format
+
 - `<inttypes.h>`, Integer types and formatting macros (C99)
-    - Example: PRId32, PRIu64
+  - Example: PRId32, PRIu64
 - `<stdint.h>`, Fixed-width integer types (C99)
-    - Example: int8_t, uint32_t, INT_MAX
+  - Example: int8_t, uint32_t, INT_MAX
 
 #### String and Memory Manipulation
+
 - `<string.h>`
-    - Example: strlen, strcpy, strcat, memcmp, memcpy
+  - Example: strlen, strcpy, strcat, memcmp, memcpy
 - `<wchar.h>`, Wide character handling
-    - Example: wcslen, wcscpy, wcscat
+  - Example: wcslen, wcscpy, wcscat
 - `<wctype.h>`, Wide character classification and conversion
-    - Example: iswalpha, towlower
+  - Example: iswalpha, towlower
 
 #### Math
+
 - `<math.h>`
-    - Example: sin, cos, sqrt, pow, ceil, floor
+  - Example: sin, cos, sqrt, pow, ceil, floor
 - `<complex.h>`, Complex number arithmetic (C99)
-    - Example: cabs, creal, cimag
+  - Example: cabs, creal, cimag
 - `<tgmath.h>`, Type-generic macros for math functions (C99)
-    - Example: tgmath functions automatically select the correct type (e.g., float, double).
+  - Example: tgmath functions automatically select the correct type (e.g., float, double).
 
 #### General Utilities
+
 - `<stdlib.h>`
-    - Example: malloc, free, exit, atoi, rand, qsort.
+  - Example: malloc, free, exit, atoi, rand, qsort.
 - `<stddef.h>`, Standard type definitions
-    - Example: size_t, ptrdiff_t, NULL
+  - Example: size_t, ptrdiff_t, NULL
 - `<stdarg.h>`, Variable argument handling
-    - Example: va_start, va_arg, va_end
+  - Example: va_start, va_arg, va_end
 - `<ctype.h>`, Character classification and conversion
-    - Example: isalpha, isdigit, toupper, tolower
+  - Example: isalpha, isdigit, toupper, tolower
 
 #### Time and Date
+
 - `<time.h>`
-    - Example: time, clock, difftime, strftime
+  - Example: time, clock, difftime, strftime
 
 #### Signal
+
 - `<signal.h>`
-    - Example: signal, raise, kill, SIGINT, SIGTERM
+  - Example: signal, raise, kill, SIGINT, SIGTERM
 
 #### Localization
+
 - `<locale.h>`, Localization utilities
-    - Example: setlocale, localeconv.
+  - Example: setlocale, localeconv.
 
 #### Error Handle
+
 - `<assert.h>`, Diagnostics and assertions
-    - Example: assert
+  - Example: assert
 
 #### Atomic
+
 - `<stdatomic.h>`, Atomic operations (C11)
-    - Example: atomic_store, atomic_load
+  - Example: atomic_store, atomic_load
 
 #### Misc
-- `<limits.h>`, Defines implementation-specific limits.
-    - Example: CHAR_MAX, INT_MAX.
-- `<float.h>`, Defines floating-point limits.
-    - Example: FLT_MAX, DBL_MIN.
-- `<stdbool.h>`, Boolean type and values (true, false) (C99).
-    - Example: bool.
-- `<iso646.h>`, Alternative spellings for operators (e.g., and, or, not).
-- `<stdnoreturn.h>`, Defines the _Noreturn keyword (C11).
-    - Example: _Noreturn.
 
+- `<limits.h>`, Defines implementation-specific limits.
+  - Example: CHAR_MAX, INT_MAX.
+- `<float.h>`, Defines floating-point limits.
+  - Example: FLT_MAX, DBL_MIN.
+- `<stdbool.h>`, Boolean type and values (true, false) (C99).
+  - Example: bool.
+- `<iso646.h>`, Alternative spellings for operators (e.g., and, or, not).
+- `<stdnoreturn.h>`, Defines the \_Noreturn keyword (C11).
+  - Example: \_Noreturn.
 
 ### System Library Header File
+
 These header files are implemented by operating system, there might be different among operating systems. These header files provide functionalities that c standard cannot cover. Most of these functionalities wrap systemcalls or depend on systemcalls, of course, they might not use any systemcalls.
 
 - `<sys/types.h>`
@@ -103,12 +118,14 @@ These header files are implemented by operating system, there might be different
 - `<termios.h>`
 
 ## How to Use C Standard Library and System Library
+
 Now you haved learned that what these header files look like. I don't tend to put a list of c functions from these header files, and introduce how to use them one by one.
 
 I just introduce these functions based on practical background.
 
-### Get Random Number 
-```c  
+### Get Random Number
+
+```c
 #include <stdlib.h>
 #include <time.h>
 
@@ -119,11 +136,13 @@ int main() {
     return 0;
 }
 ```
+
 `srand` and `rand` from: `<stdlib.h>`;
 `time` from: `<time.h>`
 
 ### Get Current Time
-```c  
+
+```c
 #include <sys/time.h>
 #include <stdio.h>
 
@@ -142,8 +161,40 @@ int main() {
 }
 ```
 
+```c
+#include <time.h>
+
+int main() {
+    // now is past seconds from 1970-01-01 00:00:00
+    int now = time(NULL);
+}
+```
+
+```c
+#include <time.h>
+
+// current time counted by millisecond unit
+long long mstime(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec * 1000LL + ts.tv_nsec / 1000000;
+}
+```
+
+### Get time duration
+
+```c
+#include <time.h>
+
+int main() {
+    time_t start = time(NULL);
+    time_t duration = time(NULL) - start;
+}
+```
+
 ### Get User Input
-```c  
+
+```c
 #include <stdio.h>
 
 int main() {
@@ -160,8 +211,9 @@ int main() {
 
 Get more details, `man scanf`
 
-### Extract Value from String 
-```c  
+### Extract Value from String
+
+```c
 #include <stdio.h>
 
 int main() {
@@ -173,8 +225,9 @@ int main() {
 }
 ```
 
-### Clear Your Array 
-```c  
+### Clear Your Array
+
+```c
 #include <string.h>
 
 int main() {
@@ -184,8 +237,9 @@ int main() {
 }
 ```
 
-### Copy Your Array 
-```c  
+### Copy Your Array
+
+```c
 #include <string.h>
 int main() {
     int arr[5] = { 1, 2, 3, 4, 5 };
@@ -195,8 +249,9 @@ int main() {
 }
 ```
 
-### Extract Value from Formatted String 
-```c   
+### Extract Value from Formatted String
+
+```c
 #include <stdio.h>
 int main() {
     char* s = "hello,20 and peter";
@@ -215,8 +270,58 @@ int main() {
 }
 ```
 
+### Find char from a string
+
+```c
+#include <string.h>
+
+int main() {
+    char *source = "abac";
+    // *(target+1) == 'b'
+    char *target = strchr(source, 'a');
+    // *(target+1) == 'c'
+    target = strrchr(source, 'a');
+    // target == NULL
+    target = strchr(source, 'd');
+
+    return 0;
+}
+```
+
+### Compare two string with ignoring letter case
+
+```c
+#include <strings.h>
+
+int main() {
+  // equal, result == 0
+  int result = strcasecmp("Hello", "heLLO");
+  return 0;
+}
+```
+
+### Find substring from a string
+
+```c
+#include <string.h>
+
+int main() {
+
+    char *source = "hello aworld";
+    // *(result - 1) == 'a'
+    char *result = strstr(source, "world");
+    // result == source
+    result = strstr(source, "");
+    // result == NULL
+    result = strstr(source, "peter");
+
+    return 0;
+}
+```
+
 ### Exit Process Hook
-```c  
+
+```c
 #include <stdlib.h>
 
 void exit_handler() {
@@ -232,7 +337,8 @@ int main() {
 ```
 
 ### Variable Function Pramaters
-```c   
+
+```c
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -266,8 +372,9 @@ int main() {
 `malloc` from: `<stdlib.h>`;
 `printf` from: `<stdio.h>`;
 
-### Copy String 
-```c  
+### Copy String
+
+```c
 #include <string.h>
 
 int main() {
@@ -282,7 +389,8 @@ int main() {
 ```
 
 ### Write Formatted String to Buffer
-```c   
+
+```c
 #include <stdio.h>
 
 int main() {
@@ -293,8 +401,9 @@ int main() {
 }
 ```
 
-### See if Two String are Same 
-```c   
+### See if Two String are Same
+
+```c
 #include <string.h>
 
 int main() {
@@ -308,7 +417,8 @@ int main() {
 ```
 
 ### Convert String to Number
-```c  
+
+```c
 #include <stdlib.h>
 
 int main() {
@@ -320,7 +430,7 @@ int main() {
 }
 ```
 
-```c 
+```c
 #include <stdlib.h>
 
 int main() {
@@ -333,7 +443,8 @@ int main() {
 Get more details, `man atoi`.
 
 ### Get Error Message
-```c   
+
+```c
 #include <stdio.h>
 
 int main() {
@@ -344,7 +455,7 @@ int main() {
 }
 ```
 
-```c  
+```c
 #include <stdio.h>
 #include <errno.h>
 
@@ -359,7 +470,8 @@ int main() {
 Get more details, `man perror`.
 
 ### Create File
-```c 
+
+```c
 #include <fcntl.h>
 #include <errno.h>
 
@@ -378,13 +490,14 @@ int main() {
 }
 ```
 
-O_ prefix is flag, S_ prefiex is mode. Flag is how you access file, read or write ? Mode decides who can access file.
+O* prefix is flag, S* prefiex is mode. Flag is how you access file, read or write ? Mode decides who can access file.
 
 Get more details:
+
 - `open`: `man 2 open`.
 - mode: `man 2 chmod`.
 
-```c   
+```c
 #include <stdio.h>
 
 int main() {
@@ -397,13 +510,16 @@ int main() {
     return 0;
 }
 ```
+
 `fopen` creates file which has default mode `0666`.
 
 Get more details, `man fopen`.
 
 ### Read and Write File
+
 Write:
-```c  
+
+```c
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -418,7 +534,8 @@ int main() {
 ```
 
 Read:
-```c  
+
+```c
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -446,14 +563,15 @@ int main() {
 `read` and `write` are from `unistd.h`. `open` is from `fcntl.h`. `read` and `write` are unbuffered.
 
 Get more details:
+
 - `read`: `man 2 read`.
 - `write`: `man 2 write`.
-
 
 if you want to read or write with buffer, take a look at `fread` or `fwrite` below.
 
 Read:
-```c  
+
+```c
 #include <stdio.h>
 
 int main() {
@@ -473,7 +591,8 @@ int main() {
 ```
 
 Write:
-```c  
+
+```c
 #include <stdio.h>
 
 int main() {
@@ -495,7 +614,8 @@ int main() {
 Get more details, `man fread`.
 
 ### Modify File Flags
-```c  
+
+```c
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -508,14 +628,15 @@ int main() {
    int new_flags = O_RDONLY;
    // use F_SETFL setting new flags
    fcntl(fd, F_SETFL, new_flags);
-   
+
    close(fd);
    return 0;
 }
 ```
 
 ### Set File Nonblocking
-```c  
+
+```c
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -528,19 +649,20 @@ int main() {
         // success, fd is nonblocking
     }
    }
-   
+
    close(fd);
    return 0;
 }
 ```
 
 ### Set File Mode
-```c 
+
+```c
 #include <sys/stat.h>
 
 int main() {
     int r = chmod("hello.txt", 0776);
-    if (r == 0) { 
+    if (r == 0) {
         // success
     }
     return 0;
@@ -550,7 +672,8 @@ int main() {
 Get more details, `man 2 chmod`
 
 ### See it is File or Directory
-```c  
+
+```c
 #include <sys/stat.h>
 #include <stdio.h>
 
@@ -560,7 +683,7 @@ int main() {
     if (r == -1) {
         // failed
     } else {
-        if ((s.st_mode & S_IFMT) == S_IFDIR) { // or S_ISDIR(s.st_mode) 
+        if ((s.st_mode & S_IFMT) == S_IFDIR) { // or S_ISDIR(s.st_mode)
             printf("is directory");
         } else if ((s.st_mode & S_IFMT) == S_IFREG) {
             printf("is file");
@@ -577,7 +700,8 @@ int main() {
 Get more details, `man 2 stat`.
 
 ### Get File Meta
-```c  
+
+```c
 #include <sys/stat.h>
 
 int main() {
@@ -585,7 +709,7 @@ int main() {
     int r = stat("hello.txt", &s);
     if (r == -1) {
         // failed
-    } else { 
+    } else {
         // s is file meta data.
     }
     return 0;
@@ -595,7 +719,8 @@ int main() {
 if you have `fd`, you can use `fstat`.
 
 ### Remove File
-```c  
+
+```c
 #include <stdio.h>
 
 int main() {
@@ -608,7 +733,8 @@ int main() {
 ```
 
 ### Create Directory
-```c  
+
+```c
 #include <sys/stat.h>
 
 int main() {
@@ -623,7 +749,8 @@ int main() {
 Get more details, `man 2 mkdir`
 
 ### Create Temp Directory
-```c 
+
+```c
 #include <unistd.h>
 
 int main() {
@@ -639,9 +766,9 @@ int main() {
 
 Get more details, `man mkdtemp`
 
-
 ### Create Temp File
-```c 
+
+```c
 #include <unistd.h>
 
 int main() {
@@ -658,7 +785,8 @@ int main() {
 Get more details, `man mkstemp`
 
 ### See what Directory Includes
-```c  
+
+```c
 #include <dirent.h>
 #include <string.h>
 #include <stdio.h>
@@ -666,7 +794,7 @@ Get more details, `man mkstemp`
 int main() {
     DIR* d = opendir("hello");
     struct dirent* p;
-    
+
     char buff[512];
     do {
         p = readdir(d);
@@ -685,7 +813,8 @@ int main() {
 ```
 
 ### Remove Directory
-```c 
+
+```c
 #include <unistd.h>
 
 int main() {
@@ -697,8 +826,21 @@ int main() {
 
 if you want to delete non-empty directory, you should walk directory, remove its every child file using `remove` and remove its every subdirectory recursively, finally remove this directory using `rmdir`.
 
-### Clear unused fd 
-```c  
+### Remove file or directory
+
+```c
+#include <unistd.h>
+
+int main() {
+    unlink("./hello.c");
+    unlink("./sources");
+    return 0;
+}
+```
+
+### Clear unused fd(file descriptor)
+
+```c
 #include <unistd.h>
 
 int main () {
@@ -711,14 +853,31 @@ int main () {
 
 When you make some http requests, you make some fds respectively. If you fork a child process and don't close these fds, you might get an error "too many open files", you can use this code snippet to solve that problem.
 
+### Copy fd(file descriptor)
+
+```c
+#include <unistd.h>
+
+int main() {
+    // fd 0 and new_fd points to the same file
+    int new_fd = dup(0);
+    // close fd 1 first (if fd 1 points to a file), then,
+    // fd 1 and new_fd points to the same file
+    dup2(new_fd, 1);
+}
+
+```
+
 ### TCP client and Server
+
 When we write tcp client and server, we usually print messages to stdout so that we know client/server works well.There's a pitfall you should know: our terminal is line-buffer mode as default. In other words, if you take `printf("hello")` in server, nothing is puted into terminal. To see `"hello"` in terminal, you should use `printf("hello\n")`.
 
 TCP Client:
+
 ```c
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -728,8 +887,8 @@ TCP Client:
 #define SERVER_ADDR "127.0.0.1"
 
 int main() {
-    // create socket fd 
-    int fd = socket(AF_INET, SOCK_STREAM, 0); 
+    // create socket fd
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
 
     // create server address option
     struct sockaddr_in sa;
@@ -839,7 +998,8 @@ int main() {
 if process exits before you close fd, don't worry, os will help you release.
 
 TCP Server:
-```c  
+
+```c
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -851,7 +1011,7 @@ TCP Server:
 #define SERVER_ADDR "127.0.0.1"
 
 int main() {
-    // create server socket fd 
+    // create server socket fd
     int fd = socket(AF_INET, SOCK_STREAM, 0);
 
     // create server address option
@@ -897,7 +1057,7 @@ int main() {
         }
 
         // before we receive/send message with client_fd,
-        // we set receiving timeout so that process won't be 
+        // we set receiving timeout so that process won't be
         // blocked until client sends message to us. in this
         // way, process can serve another client connecting
         // in time.
@@ -905,7 +1065,7 @@ int main() {
         t.tv_sec = 4;
         t.tv_usec = 0;
         setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
-    
+
         printf("new client!\n");
 
         // 128byt buffer, receiving client message
@@ -974,7 +1134,7 @@ int main() {
                 break;
             }
         }
-        
+
         if (reciving == 'n') {
             if (close_server == 'y') break;
             continue;
@@ -998,18 +1158,21 @@ int main() {
 as you can see, tcp communcating is complicated, c reveals it, but other high-level language hides it. this is why c is valuable but not human friendly.
 
 if you want to learn more about network programming with c, I recommend you to take a look at [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/), or:
-1.   [PDF version](https://beej.us/guide/bgnet/pdf/bgnet_usl_c_1.pdf) 
-2.   [html version](https://beej.us/guide/bgnet/html/split/)
+
+1.  [PDF version](https://beej.us/guide/bgnet/pdf/bgnet_usl_c_1.pdf)
+2.  [html version](https://beej.us/guide/bgnet/html/split/)
 
 ### IP Address and Port
-When you want to create a socket, you often have to prepare `sockaddr` type data. The core of this data type consists of IP address and Port. So, how to get value of these two fields in a simple way ? 
+
+When you want to create a socket, you often have to prepare `sockaddr` type data. The core of this data type consists of IP address and Port. So, how to get value of these two fields in a simple way ?
 
 Before we dive into it, let's take a look at `sockaddr_in` and `sockaddr`.`sockaddr_in` is a c struct defined for IPV4, and `sockaddr` is common c struct defined for many ip protocol (not only IPV4).General speaking, you can convert `sockaddr_in` to `sockaddr`, it's unsafe and not allowed verse via.
 
 Ok, let's dive into address and port.
 
 1. convert hostname to ip address.
-```c 
+
+```c
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -1036,10 +1199,12 @@ int main() {
     return 0;
 }
 ```
+
 > `gethostbyname` is a choice, `getaddrinfo` is another choice.
 
 2. convert ip address string to ip address.
-```c 
+
+```c
 #include <arpa/inet.h>
 
 // ip address string -> ip address
@@ -1052,20 +1217,20 @@ int main() {
 
     // fail to convert
     if (!result) {
-       
+
     }
 
     return 0;
 }
 ```
 
+### Use `poll`
 
-### Use `poll` 
-```c  
+```c
 #include <sys/socket.h>
 #include <poll.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
@@ -1241,11 +1406,11 @@ int main() {
                 if (val == -1) {
                     close(client_fd);
                 } else {
-                
+
                 }
 
                 continue;
-            } 
+            }
 
             // not server socket fd, but it's available to read
             if (f.events & POLL_IN) {
@@ -1270,13 +1435,13 @@ int main() {
                     if (bytes >= 3 && strncmp(buffer + bytes - 1 - 3, "bye", 3) == 0) {
                         free(pollfd);
                         goto close_server;
-                    }   
+                    }
 
                     int r = push_vec(&write_fds, client_fd);
                     if (r == -1) {
                         close(client_fd);
                     } else {
-                        
+
                     }
                 } else {
                     push_vec(&read_fds, client_fd);
@@ -1302,7 +1467,7 @@ int main() {
             }
         }
         free(pollfd);
-        
+
     }
 
 close_server:
@@ -1337,14 +1502,16 @@ close_server:
 `poll` is more human friendly to `select` and `pselect`, make your code more readable and organized well.
 
 ### Use `epoll`
+
 `epoll` is only available in Linux, not supported by NetBSD, MacOS.
 
 ### Use `select`
-```c  
+
+```c
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
@@ -1432,7 +1599,7 @@ int main() {
     listen(fd, 2);
     printf("server is running...\n");
 
-    
+
 
     Vec read_fds = init_vect(10);
     Vec write_fds = init_vect(10);
@@ -1549,7 +1716,7 @@ int main() {
                 if (r == -1) {
                     close(client_fd);
                 } else {
-                    
+
                 }
             }
         }
@@ -1582,7 +1749,7 @@ int main() {
             if (val == -1) {
                 close(client_fd);
             } else {
-                
+
             }
         }
     }
@@ -1614,18 +1781,20 @@ close_server:
     deinit_vect(&read_fds);
 }
 ```
+
 if process exits with executing code that releases memory and fds, it's called exit gracefully.
 
 `select`: `<sys/select>`
 
 ### Use `pselect`
+
 in most parts of `pselect`, it's identical to `select`.
 
-```c  
+```c
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
@@ -1834,7 +2003,7 @@ int main() {
                 if (r == -1) {
                     close(client_fd);
                 } else {
-                    
+
                 }
             }
         }
@@ -1867,7 +2036,7 @@ int main() {
             if (val == -1) {
                 close(client_fd);
             } else {
-                
+
             }
         }
     }
@@ -1901,11 +2070,12 @@ close_server:
 ```
 
 ### Use `kqueue`
-```c  
+
+```c
 #include <sys/socket.h>
 #include <sys/event.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
@@ -2014,7 +2184,7 @@ int main() {
         int i = 0;
         // a pitfall. you only can set one filter.
         fd_events[i].filter = EVFILT_READ;
-        // if you don't set EV_ONESHOT, you don't need to 
+        // if you don't set EV_ONESHOT, you don't need to
         // set fd_event in next loop; here, we sync with `poll` code,
         // and set fd_event in every loop.
         fd_events[i].flags = EV_ADD | EV_ENABLE | EV_ONESHOT;
@@ -2092,10 +2262,10 @@ int main() {
                 if (val == -1) {
                     close(client_fd);
                 } else {
-                
+
                 }
 
-            } 
+            }
 
             // not server socket, but it's available to read
             if (f.ident != fd && f.filter == EVFILT_READ) {
@@ -2119,13 +2289,13 @@ int main() {
                     free(fd_events);
                     free(fd_events_out);
                     goto close_server;
-                }   
+                }
 
                 int r = push_vec(&write_fds, client_fd);
                 if (r == -1) {
                     close(client_fd);
                 } else {
-                    
+
                 }
             }
 
@@ -2182,6 +2352,7 @@ close_server:
 `kqueue` is powerful but complicated. you have to know what you do clearly. in my opinion, I prefer `poll`.
 
 ### Send ICMP Network Packet
+
 We talk about how to create TCP client/server before. TCP is popular, do you know how to work with ICMP ?
 
 Firstly, ICMP is like TCP/UDP, it's usually used to make sure whether local machine can communicate with remote machine, like server or router. ICMP is based on IP, unlike TCP/UDP, when you program with socket, you have to parse IP packet and extract ICMP packet by hand.
@@ -2190,7 +2361,7 @@ Do you learn about `ping` ? Yes, `ping` is based on ICMP. When you ping a domain
 
 Here is a [blog](https://fasionchan.com/network/icmp/ping-c/), telling you how to send ICMP Packet.
 
-```c  
+```c
 #include <sys/socket.h>
 
 int main() {
@@ -2201,7 +2372,8 @@ int main() {
 ```
 
 ### Create Unix IPC
-```c 
+
+```c
 #include <socket.h>
 #include <unistd.h>
 #include <string.h>
@@ -2216,13 +2388,13 @@ void server()
     struct sockaddr_un un;
 
     unlink(sockname);
-    
+
     if (strnlen(sockname, sizeof(un.sun_path)) == sizeof(un.sun_path)) {
         // Path is too long
         printf("Path for UNIX socket is too long\n");
         exit(-1);
     }
-        
+
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         perror("IPC listener UNIX socket");
         exit(EXIT_FAILURE);
@@ -2234,7 +2406,7 @@ void server()
 
     // this will create a sock file
     rc = bind(fd, (const struct sockaddr *) &un, sizeof(struct sockaddr_un));
-  
+
     if (rc == -1) {
         perror("IPC bind");
         exit(EXIT_FAILURE);
@@ -2288,8 +2460,10 @@ void client() {
 ```
 
 ### Ethernet Frame Layout
+
 If you intend to send ethernet frame, you should follow its layout:
-```c 
+
+```c
 struct eth_hdr
 {
     uint8_t  dmac[6];
@@ -2298,13 +2472,15 @@ struct eth_hdr
     uint8_t  payload[];
 } __attribute__((packed));
 ```
+
 - dmac: mac address of destination
 - smac: mac address of source
 - ethertype: which protocol, arp/ipv4/ipv6
 - payload: arp packet or ip packet
 
 By the way, take a look at ip packet:
-```c 
+
+```c
 struct iphdr {
     uint8_t ihl : 4;
     uint8_t version : 4;
@@ -2320,12 +2496,14 @@ struct iphdr {
     uint8_t data[];
 } __attribute__((packed));
 ```
+
 - saddr: ip address of source;
 - daddr: ip address of destination;
 - data: icmp packet, tcp packet or udp packet;
 
 Here is arp packet:
-```c 
+
+```c
 struct arp_hdr {
     uint16_t hwtype;
     uint16_t protype;
@@ -2335,25 +2513,28 @@ struct arp_hdr {
     unsigned char data[];
 } __attribute__((packed));
 ```
+
 - hwtype: `ARP_ETHERNET` as default
 - protype: IPV4 protocol
 - hwsize: 6
 - prosize: 4, if protype is IPV4 protocol
 - opcode: `ARP_REQUEST` for arp request; `ARP_REPLY` for arp reply;
 - data: if protype is OPV$ protocol, it looks like:
-    ```c
-    struct arp_ipv4 {
-        unsigned char smac[6];
-        uint32_t sip;
-        unsigned char dmac[6];
-        uint32_t dip;
-    } __attribute__((packed));
-    ```
-    if you ask for mac address of ip, fill in smac, sip and dip, and send arp packet.
+  ```c
+  struct arp_ipv4 {
+      unsigned char smac[6];
+      uint32_t sip;
+      unsigned char dmac[6];
+      uint32_t dip;
+  } __attribute__((packed));
+  ```
+  if you ask for mac address of ip, fill in smac, sip and dip, and send arp packet.
 
 ### Terminal IO and Raw mode
+
 Enable raw mode.
-```c  
+
+```c
 int enableRawMode(int fd) {
     struct termios raw;
 
@@ -2363,22 +2544,25 @@ int enableRawMode(int fd) {
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    raw.c_cc[VMIN] = 0; 
+    raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
 
     tcsetattr(fd,TCSAFLUSH,&raw);
     return 0;
 }
 ```
+
 Read [Kilo, a Simple Text Editor](/blog/terminal-kilo), get more details.
 
 Terminal IO refers that you read message from terminal emulator and write message to terminal emulator. You can set a structure, called `termios`, change action of terminal emulator. Read [Terminal IO](/blog/terminal-io), get more details.
 
-If you want to dive into more details, such as `c_iflag`, `c_cc`, `special characters`, you can read manual book with `man termios`. You can  also visit [website](http://uw714doc.xinuos.com/en/SDK_sysprog/TDC_SpecialCntlChars.html), figuring out what special characters are. By the way, termios manual bool also introduces special characters in chapter `Special Control Characters`.
+If you want to dive into more details, such as `c_iflag`, `c_cc`, `special characters`, you can read manual book with `man termios`. You can also visit [website](http://uw714doc.xinuos.com/en/SDK_sysprog/TDC_SpecialCntlChars.html), figuring out what special characters are. By the way, termios manual bool also introduces special characters in chapter `Special Control Characters`.
 
 ### Pitfall: Make fd Unbuffered
+
 Terminal will wait until you press Enter key if you execute the following code:
-```c 
+
+```c
 #include <unistd.h>
 
 int main() {
@@ -2389,7 +2573,8 @@ int main() {
 ```
 
 You cannot change the behavior even though rewrite code like:
-```c 
+
+```c
 #include <unistd.h>
 #include <stdio.h>
 
@@ -2404,14 +2589,15 @@ int main() {
 `setvbuf` only works on reading or writing regular files, not terminal.If you want to make a change, modify the terminal io with `tcsetattr`, we have introduced in prev chapter.
 
 ### Create Child Process
+
 Before we talk about how to create process, let's dive into Orphan Process and Zombie Process, because they will teach us to take responsibility for creating and managing process.
 
 Let's say we have Process A, and it creates Process B. Process A doesn't wait for Process B exiting and exits before Process B. Then Process B becomes Orphan Process. In this case, OS Init Process whose PID is 1, will take control of Process B. If Process B still works for a long time, memory taken up by Process B cannot be released.
 
-Let's talk about Zombie Process. If Process B exits before Process A, but Process A doesn't wait for Process B, Process B becomes Zombie Process. Process B has released its resource, such as memory, file 
+Let's talk about Zombie Process. If Process B exits before Process A, but Process A doesn't wait for Process B, Process B becomes Zombie Process. Process B has released its resource, such as memory, file
 descriptors, registers, but it still takes up space of os process table. As a result, os cannot create new process with reusing Process B's PID. Only Process A waits for Process B exiting and reaps exiting information, OS is enable to release the space from os process table. Here is a related artical [Zombie Processes in Operating Systems](https://www.baeldung.com/cs/process-lifecycle-zombie-state)
 
-```c  
+```c
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdio.h>
@@ -2445,17 +2631,38 @@ int main() {
 ```
 
 We use `execvp` here, because its first arg is path or filename, it will search like shell does.
-If you use `execv`, you should make sure its first arg is a path, i.g. `execv("/bin/sh", args)`, 
+If you use `execv`, you should make sure its first arg is a path, i.g. `execv("/bin/sh", args)`,
 `execvp("sh", args)`.
 
+### Wait process and get its exit status
+
+```c
+#include <sys/wait.h>
+#include <unistd.h>
+
+int wait_for(pid_t process) {
+
+    int status = 0;
+    waitpid(process, &status, 0);
+
+    if (WIFEXITED(status)) {
+        // process exits normally with exit() or _exit()
+
+        // get status value caused by exit(val) or _exit(val)
+        int val = WEXITSTATUS(status);
+    }
+}
+```
 
 ### Create Daemon Process
+
 Daemon Process is:
-1. background process 
+
+1. background process
 2. orphan process
-3. not binding to terminal device, but can read or write files 
-   
-```c  
+3. not binding to terminal device, but can read or write files
+
+```c
 static void daemonize(void) {
     int fd;
     FILE *fp;
@@ -2476,25 +2683,45 @@ static void daemonize(void) {
     // do other long-time job
 
     // right now, this process is not related with
-    // terminal device, and it's absolutely a 
+    // terminal device, and it's absolutely a
     // background process. its parent process exits
     // earlier than it, it becomes an orphan process,
     // finally it's controlled by init process.
 }
 ```
 
+### Process sleep
+
+```c
+#include <unistd.h>
+
+int main() {
+    // 100ms
+    useconds_t microseconds = 100000;
+    usleep(microseconds);
+
+    // sleep 5 seconds
+    sleep(5);
+}
+```
+
 ### Suspend Process
 
 ### Kill Process
-```c  
+
+```c
 #include <signal.h>
 #include <stdio.h>
+#include <sys/wait.h>
 
 int main() {
     pid_t process = 10;
+    // send SIGKILL signal to process, but not means
+    // that process is killed at once
     int r = kill(process, SIGKILL);
     if (r == 0) {
-        printf("kill successfully\n");
+        printf("send SIGKILL signal to child process successfully\n");
+        waitpid(process, NULL, 0);
         return 0;
     }
     return -1;
@@ -2505,16 +2732,59 @@ there're important differences if process is zero or negative, `man 2 kill`, get
 
 ### Sync Processes with Pipe
 
+```c
+#include <unistd.h>
+
+int main() {
+    int fd[2] = { 0 };
+    if (pipe(fd) == -1) {
+        // pipe calling is fail
+        return -1;
+    }
+
+    // now, both process and child process can
+    // write to pipe through write(fd[1]), read
+    // from pipe through read(fd[0])
+
+    // if we close fd[1] at process's side, and
+    // close fd[0] at child process's side, child
+    // process can pass message by write(fd[1]),
+    // while process can receive message by read(fd[0])
+
+    pid_t child_process = fork();
+    if (child_process == -1) {
+        // fork calling is fail
+        return -1;
+    }
+    if (child_process == 0) {
+        // child process
+        close(fd[0]);
+        // ignore code that writes to fd[1]
+        close(fd[1]);
+        return 0;
+    }
+
+    close(fd[1]);
+    // ignore code that reads from fd[0]
+    close(fd[0]);
+    return 0;
+}
+```
+
+> keep in mind that both process and child process should close fd[0] and fd[1]
+> before they exit respectively.
+
 ### Signal Interception and Resolving
+
 There're so many signals in Unix. You can get a list of signals with `man signal`.
 
 0. Signal mask
-Signal mask is a set of signals and these signals will be blocked, their respective routine won't be invoked until they're unblocked. 
+   Signal mask is a set of signals and these signals will be blocked, their respective routine won't be invoked until they're unblocked.
 
 1. Block signal with `sigprocmask` or `pthread_sigmask`
-You can block one or more signals with systemcall `sigprocmask`. Since a signal has been blocked, if you invoke this signal again, for example, block SIGINT but you press Ctrl+C, SIGINT will be appended in a queue, and we call SIGINT is pending. Once you cancel blocking signals with `sigprocmask`，pending signals will be invoked and its respective routine will be executed.
+   You can block one or more signals with systemcall `sigprocmask`. Since a signal has been blocked, if you invoke this signal again, for example, block SIGINT but you press Ctrl+C, SIGINT will be appended in a queue, and we call SIGINT is pending. Once you cancel blocking signals with `sigprocmask`，pending signals will be invoked and its respective routine will be executed.
 
-```c 
+```c
 #include <signal.h>
 #include <pthread.h>
 
@@ -2533,7 +2803,7 @@ int main() {
 }
 ```
 
-```c 
+```c
 #include <signal.h>
 
 int main() {
@@ -2552,11 +2822,11 @@ int main() {
 ```
 
 2. Catch pending signal with `sigwait`
-`sigprocmask` can block signals and bring pending signals. You can use systemcall `sigwait` to know which signal is pending, and do something. Classic scenario is that blocking some signals in main thread with `sigprocmask` or `pthread_sigmask`, and catch pending signal with `sigwait` in a new thread.
+   `sigprocmask` can block signals and bring pending signals. You can use systemcall `sigwait` to know which signal is pending, and do something. Classic scenario is that blocking some signals in main thread with `sigprocmask` or `pthread_sigmask`, and catch pending signal with `sigwait` in a new thread.
 
 Note that `sigwait` tells you which signal is pending but it doesn't modify signal mask of process, so you don't need to block the same signal with `sigprocmask` again after `sigwait` returns this signal.
 
-```c 
+```c
 #include <pthread.h>
 #include <signal.h>
 
@@ -2597,15 +2867,15 @@ int main() {
 }
 ```
 
-
 ### Create Thread
+
 Normally, we use `posix thread library` to create and manage threads in Unix-like system. This library is based on system call, in other words, it creates kernel-level thread, not user-level thread. Go's goroutine is user-level thread. But there're some differences between os system. For example, Linux supports `pthread_yield` but macOS not; some unix support `sched_yield` but macOS not.
 
 If you want to get details, read [article](https://users.cs.cf.ac.uk/Dave.Marshall/C/node29.html#SECTION002922000000000000000).
 
 You can also take a look at Zig's Thread yield source code [here](https://ziglang.org/documentation/master/std/#std.Thread.yield).
 
-```c  
+```c
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -2650,7 +2920,7 @@ int main() {
         return r;
     }
 
-    // wait for thread exiting and fetch its return 
+    // wait for thread exiting and fetch its return
     // value with re.
     char* re;
     r = pthread_join(child, (void**)&re);
@@ -2670,9 +2940,9 @@ int main() {
 
 ### Yield Thread
 
-
 ### Kill Thread
-```c  
+
+```c
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -2720,7 +2990,8 @@ int main() {
 `pthread_cancel`: `<pthread.h>`
 
 ### Sync Thread with Lock
-```c  
+
+```c
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -2787,7 +3058,8 @@ int main() {
 ```
 
 ### Sync Thread with RWLock
-```c 
+
+```c
 #include <pthread.h>
 
 static pthread_rwlock_t rwlock = PTHREAD_RWLOCK_INITIALIZER;
@@ -2811,7 +3083,8 @@ int do_read() {
 ### Sync Thread with Semphore
 
 ### Sync Thread with Condition Var
-```c  
+
+```c
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -2828,7 +3101,7 @@ inline int wait_init(struct wait_lock *w) {
     pthread_cond_init(&w->ready, NULL);
     pthread_mutex_init(&w->lock, NULL);
     w->sleeping = 0;
-    
+
     return 0;
 };
 
@@ -2846,60 +3119,98 @@ inline int wait_sleep(struct wait_lock *w) {
     w->sleeping = 1;
     // sleep here
     pthread_cond_wait(&w->ready, &w->lock);
-    
+
     return 0;
 };
 
 inline void wait_free(struct wait_lock *w) {
     wait_wakeup(w);
-    
+
     pthread_mutex_destroy(&w->lock);
     pthread_cond_destroy(&w->ready);
 };
 ```
 
+### Use atomic operation
+
+```c
+#include <stdatomic.h>
+
+int main() {
+    atomic_int val = 0;
+    atomic_fetch_sub(&val, 1);
+    atomic_fetch_add(&val, 2);
+}
+```
 
 ### Use ThreadLocal Var
 
-
-
 ### Direct Syscall
+
 Normally, os provides libc for wrapping systemcall. If you want to make systemcall, you should invoke functions defined in libc. But if you want to make systemcall directly, not through libc, you can use assembly code. To make it simple, os provides c function like `syscall` , `__syscall` for wrapping assembly code. Unfortunately, not every os exposes this c function. In new version of macOS, `syscall` is deprecated and dropped([Github | related issue](https://github.com/google/glog/issues/185)), so you cannot search by `man syscall` getting more details. In linux, it's ok. Libc is not equal to c standard library, it contains c standard library and other parts.
 
+### Debugger Theory
 
-## Systemcall, Libc and Program Language Standard Library 
+You can write your own debugger with system call `ptrace`, `gdb` and `lldb` both depend on it.
+
+With help of `ptrace`, you can do these things:
+
+1. set breakpoint
+2. make process one-step execute
+3. fetch register's value
+4. read or write memory
+5. suspend system calls
+
+Let's talk about why `ptrace` can suspend system call. When `ptrace` tracks a program, it will add a tag on process. When process invokes a system call, kernel will check that tag, if there's a tag, kernel will stop process and send SIGTRAP signal. This SIGTRAP signal will be catched by debugger program. In other words, a debugger is parent process of debugged process and invokes `ptrace` conditionally in a loop. Debugger program catches signal and read value of register, then search for system call name in a hard-coded table, whose key is value of register and value is system call name.
+
+Let's talk about how `ptrace` can set breakpoint. `ptrace` replaces the target-address instruction with software break call instruction, such as `int 3` in x86, and saves the original instruction for restore in future. When CPU executes break call, there's a signal sending to parent process (yeah, our debugger program). When debugger program decides to continue executing with `ptrace`, `ptrace` will pop out the saved instruction,restore it, and subtract value of instruction register, then send a signal to debugged process making it continue.
+
+Let's talk about how `ptrace` can make one-step execute. It will set a special register, then CPU will stop and throw an exception. Kernel can catch that exception and send a SIGTRAP signal to debugger program. Debugger program receives signal and send a SIGSTOP signal to debugged program and make it stop. Debugger program can set a special register again with `ptrace` before send a signal to make debugged program continue. Repeat and repeat and ... this is one-step execute.
+
+`ptrace` is system call and created by system operation writer, but `strace` is user-space software built on `ptrace`, anyone can write your own `strace`.
+
+Let's take a look at `lldb` or `gdb` again, they're nothing but:
+
+1. a TUI program
+2. a program that invokes `ptrace`
+3. a parent process of debugged process
+
+## Systemcall, Libc and Program Language Standard Library
+
 Systemcall is part of operating system. Saving values in specific registers and invoking specific machine instructions (assembly code), cpu will trap into kernel side, and take actions —— this is essence of systemcall.
 
 Normally, if you want to request systemcall, you don't write assembly code. Developers write operating system with c language, then wrapping assembly code with c. But it's still hard to use, because memorizing systemcall number is pretty boring. Developers wrap systemcall in a human-friendly way, such as `fork()`, `write()`, `read()`. They won't provide c source code to you, instead, they compile c source code and provide c library to you. Yes, this is `libc`. `libc` also includes c standard functions. By the way, if you want to see all systemcall numbers, you can read `sys/syscall.h` header file.
 
 There is always standard library going with modern program language. What should it do if invoke systemcall ? One way: wraps systemcall(assembly code) on own (Go standard library), the other way: links `libc`(Rust/Zig library). Modern program language also has its own runtime, and runtime is also part of its library.
 
+## TUI and GUI
 
-## TUI and GUI 
 ### TUI
-TUI是一个依赖文本、字符实现的可视化用户交互界面，用于命令行工具的开发。它的图形都是用字符完成的。比如要展示一个表格，就是用`-` `_`  `#` 这样的字符，在终端界面有顺序地打印出来，构成的表格。如果表格有颜色要求，就是利用终端的控制序列，给字符设置不同的颜色，完成表格彩色化，并不是所有颜色都支持，要看终端模拟器支持多少。而清空屏幕、屏幕分割、横向滚动等交互效果，也是基于终端控制序列，再加上刷新终端上的字符，实现出来的。
 
-TUI库实现的典型步骤：
+TUI 是一个依赖文本、字符实现的可视化用户交互界面，用于命令行工具的开发。它的图形都是用字符完成的。比如要展示一个表格，就是用`-` `_` `#` 这样的字符，在终端界面有顺序地打印出来，构成的表格。如果表格有颜色要求，就是利用终端的控制序列，给字符设置不同的颜色，完成表格彩色化，并不是所有颜色都支持，要看终端模拟器支持多少。而清空屏幕、屏幕分割、横向滚动等交互效果，也是基于终端控制序列，再加上刷新终端上的字符，实现出来的。
+
+TUI 库实现的典型步骤：
+
 1. **初始化终端**
-    - 设置终端为 **非阻塞模式**（`tcsetattr`）；
-    - 关闭终端回显（`ECHO`）；
-    - 设置终端的 `ICANON`（行缓冲）为关闭；
-    - 获取终端的大小（`ioctl` + `TIOCGWINSZ`）；
-    - 设置光标位置（`ioctl` + `TIOCSETAF`）。
+   - 设置终端为 **非阻塞模式**（`tcsetattr`）；
+   - 关闭终端回显（`ECHO`）；
+   - 设置终端的 `ICANON`（行缓冲）为关闭；
+   - 获取终端的大小（`ioctl` + `TIOCGWINSZ`）；
+   - 设置光标位置（`ioctl` + `TIOCSETAF`）。
 2. **读取输入**
-    - 使用 `read()` 从标准输入读取字符；
-    - 需要处理多字节输入（如 `Ctrl+C`、`Enter`、`Backspace` 等）；
-    - 可以使用 `select()` 或 `poll()` 来实现异步输入。
+   - 使用 `read()` 从标准输入读取字符；
+   - 需要处理多字节输入（如 `Ctrl+C`、`Enter`、`Backspace` 等）；
+   - 可以使用 `select()` 或 `poll()` 来实现异步输入。
 3. **输出文本**
-    - 使用 `write()` 或 `printf()` 向终端写入字符；
-    - 控制光标位置（`ioctl` + `TIOCSETAF`）；
-    - 清屏（`write("\033[2J", 4)`）；
-    - 滚动屏幕（`write("\033[1;1H", 7)`）。
+   - 使用 `write()` 或 `printf()` 向终端写入字符；
+   - 控制光标位置（`ioctl` + `TIOCSETAF`）；
+   - 清屏（`write("\033[2J", 4)`）；
+   - 滚动屏幕（`write("\033[1;1H", 7)`）。
 4. **处理终端信号**
-    - 使用 `signal()` 或 `sigaction()` 捕获 `SIGWINCH` 信号（窗口大小改变）；
-    - 在信号处理函数中重新获取终端大小并更新界面。
+   - 使用 `signal()` 或 `sigaction()` 捕获 `SIGWINCH` 信号（窗口大小改变）；
+   - 在信号处理函数中重新获取终端大小并更新界面。
 
-TUI依赖的一些API：
+TUI 依赖的一些 API：
 | API | 说明 | 用途 |
 |-----|------|------|
 | `stdio.h` / `cstdio` | 标准输入输出函数 | `printf`, `scanf`, `fgets`, `fputs` 等 |
@@ -2909,7 +3220,7 @@ TUI依赖的一些API：
 | `sys/ioctl.h` / `sys/ioctl.h` | 控制终端设备 | 获取终端大小、设置光标位置等 |
 | `stdlib.h` / `cstdlib` | 标准库函数 | `malloc`, `free`, `exit` 等 |
 
-经典TUI库：
+经典 TUI 库：
 | 库名 | 语言 | 说明 |
 |------|------|------|
 | `ncurses` | C | 最经典的 TUI 库，支持终端控制、界面绘制、输入处理等 |
@@ -2919,49 +3230,50 @@ TUI依赖的一些API：
 | `termios` | C/C++ | 原生的终端控制 API，适合深度定制 |
 
 ### GUI
-GUI是一个依赖GPU渲染技术的可视化交互界面。TUI在构建界面的时候，是将字符打印到终端模拟器；GUI则是直接将数据输入到GPU，
 
-GUI要依赖图形系统API、窗口系统API、输入系统API以及一些系统调用。
+GUI 是一个依赖 GPU 渲染技术的可视化交互界面。TUI 在构建界面的时候，是将字符打印到终端模拟器；GUI 则是直接将数据输入到 GPU，
 
-| 系统调用 | 说明 | 用途 |
-|----------|------|------|
-| `open()` / `create()` | 打开或创建文件/设备 | 用于加载图像、字体等资源 |
-| `read()` / `write()` | 读写文件 | 加载图像、音频等资源 |
-| `mmap()` | 内存映射 | 用于高效的资源加载 |
-| `signal()` / `sigaction()` | 信号处理 | 处理窗口关闭、系统事件等 |
-| `fork()` / `exec()` | 创建子进程 | 用于多进程支持（可选） |
-| `wait()` / `waitpid()` | 等待子进程 | 多进程管理 |
-| `ioctl()` | 控制硬件设备 | 控制屏幕、鼠标、键盘等 |
-| `gettimeofday()` / `clock_gettime()` | 获取时间 | 用于动画、事件计时等 |
+GUI 要依赖图形系统 API、窗口系统 API、输入系统 API 以及一些系统调用。
 
-| 图形系统 | API | 说明 |
-|----------|-----|------|
-| **OpenGL** | GL API | 用于 2D/3D 图形渲染，跨平台 |
-| **Vulkan** | VK API | 高性能图形 API，支持多平台 |
-| **DirectX** | D3D API | Windows 平台专属的图形 API |
-| **Metal** | MTL API | macOS/iOS 平台专属的图形 API |
-| **WebGL** | WebGL API | 浏览器中的图形 API，用于网页 GUI |
-| **OpenGL ES** | GLES API | 移动设备（如 Android、iOS）的图形 API |
+| 系统调用                             | 说明                | 用途                     |
+| ------------------------------------ | ------------------- | ------------------------ |
+| `open()` / `create()`                | 打开或创建文件/设备 | 用于加载图像、字体等资源 |
+| `read()` / `write()`                 | 读写文件            | 加载图像、音频等资源     |
+| `mmap()`                             | 内存映射            | 用于高效的资源加载       |
+| `signal()` / `sigaction()`           | 信号处理            | 处理窗口关闭、系统事件等 |
+| `fork()` / `exec()`                  | 创建子进程          | 用于多进程支持（可选）   |
+| `wait()` / `waitpid()`               | 等待子进程          | 多进程管理               |
+| `ioctl()`                            | 控制硬件设备        | 控制屏幕、鼠标、键盘等   |
+| `gettimeofday()` / `clock_gettime()` | 获取时间            | 用于动画、事件计时等     |
 
-| 操作系统 | 窗口系统API | 说明 |
-|------|-----|------|
-| **X11** (Linux) | Xlib/XCB | 用于 Linux/X11 系统的窗口管理 |
-| **Wayland** (Linux) | Wayland API | 新一代的 Linux 窗口系统 |
-| **Windows API** | Win32 API | Windows 平台的图形和窗口管理 API |
-| **macOS** | Core Graphics / AppKit | macOS 的图形和窗口管理 API |
-| **Android** | Android SDK (SurfaceView, EGL) | Android 的图形和窗口管理 |
-| **iOS** | UIKit / Metal | iOS 的图形和窗口管理 |
+| 图形系统      | API       | 说明                                  |
+| ------------- | --------- | ------------------------------------- |
+| **OpenGL**    | GL API    | 用于 2D/3D 图形渲染，跨平台           |
+| **Vulkan**    | VK API    | 高性能图形 API，支持多平台            |
+| **DirectX**   | D3D API   | Windows 平台专属的图形 API            |
+| **Metal**     | MTL API   | macOS/iOS 平台专属的图形 API          |
+| **WebGL**     | WebGL API | 浏览器中的图形 API，用于网页 GUI      |
+| **OpenGL ES** | GLES API  | 移动设备（如 Android、iOS）的图形 API |
 
-| 操作系统 | 输入系统API | 说明 |
-|------|-----|------|
-| **X11** | XInput | 处理键盘、鼠标等输入 |
-| **Windows** | Win32 Input API | 处理键盘、鼠标、触控等 |
-| **macOS** | Core Events | 处理键盘、鼠标、触控等 |
-| **Linux (Wayland)** | Wayland Input | 处理输入事件 |
-| **Android** | InputManager | 处理触摸、键盘等 |
-| **iOS** | UIKit / Core Motion | 处理触摸、加速度计等 |
+| 操作系统            | 窗口系统 API                   | 说明                             |
+| ------------------- | ------------------------------ | -------------------------------- |
+| **X11** (Linux)     | Xlib/XCB                       | 用于 Linux/X11 系统的窗口管理    |
+| **Wayland** (Linux) | Wayland API                    | 新一代的 Linux 窗口系统          |
+| **Windows API**     | Win32 API                      | Windows 平台的图形和窗口管理 API |
+| **macOS**           | Core Graphics / AppKit         | macOS 的图形和窗口管理 API       |
+| **Android**         | Android SDK (SurfaceView, EGL) | Android 的图形和窗口管理         |
+| **iOS**             | UIKit / Metal                  | iOS 的图形和窗口管理             |
 
-其他的一些API：
+| 操作系统            | 输入系统 API        | 说明                   |
+| ------------------- | ------------------- | ---------------------- |
+| **X11**             | XInput              | 处理键盘、鼠标等输入   |
+| **Windows**         | Win32 Input API     | 处理键盘、鼠标、触控等 |
+| **macOS**           | Core Events         | 处理键盘、鼠标、触控等 |
+| **Linux (Wayland)** | Wayland Input       | 处理输入事件           |
+| **Android**         | InputManager        | 处理触摸、键盘等       |
+| **iOS**             | UIKit / Core Motion | 处理触摸、加速度计等   |
+
+其他的一些 API：
 | API | 说明 | 用途 |
 |-----|------|------|
 | `semaphore()` / `mutex()` | 线程同步 | 多线程 GUI 渲染和事件处理 |
@@ -2970,7 +3282,7 @@ GUI要依赖图形系统API、窗口系统API、输入系统API以及一些系�
 | `network API` | 网络 API | 实现远程 GUI 或网络通信（可选） |
 | `audio API` | 音频播放 API | 添加声音效果（可选） |
 
-经典的GUI库实现：
+经典的 GUI 库实现：
 | 库名 | 语言 | 说明 |
 |------|------|------|
 | **Qt** | C++ | 跨平台 GUI 库，支持 OpenGL、WebEngine 等 |
@@ -2983,12 +3295,13 @@ GUI要依赖图形系统API、窗口系统API、输入系统API以及一些系�
 | **Flutter** | Dart | 跨平台的 UI 开发框架，使用 Skia 图形引擎 |
 | **React Native** | JavaScript | 移动端跨平台 GUI 开发框架 |
 
-### 窗口系统API和图形系统API
-窗口系统API提供窗口的创建、管理和销毁。调用窗口系统API之后，就可以在屏幕上看到一个窗口。窗口的标题栏、菜单栏，都是窗口系统设置好的，而窗口的主体内容区，其实就是一个画板，将来交给图形系统API完成绘制。你会问了，窗口本身也是画在屏幕上的，窗口系统API是如何做到的呢？窗口系统底层使用预设的图形配置（比如窗口宽度、高度、位置，标题栏各个图形的位置、大小等等），调用图形系统API画出来的。
+### 窗口系统 API 和图形系统 API
 
-图形系统API就是在窗口主体区域绘制图形。这样分工，窗口的样式风格就全都一样了，不一样的地方只发生在窗口主体区域。如果将窗口创建的工作也交给开发人员和图形系统API，那么窗口的样子就会五花八门。
+窗口系统 API 提供窗口的创建、管理和销毁。调用窗口系统 API 之后，就可以在屏幕上看到一个窗口。窗口的标题栏、菜单栏，都是窗口系统设置好的，而窗口的主体内容区，其实就是一个画板，将来交给图形系统 API 完成绘制。你会问了，窗口本身也是画在屏幕上的，窗口系统 API 是如何做到的呢？窗口系统底层使用预设的图形配置（比如窗口宽度、高度、位置，标题栏各个图形的位置、大小等等），调用图形系统 API 画出来的。
 
-### 图形数据是怎么送到GPU的
+图形系统 API 就是在窗口主体区域绘制图形。这样分工，窗口的样式风格就全都一样了，不一样的地方只发生在窗口主体区域。如果将窗口创建的工作也交给开发人员和图形系统 API，那么窗口的样子就会五花八门。
+
+### 图形数据是怎么送到 GPU 的
 
 ```plaintext
 +---------------------+
@@ -3026,18 +3339,20 @@ GUI要依赖图形系统API、窗口系统API、输入系统API以及一些系�
 +---------------------+
 ```
 
-
 1. **应用程序（Application）**
+
 - 调用图形系统 API（如 OpenGL）来绘制图形；
 - 提供顶点数据、纹理、着色器等；
 - 调用 `glDrawArrays()`、`glDrawElements()` 等 API 来触发绘制。
 
 2. **图形驱动（Graphics Driver）**
+
 - 将 OpenGL API 调用翻译为 GPU 可执行的指令；
 - 管理内存分配、状态设置（如纹理绑定、着色器程序）；
 - 优化绘制命令，将多个绘制操作合并（如批处理）。
 
 3. **GPU（显卡）**
+
 - 执行图形渲染管线（Graphics Pipeline）；
 - 将顶点数据（Vertex Data）转换为像素（Pixel）；
 - 执行着色器（Vertex Shader、Fragment Shader）；
@@ -3045,25 +3360,29 @@ GUI要依赖图形系统API、窗口系统API、输入系统API以及一些系�
 - 将结果写入帧缓冲区（Frame Buffer）。
 
 4. **显存（VRAM）**
+
 - 存储图形数据（如顶点缓冲区 VBO、纹理、帧缓冲区 FBO）；
 - 是 GPU 的内存，用于临时存储渲染数据。
 
 5. **帧缓冲区（Frame Buffer）**
+
 - 存储最终绘制出来的图像数据；
 - 可以是系统内存（如通过 OpenGL 的 `glReadPixels()`）或显存（通过 `glBindFramebuffer()`）；
 - 最终会通过显示控制器输出到屏幕。
 
 6. **显示控制器（Display Controller）**
+
 - 控制显示器刷新率（如 60Hz、144Hz）；
 - 将帧缓冲区的内容输出到屏幕；
 - 管理双缓冲（Double Buffering）或三缓冲（Triple Buffering）机制，防止画面撕裂。
 
 7. **显示器（Monitor）**
+
 - 接收显示控制器的图像数据；
 - 将像素数据显示在屏幕上。
 
+图形系统 API 和这些数据的关系：
 
-图形系统API和这些数据的关系：
 - 图形系统（如 OpenGL）**不直接写入寄存器**；
 - 它通过**驱动程序**将命令翻译为 GPU 可执行的指令；
 - 数据通过**显存（VRAM）**传递到 GPU；
@@ -3071,22 +3390,31 @@ GUI要依赖图形系统API、窗口系统API、输入系统API以及一些系�
 - 最终通过**显示控制器**输出到**显示器**；
 - 整个流程是**硬件 + 软件协作**的结果，涉及多个组件的配合
 
-了解以上内容，你可能好奇CPU是如何与GPU通讯的。
+了解以上内容，你可能好奇 CPU 是如何与 GPU 通讯的。
 
 GPU 有自己的内存（显存），用于存储图形数据、纹理、着色器程序等；这些内存地址对 CPU 来说**不是直接可访问的**，但可以通过**内存映射（Memory-Mapped I/O）**或**DMA**来访问。
 
 **GPU 显存地址是通过 PCIe 总线映射的**
+
 - GPU 通过 PCIe 总线连接到 CPU；
 - PCIe 是一种**高速总线协议**，支持内存映射（Memory-Mapped I/O）；
 - CPU 可以通过**PCIe BAR（Base Address Register）**来访问 GPU 的显存地址。
 
 **通过 DMA（直接内存访问）**
+
 - CPU 将数据写入**CPU 内存**；
 - GPU 通过 DMA 从 CPU 内存中读取数据，写入到显存；
 - 这个过程**不需要 CPU 的干预**，由硬件自动完成。
 
 **通过 CPU 内存映射访问 GPU 显存**
+
 - 有些情况下，CPU 可以直接访问 GPU 显存（通过 PCIe 映射的地址）；
 - 例如在 CUDA 中，可以使用 `cudaMalloc` 分配显存，然后通过 `cudaMemcpy` 将数据从 CPU 内存复制到显存。
 
-这里要补充一些硬件知识：在操作系统启动之前，固件会为各个设备指定一段内存地址，在操作系统启动之后，内核可以从通过固件提供的API读取到所有设备的内存地址，然后将这些内存地址映射到内存页表，并且提供一种API，让上层应用一调用，就可以把数据写入到这些特殊的内存地址。于是，当进程执行cpu读写内存的指令时，就可以将数据写入到特定的内存地址，这些数据就会传送到指定的设备。
+这里要补充一些硬件知识：在操作系统启动之前，固件会为各个设备指定一段内存地址，在操作系统启动之后，内核可以从通过固件提供的 API 读取到所有设备的内存地址，然后将这些内存地址映射到内存页表，并且提供一种 API，让上层应用一调用，就可以把数据写入到这些特殊的内存地址。于是，当进程执行 cpu 读写内存的指令时，就可以将数据写入到特定的内存地址，这些数据就会传送到指定的设备。
+
+## Other Things about C
+
+### 为什么`main`函数可以没有`return 0`
+
+这是 C 语言标准规定的。如果`main`函数`return`整数，比如`return 1`， 等效于`exit(1)`。如果`main`函数没有`return`，编译器在编译代码的时候，会自动注入`return 0`的代码。

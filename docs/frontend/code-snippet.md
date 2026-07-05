@@ -1058,6 +1058,12 @@ function applyCallbackSafely(callback) {
     callback();
   } catch (err) {}
 }
+
+function tryWrap(fn) {
+  try {
+    fn();
+  } catch (err) {}
+}
 ```
 
 ## 如何解决输入法对`<input>`的影响
@@ -1166,6 +1172,1275 @@ target.scrollIntoView({
 ```css
 #section-6 {
   scroll-margin-top: 10px;
+}
+```
+
+## vue + webpack loader: 注入源码位置信息
+
+```js
+// injectSourceInfoVueLoader.js
+const MagicString = require("magic-string");
+const VueCompiler = require("@vue/compiler-dom");
+
+// 代码来自https://github.com/webfansplz/vite-plugin-vue-inspector/blob/main/packages/core/src/compiler/template.ts
+
+/**
+ *
+ * @param {string} sfcContent
+ * @returns
+ */
+module.exports = function (sfcContent) {
+  const { mode } = this;
+  if (mode === "production") return sfcContent;
+
+  const parse = VueCompiler.parse;
+  const ast = parse(sfcContent, { comments: true });
+
+  const EXCLUDE_TAG = ["template", "script", "style"];
+  const KEY_DATA = "data-v-inspector";
+  const { resourcePath: filePath } = this;
+  const s = new MagicString(sfcContent);
+  const transform = VueCompiler.transform;
+  transform(ast, {
+    nodeTransforms: [
+      (node) => {
+        if (!node) return;
+        if (node.type === 1) {
+          if (
+            (node.tagType === 0 || node.tagType === 1) &&
+            !EXCLUDE_TAG.includes(node.tag)
+          ) {
+            if (node.loc.source.includes(KEY_DATA)) return;
+
+            const insertPosition = node.props.length
+              ? Math.max(...node.props.map((i) => i.loc.end.offset))
+              : node.loc.start.offset + node.tag.length + 1;
+            const { line, column } = node.loc.start;
+
+            const content = ` ${KEY_DATA}="${filePath}:${line}:${column}"`;
+
+            s.prependLeft(insertPosition, content);
+          }
+        }
+      },
+    ],
+  });
+  return s.toString();
+};
+```
+
+```js
+// webpack.config.js
+
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      {
+        test: /.vue/,
+        loader: [
+          "vue-loader",
+          // 我们的loader处理的是vue loader吐出来的结果，因此放在后边
+          { loader: require.resolve("./injectSourceInfoVueLoader.js") },
+        ],
+      },
+    ],
+  },
+};
+```
+
+## 只开一个 webpack 进程，动态增加入口文件
+
+```js
+// ./scripts/dev-server.js
+
+/**
+ * 智能开发服务器
+ *
+ * 功能：
+ * 1. 单进程驱动 webpack watch 模式（动态 entry）
+ * 2. HTTP 服务提供导引页、静态资源（编译产物 + shtml 模板）
+ * 3. SSE 推送编译状态（compiling / done / error）
+ * 4. HMR：编译完成后通过 SSE 推送 hmr 事件，浏览器自动刷新
+ * 5. POST /activate：按需激活页面 entry 进入 LRU 编译窗口
+ */
+
+import { createServer } from "node:http";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve, extname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const __dirname = resolve(fileURLToPath(import.meta.url), "..");
+const ROOT = resolve(__dirname, "../..");
+
+// ─── 依赖 ──────────────────────────────────────────────────────────────────
+
+const webpack = require(resolve(ROOT, "node_modules/webpack"));
+const launchEditor = require(resolve(ROOT, "node_modules/launch-editor"));
+
+import {
+  setWatchingRef,
+  activateEntry,
+  resolveEntryFromDir,
+  collectPageInfos,
+  getActiveEntries,
+} from "./entryManager.mjs";
+
+// ─── 配置 ──────────────────────────────────────────────────────────────────
+
+const DIST_DIR = resolve(ROOT, "dist/page");
+const PAGE_DIR = resolve(ROOT, "page");
+const GUIDE_PAGE_HTML = resolve(__dirname, "page.html");
+
+/** 开发服务器端口 */
+const DEV_SERVER_PORT = parseInt(process.env.DEV_PORT || "8080", 10);
+
+/** 扫描的 page 目录（用于导引页） */
+function getDirectories() {
+  if (process.env.dir) {
+    const trimmed = process.env.dir.trim();
+    if (!trimmed) throw new Error("请指定目录");
+    return trimmed.split(",").filter(Boolean);
+  }
+  return ["app"];
+}
+
+// ─── 编译状态管理 ──────────────────────────────────────────────────────────
+
+/**
+ * @typedef {'idle' | 'compiling' | 'done' | 'error'} CompileStatus
+ */
+
+/** @type {CompileStatus} */
+let compileStatus = "idle";
+let lastError = null;
+/** @type {number} 0~100 */
+let compileProgress = 0;
+/** @type {Set<import('node:http').ServerResponse>} */
+const sseClients = new Set();
+
+/**
+ * 向所有 SSE 客户端广播事件
+ * @param {string} event
+ * @param {object} data
+ */
+function broadcastSSE(event, data) {
+  const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(payload);
+    } catch (_) {
+      sseClients.delete(client);
+    }
+  }
+}
+
+// ─── 全局回调：供 webpack.dev.config.js 中的 ProgressPlugin 调用 ──────────
+
+global.__onWebpackProgress = function (percentage, message) {
+  compileProgress = Math.round(percentage * 100);
+  broadcastSSE("progress", { percentage: compileProgress, message });
+};
+
+// ─── 全局函数：供 webpack.dev.config.js 中的 getDynamicEntry 调用 ──────────
+
+global.__getActiveEntries = getActiveEntries;
+
+// ─── 启动 webpack watch ────────────────────────────────────────────────────
+
+const webpackConfig = require(resolve(ROOT, "webpack.dev.config.js"));
+
+// 注入 HMR 客户端到每个 entry（通过 entry 函数内部处理）
+// webpack 的函数式 entry 在编译时调用，此处设置编译回调
+
+const compiler = webpack(webpackConfig);
+
+const watching = compiler.watch(
+  {
+    // 轮询文件变化间隔（ms），-1 表示使用 fs.watch 原生事件
+    poll: false,
+    aggregateTimeout: 300,
+  },
+  function onWatchComplete(err, stats) {
+    if (err) {
+      compileStatus = "error";
+      lastError = err.message;
+      broadcastSSE("compile-error", { message: err.message });
+      console.error("[webpack] Fatal error:", err);
+      return;
+    }
+
+    const info = stats.toJson({
+      errors: true,
+      warnings: false,
+      assets: false,
+      modules: false,
+    });
+
+    if (stats.hasErrors()) {
+      compileStatus = "error";
+      lastError = info.errors[0];
+      broadcastSSE("compile-error", { message: info.errors[0] });
+      console.error("[webpack] Compilation errors:", info.errors);
+      return;
+    }
+
+    compileStatus = "done";
+    lastError = null;
+    compileProgress = 100;
+
+    const builtEntries = Object.keys(getActiveEntries());
+    console.log(
+      `[webpack] ✅ 编译完成，活跃入口: ${builtEntries.join(", ") || "(空)"}`
+    );
+
+    // 推送 HMR 事件，浏览器收到后刷新页面
+    broadcastSSE("hmr", { builtEntries });
+  }
+);
+
+// 监听编译开始
+compiler.hooks.watchRun.tap("DevServer", function () {
+  compileStatus = "compiling";
+  compileProgress = 0;
+  broadcastSSE("compiling", { message: "开始编译..." });
+  console.log("[webpack] 🔄 开始编译...");
+});
+
+// 注入 watching 引用给 entryManager
+setWatchingRef(watching);
+
+// ─── HTTP 服务 ─────────────────────────────────────────────────────────────
+
+/** MIME 类型映射 */
+const MIME_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".shtml": "text/html; charset=utf-8",
+  ".js": "application/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".eot": "application/vnd.ms-fontobject",
+  ".map": "application/json",
+};
+
+/**
+ * 读取请求体（JSON）
+ * @param {import('node:http').IncomingMessage} req
+ * @returns {Promise<object>}
+ */
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString() || "{}"));
+      } catch (_) {
+        resolve({});
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+/**
+ * 读取并发送本地静态文件
+ * @param {import('node:http').ServerResponse} res
+ * @param {string} filePath 文件绝对路径
+ */
+function serveStaticFile(res, filePath) {
+  if (!existsSync(filePath)) {
+    res.writeHead(404);
+    res.end("Not Found");
+    return;
+  }
+  const ext = extname(filePath).toLowerCase();
+  const mime = MIME_TYPES[ext] || "application/octet-stream";
+  let fileContent;
+  try {
+    fileContent = readFileSync(filePath);
+  } catch (_) {
+    res.writeHead(500);
+    res.end("Read Error");
+    return;
+  }
+  res.setHeader("Content-Type", mime);
+  res.writeHead(200);
+  res.end(fileContent);
+}
+
+/**
+ * 写入 JSON 响应
+ * @param {import('node:http').ServerResponse} res
+ * @param {number} code
+ * @param {object} data
+ */
+function writeJSON(res, code, data) {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.writeHead(code);
+  res.end(JSON.stringify(data));
+}
+
+/** 导引页 HTML 缓存 */
+let guidPageCache = null;
+
+/**
+ * 生成并返回导引页 HTML
+ * @returns {string}
+ */
+function buildGuidePage() {
+  if (guidPageCache) return guidPageCache;
+  const directories = getDirectories();
+  const pageInfos = collectPageInfos(directories);
+  const template = readFileSync(GUIDE_PAGE_HTML, "utf-8");
+  guidPageCache = template.replace("%data", JSON.stringify(pageInfos));
+  return guidPageCache;
+}
+
+// ─── 路由处理函数 ──────────────────────────────────────────────────────────
+
+/**
+ * Vue DevTools 源码跳转本地编辑器
+ * @param {import('node:http').IncomingMessage} req
+ * @param {import('node:http').ServerResponse} res
+ * @param {URL} url
+ */
+function handleOpenInEditor(req, res, url) {
+  const file = url.searchParams.get("file");
+  if (!file) {
+    res.writeHead(500);
+    res.end('launch-editor: required query param "file" is missing.');
+    return;
+  }
+  const resolved = file.startsWith("file://") ? file : resolve(ROOT, file);
+  launchEditor(resolved);
+  res.writeHead(200);
+  res.end();
+}
+
+/**
+ * 导引页
+ * @param {import('node:http').ServerResponse} res
+ */
+function handleGuidePage(res) {
+  const html = buildGuidePage();
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.writeHead(200);
+  res.end(html);
+}
+
+/**
+ * 当前编译状态
+ * @param {import('node:http').ServerResponse} res
+ */
+function handleStatus(res) {
+  writeJSON(res, 200, {
+    status: compileStatus,
+    progress: compileProgress,
+    error: lastError,
+    activeEntries: Object.keys(getActiveEntries()),
+  });
+}
+
+/**
+ * SSE 长连接，推送编译事件
+ * @param {import('node:http').IncomingMessage} req
+ * @param {import('node:http').ServerResponse} res
+ */
+function handleEvents(req, res) {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.writeHead(200);
+
+  // 立即推送当前状态
+  res.write(
+    `event: status\ndata: ${JSON.stringify({
+      status: compileStatus,
+      progress: compileProgress,
+    })}\n\n`
+  );
+
+  sseClients.add(res);
+
+  // 客户端断开时清理
+  req.on("close", () => {
+    sseClients.delete(res);
+  });
+}
+
+/**
+ * 激活页面 entry 进入编译窗口
+ * @param {import('node:http').IncomingMessage} req
+ * @param {import('node:http').ServerResponse} res
+ */
+async function handleActivate(req, res) {
+  const body = await readBody(req);
+  const { dir } = body;
+
+  if (!dir) {
+    writeJSON(res, 400, { error: "缺少 dir 参数" });
+    return;
+  }
+
+  const entryInfo = resolveEntryFromDir(dir);
+  if (!entryInfo) {
+    writeJSON(res, 404, { error: `找不到 entry 文件: ${dir}` });
+    return;
+  }
+
+  const isNew = activateEntry(entryInfo.key, entryInfo.filePath);
+  writeJSON(res, 200, {
+    key: entryInfo.key,
+    isNew,
+    status: isNew ? "compiling" : compileStatus,
+    message: isNew ? "已加入编译队列，请等待编译完成" : "该页面已在编译窗口中",
+  });
+}
+
+// ─── HTTP 路由分发 ─────────────────────────────────────────────────────────
+
+const server = createServer(async function handleRequest(req, res) {
+  const url = new URL(req.url, `http://localhost:${DEV_SERVER_PORT}`);
+  const pathname = url.pathname;
+
+  // CORS 预检
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  if (pathname === "/__open-in-editor" && req.method === "GET")
+    return handleOpenInEditor(req, res, url);
+  if (pathname === "/" && req.method === "GET") return handleGuidePage(res);
+  if (pathname === "/status" && req.method === "GET") return handleStatus(res);
+  if (pathname === "/events" && req.method === "GET")
+    return handleEvents(req, res);
+  if (pathname === "/activate" && req.method === "POST")
+    return handleActivate(req, res);
+  if (pathname.startsWith("/dist/page/"))
+    return serveStaticFile(
+      res,
+      resolve(DIST_DIR, pathname.replace("/dist/page/", ""))
+    );
+  if (pathname.startsWith("/static/"))
+    return serveStaticFile(res, resolve(ROOT, pathname.slice(1)));
+
+  res.writeHead(404);
+  res.end("Not Found");
+});
+
+server.listen(DEV_SERVER_PORT, function () {
+  const Blue = "\x1b[34m";
+  const Green = "\x1b[32m";
+  const Reset = "\x1b[0m";
+  console.log(`${Green}[DevServer] 启动成功${Reset}`);
+  console.log(`${Blue}  导引页: http://localhost:${DEV_SERVER_PORT}/${Reset}`);
+  console.log(
+    `${Blue}  编译状态: http://localhost:${DEV_SERVER_PORT}/status${Reset}`
+  );
+  console.log("");
+  console.log("  用法：在导引页点击 GO 按钮激活页面，等待编译后自动跳转");
+  console.log("  LRU 窗口：最多同时编译 5 个入口，超出后淘汰最早激活的入口");
+});
+```
+
+```js
+// ./scripts/entryManager.js
+
+import { readdirSync, existsSync, readFileSync } from "node:fs";
+import { resolve, relative, dirname, basename, extname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = resolve(fileURLToPath(import.meta.url), "..");
+const ROOT = resolve(__dirname, "../..");
+const STATIC_PAGE_BASE = resolve(ROOT, "static/page");
+const PAGE_BASE = resolve(ROOT, "page");
+
+/** LRU 窗口大小：最多同时保留多少个活跃 entry */
+const MAX_ACTIVE_ENTRIES = 5;
+
+/**
+ * 活跃 entry 集合，使用 Map 保证插入顺序（用于 LRU 淘汰）
+ * key: webpack entry key，例如 "paotuiFence/paotuiFence-entry"
+ * value: 文件绝对路径
+ */
+const activeEntries = new Map();
+
+/**
+ * webpack watching 实例引用，由 devServer 注入后用于触发 invalidate
+ * @type {{ invalidate?: () => void } | null}
+ */
+let watchingRef = null;
+
+/**
+ * 注入 webpack watching 实例引用
+ * @param {{ invalidate: () => void }} watching
+ */
+export function setWatchingRef(watching) {
+  watchingRef = watching;
+}
+
+/**
+ * 根据 dir 参数（格式与 startCmd 的 dir=xxx 相同）
+ * 解析出 webpack entry key 和文件绝对路径
+ * @param {string} dirValue - 例如 "paotuiFence/paotuiFence-entry.js"
+ * @returns {{ key: string, filePath: string } | null}
+ */
+export function resolveEntryFromDir(dirValue) {
+  if (!dirValue) return null;
+  const trimmed = dirValue.trim();
+
+  if (trimmed.match(/entry\.(js|ts)$/)) {
+    return resolveFromEntryFile(trimmed);
+  }
+
+  return resolveFromDirectory(trimmed);
+}
+
+/**
+ * 直接从 entry 文件路径解析
+ * @param {string} entryRelPath
+ * @returns {{ key: string, filePath: string } | null}
+ */
+function resolveFromEntryFile(entryRelPath) {
+  const absPath = resolve(STATIC_PAGE_BASE, entryRelPath);
+  const tsPath = absPath.replace(/\.js$/, ".ts");
+
+  const filePath = existsSync(absPath)
+    ? absPath
+    : existsSync(tsPath)
+    ? tsPath
+    : null;
+  if (!filePath) return null;
+
+  return buildEntryInfo(filePath);
+}
+
+/**
+ * 从目录路径中查找 entry 文件
+ * @param {string} dirRelPath
+ * @returns {{ key: string, filePath: string } | null}
+ */
+function resolveFromDirectory(dirRelPath) {
+  const dirPath = resolve(STATIC_PAGE_BASE, dirRelPath);
+  if (!existsSync(dirPath)) return null;
+
+  const entryFile = findEntryFileInDir(dirPath);
+  if (!entryFile) return null;
+
+  return buildEntryInfo(entryFile);
+}
+
+/**
+ * 根据 entry 文件绝对路径构建 entry 信息
+ * @param {string} filePath
+ * @returns {{ key: string, filePath: string }}
+ */
+function buildEntryInfo(filePath) {
+  const entryFileDir = dirname(filePath);
+  const fileName = basename(filePath, extname(filePath));
+  const key = relative(STATIC_PAGE_BASE, entryFileDir) + "/" + fileName;
+  return { key, filePath };
+}
+
+/**
+ * 在目录下递归查找第一个 entry.(js|ts) 文件
+ * @param {string} dirPath
+ * @returns {string | null}
+ */
+function findEntryFileInDir(dirPath) {
+  const pending = [dirPath];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    let entries;
+    try {
+      entries = readdirSync(current, { withFileTypes: true });
+    } catch (_) {
+      continue;
+    }
+    for (const dirent of entries) {
+      const fullPath = resolve(current, dirent.name);
+      if (dirent.isDirectory()) {
+        pending.push(fullPath);
+        continue;
+      }
+      if (dirent.isFile() && dirent.name.match(/^entry\.(js|ts)$/)) {
+        return fullPath;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * 激活一个 entry 进入 LRU 编译窗口
+ * - 若已存在：刷新 LRU 顺序，返回 false（无需重编译）
+ * - 若新加入：LRU 淘汰最旧的，触发 webpack invalidate，返回 true
+ * @param {string} key
+ * @param {string} filePath
+ * @returns {boolean} 是否需要等待新一轮编译
+ */
+export function activateEntry(key, filePath) {
+  if (activeEntries.has(key)) {
+    // 刷新 LRU 顺序
+    activeEntries.delete(key);
+    activeEntries.set(key, filePath);
+    return false;
+  }
+
+  if (activeEntries.size >= MAX_ACTIVE_ENTRIES) {
+    const oldestKey = activeEntries.keys().next().value;
+    activeEntries.delete(oldestKey);
+  }
+
+  activeEntries.set(key, filePath);
+
+  if (watchingRef && typeof watchingRef.invalidate === "function") {
+    watchingRef.invalidate();
+  }
+
+  return true;
+}
+
+/**
+ * 返回当前活跃 entry 对象，供 webpack entry 函数调用
+ * @returns {Record<string, string>}
+ */
+export function getActiveEntries() {
+  return Object.fromEntries(activeEntries);
+}
+
+/**
+ * 检查某个 key 是否在活跃编译窗口中
+ * @param {string} key
+ * @returns {boolean}
+ */
+export function isEntryActive(key) {
+  return activeEntries.has(key);
+}
+
+/**
+ * 遍历目录，返回所有文件的绝对路径
+ * @param {string} rootDirPath
+ * @returns {string[]}
+ */
+function traverseFiles(rootDirPath) {
+  const result = [];
+  const pending = [rootDirPath];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    let entries;
+    try {
+      entries = readdirSync(current, { withFileTypes: true });
+    } catch (_) {
+      continue;
+    }
+    for (const dirent of entries) {
+      const fullPath = resolve(current, dirent.name);
+      if (dirent.isDirectory()) {
+        pending.push(fullPath);
+      } else if (dirent.isFile()) {
+        result.push(fullPath);
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * 收集指定 page 目录下的所有页面信息（用于导引页渲染）
+ * @param {string[]} directories - 相对于 /page/ 的目录名列表
+ * @returns {Array<{ path: string, dir: string, htmlUrl: string }>}
+ */
+export function collectPageInfos(directories) {
+  const infos = [];
+
+  for (const dir of directories) {
+    const dirPath = resolve(PAGE_BASE, dir);
+    if (!existsSync(dirPath)) continue;
+
+    const files = traverseFiles(dirPath);
+    for (const filepath of files) {
+      if (!filepath.endsWith(".html")) continue;
+
+      let content;
+      try {
+        content = readFileSync(filepath, "utf-8");
+      } catch (_) {
+        continue;
+      }
+
+      const entryJsMark =
+        /<script.*?src=('|")(.*?entry\.pack\.js)('|")><\/script>/;
+      const matched = entryJsMark.exec(content);
+      if (!matched || !matched[2]) continue;
+
+      const entryJsPath = matched[2];
+      let dirValue = entryJsPath.replace("/dist/page/", "");
+      dirValue = dirValue.replace(".pack", "");
+      const htmlPath = dirValue.replace("-entry.js", "");
+
+      infos.push({
+        path: entryJsPath,
+        dir: dirValue,
+        htmlUrl: `http://local.haha.com/${htmlPath}`,
+      });
+    }
+  }
+
+  return infos;
+}
+```
+
+```js
+// ./scripts/page.html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>开发导引页面</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .page-item {
+            padding: 12px 8px;
+            color: #4510e6;
+            background: rgb(141 158 163);
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 8px 0;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: transform 0.2s ease-in;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-item:hover {
+            transform: scale(1.1);
+        }
+
+        .title {
+            color: #89c3d6;
+        }
+
+        .btn {
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-copy {
+            background: #555;
+            color: #fff;
+        }
+
+        .btn-go {
+            background: #2a9d2a;
+            color: #fff;
+        }
+
+        .btn-go.compiling {
+            background: #b8860b;
+        }
+
+        .btn-go.error {
+            background: #c0392b;
+        }
+
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a2e;
+            color: #aaa;
+            font-size: 13px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid #333;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #555;
+            flex-shrink: 0;
+        }
+
+        .status-dot.idle    { background: #555; }
+        .status-dot.compiling { background: #f0a500; animation: pulse 1s infinite; }
+        .status-dot.done    { background: #2a9d2a; }
+        .status-dot.error   { background: #c0392b; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        .progress-bar-wrap {
+            flex: 1;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #f0a500;
+            transition: width 0.2s;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <script type="text/javascript">
+        window.data = %data;
+        /* 注入服务端口，由 devServer.mjs 替换（若在 smart 模式下使用） */
+        window.DEV_SERVER_PORT = window.DEV_SERVER_PORT || 8080;
+    </script>
+
+    <h1 class="title">烽火台老仓库导引页面</h1>
+    <p>
+        Search: <input id="userInput"> <button id="searchButton">搜索</button>
+    </p>
+    <div id="pageList"></div>
+
+    <!-- 底部编译状态栏（仅 smart 模式显示） -->
+    <div class="status-bar" id="statusBar" style="display:none">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">空闲</span>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <span id="progressText">0%</span>
+    </div>
+
+    <script type="text/javascript">
+        var pageList     = document.getElementById('pageList');
+        var userInput    = document.getElementById('userInput');
+        var searchButton = document.getElementById('searchButton');
+        var statusBar    = document.getElementById('statusBar');
+        var statusDot    = document.getElementById('statusDot');
+        var statusText   = document.getElementById('statusText');
+        var progressBar  = document.getElementById('progressBar');
+        var progressText = document.getElementById('progressText');
+
+        /* ── Smart 模式检测 ─────────────────────────────────────────── */
+
+        var DEV_SERVER = 'http://localhost:' + window.DEV_SERVER_PORT;
+        var isSmartMode = false;
+
+        /**
+         * 尝试请求 /status 来判断是否运行在 smart 模式下
+         */
+        function detectSmartMode() {
+            fetch(DEV_SERVER + '/status')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    isSmartMode = true;
+                    statusBar.style.display = 'flex';
+                    updateStatusUI(data.status, data.progress, '');
+                    connectSSE();
+                })
+                .catch(function() {
+                    isSmartMode = false;
+                });
+        }
+
+        /* ── SSE 连接 ────────────────────────────────────────────────── */
+
+        function connectSSE() {
+            var es = new EventSource(DEV_SERVER + '/events');
+
+            es.addEventListener('compiling', function(e) {
+                var d = JSON.parse(e.data);
+                updateStatusUI('compiling', 0, d.message || '编译中...');
+            });
+
+            es.addEventListener('progress', function(e) {
+                var d = JSON.parse(e.data);
+                updateStatusUI('compiling', d.percentage, d.message || '编译中...');
+            });
+
+            es.addEventListener('hmr', function() {
+                updateStatusUI('done', 100, '编译完成');
+                /* 通知所有处于等待状态的 GO 按钮 */
+                notifyPendingGoButtons();
+            });
+
+            es.addEventListener('compile-error', function(e) {
+                var d = JSON.parse(e.data);
+                updateStatusUI('error', 0, '编译错误: ' + (d.message || ''));
+            });
+
+            es.onerror = function() {
+                updateStatusUI('idle', 0, '连接断开，等待重连...');
+            };
+        }
+
+        /* ── 编译状态 UI ──────────────────────────────────────────────── */
+
+        function updateStatusUI(status, progress, message) {
+            statusDot.className = 'status-dot ' + status;
+            statusText.innerText = message || status;
+            var pct = Math.min(100, Math.max(0, progress || 0));
+            progressBar.style.width = pct + '%';
+            progressText.innerText = pct + '%';
+        }
+
+        /* ── 等待编译完成的 GO 按钮集合 ───────────────────────────────── */
+
+        var pendingGoCallbacks = [];
+
+        function addPendingGoCallback(cb) {
+            pendingGoCallbacks.push(cb);
+        }
+
+        function notifyPendingGoButtons() {
+            var cbs = pendingGoCallbacks.slice();
+            pendingGoCallbacks = [];
+            cbs.forEach(function(cb) { cb(); });
+        }
+
+        /* ── 激活页面（smart 模式）──────────────────────────────────────*/
+
+        /**
+         * 发送 POST /activate 激活页面 entry，等待编译完成后跳转
+         * @param {string} dir
+         * @param {string} htmlUrl
+         * @param {HTMLButtonElement} btn
+         */
+        function activatePage(dir, htmlUrl, btn) {
+            btn.disabled = true;
+            btn.classList.add('compiling');
+            btn.innerText = '激活中...';
+
+            fetch(DEV_SERVER + '/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dir: dir })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) {
+                    btn.disabled = false;
+                    btn.classList.remove('compiling');
+                    btn.classList.add('error');
+                    btn.innerText = '失败';
+                    alert('激活失败: ' + data.error);
+                    return;
+                }
+
+                if (!data.isNew) {
+                    /* 已在编译窗口中，直接跳转 */
+                    btn.disabled = false;
+                    btn.classList.remove('compiling');
+                    btn.innerText = 'GO';
+                    window.open(htmlUrl, '_blank');
+                    return;
+                }
+
+                /* 新加入编译队列，等待 HMR 事件后再跳转 */
+                btn.innerText = '编译中...';
+                addPendingGoCallback(function() {
+                    btn.disabled = false;
+                    btn.classList.remove('compiling');
+                    btn.innerText = 'GO';
+                    window.open(htmlUrl, '_blank');
+                });
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                btn.classList.remove('compiling');
+                btn.innerText = 'GO';
+                alert('请求失败: ' + err.message);
+            });
+        }
+
+        /* ── 列表渲染 ────────────────────────────────────────────────── */
+
+        function renderList(filterText) {
+            filterText = filterText || '';
+            pageList.innerHTML = '';
+            var filteredData = window.data.filter(function(item) {
+                return item.path.includes(filterText);
+            });
+
+            filteredData.forEach(function(item) {
+                var li = document.createElement('div');
+                li.classList.add('page-item');
+
+                /* 路径文字（点击复制启动指令，兼容旧行为） */
+                var div = document.createElement('div');
+                div.innerText = item.path;
+                div.style.flex = '1';
+                div.addEventListener('click', function() {
+                    var cmd = item.startCmd || ('dir=' + item.dir + ' npm run dev');
+                    navigator.clipboard.writeText(cmd);
+                    window.alert('启动指令已复制: ' + cmd);
+                });
+                li.appendChild(div);
+
+                /* 复制 CMD 按钮 */
+                var cmdBtn = document.createElement('button');
+                cmdBtn.classList.add('btn', 'btn-copy');
+                cmdBtn.innerText = '拷贝CMD';
+                cmdBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var cmd = item.startCmd || ('dir=' + item.dir + ' npm run dev');
+                    navigator.clipboard.writeText(cmd);
+                    window.alert('启动指令已复制: ' + cmd);
+                });
+                li.appendChild(cmdBtn);
+
+                /* GO 按钮 */
+                var goBtn = document.createElement('button');
+                goBtn.classList.add('btn', 'btn-go');
+                goBtn.innerText = 'GO';
+                goBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (isSmartMode && item.dir) {
+                        activatePage(item.dir, item.htmlUrl, goBtn);
+                    } else {
+                        window.open(item.htmlUrl, '_blank');
+                    }
+                });
+                li.appendChild(goBtn);
+
+                pageList.appendChild(li);
+            });
+        }
+
+        searchButton.addEventListener('click', function() {
+            renderList(userInput.value.trim());
+        });
+
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') renderList(userInput.value.trim());
+        });
+
+        /* 初始化 */
+        detectSmartMode();
+        renderList();
+    </script>
+</body>
+</html>
+```
+
+```js
+// webpack.dev.config.js
+/**
+ * 动态入口版 webpack 开发配置
+ *
+ * 与 webpack.config.js 的区别：
+ * 1. entry 为函数形式（动态 entry），每次重编译时从 entryManager 获取最新活跃入口
+ * 2. 配置单个 webpack 实例（非数组），支持多入口
+ * 3. 不使用 webpack-dev-server，由 devServer.mjs 提供 HMR 功能
+ * 4. 生产构建请继续使用 webpack.config.js
+ */
+var fs = require("fs");
+var path = require("path");
+var MiniCssExtractPlugin = require("mini-css-extract-plugin");
+var webpack = require("webpack");
+var VueLoaderPlugin = require("vue-loader/lib/plugin");
+require("dotenv").config();
+
+var outputFont = "fonts/[name]-[hash:12].[ext]";
+var outputImage = "images/[name]-[hash:12].[ext]";
+
+/**
+ * 从 entryManager 动态获取当前活跃的 entry
+ * webpack 每次 invalidate 重编译时都会重新调用此函数
+ */
+function getDynamicEntry() {
+  try {
+    // 使用 require 获取已缓存的 entryManager 导出
+    // devServer.mjs 会将 getActiveEntries 挂载到全局
+    if (global.__getActiveEntries) {
+      return global.__getActiveEntries();
+    }
+  } catch (_) {
+    //
+  }
+  // 启动时无活跃 entry，返回空对象（webpack 允许空 entry）
+  return {};
+}
+
+var vueModuleRule = {
+  test: /\.vue$/,
+  loader: [
+    {
+      loader: "vue-loader",
+      options: {
+        loaders: {
+          ts: {
+            loader: "ts-loader",
+            options: {
+              transpileOnly: true,
+              onlyCompileBundledFiles: true,
+            },
+          },
+          js: {
+            loader: "babel-loader",
+            options: {
+              plugins: [
+                "jsx-v-model",
+                ["transform-runtime", { polyfill: false }],
+              ],
+              presets: ["es2015", "stage-0"],
+            },
+          },
+        },
+      },
+    },
+  ],
+};
+
+// 开发模式下支持 vuetool（Vue DevTools 源码位置注入）
+if (process.env.vuetool === "true") {
+  vueModuleRule.loader.push({
+    loader: require.resolve("./injectFilePathVueLoader/index.js"),
+  });
+}
+
+/** @type {import('webpack').Configuration} */
+module.exports = {
+  mode: "development",
+
+  // 函数式 entry：每次重编译时动态获取最新活跃入口
+  entry: getDynamicEntry,
+
+  devtool: "#inline-source-map",
+
+  resolve: {
+    extensions: [".js", ".jsx", ".vue", ".ts"],
+    modules: [path.resolve(__dirname, "node_modules"), "node_modules"],
+  },
+
+  // 本地开发模式不设置 externals，让 webpack 直接将 Vue 打包进去
+  // 生产环境通过 webpack.config.js 使用 externals: { vue: 'Vue' }，由服务端提供全局 Vue
+  externals: { vue: "Vue" },
+
+  output: {
+    path: path.join(__dirname, "/dist/page/"),
+    publicPath: "/dist/page/",
+    filename: "[name].pack.js",
+    chunkFilename: "[name]-chunk.[chunkhash:12].js",
+  },
+
+  optimization: {
+    minimizer: [],
+  },
+
+  plugins: [
+    new MiniCssExtractPlugin({ filename: "[name].css" }),
+    // 进度插件：将编译进度通过全局回调暴露给 devServer.mjs
+    new webpack.ProgressPlugin(function (percentage, message) {
+      if (global.__onWebpackProgress) {
+        global.__onWebpackProgress(percentage, message);
+      }
+    }),
+  ],
+
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        loader: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          "postcss-loader",
+          "sass-loader",
+          {
+            loader: "sass-resources-loader",
+            options: { resources: variablesPath },
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        loader: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif)$/,
+        loader: "url-loader",
+        options: { limit: 1, name: outputImage },
+      },
+      {
+        test: /\.(svg|eot|ttf|woff2?)$/,
+        loader: "url-loader",
+        options: { limit: 1, name: outputFont },
+      },
+      {
+        test: /\.(js|jsx|es6)$/,
+        include: [path.resolve(__dirname, "src")],
+        loader: "babel-loader?cacheDirectory",
+        query: {
+          presets: ["es2015", "stage-0"],
+        },
+      },
+      {
+        test: /\.ts/,
+        loader: "ts-loader?cacheDirectory",
+        options: {
+          transpileOnly: true,
+          onlyCompileBundledFiles: true,
+        },
+      },
+      vueModuleRule,
+    ],
+  },
+};
+```
+
+`package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "node ./scripts/dev-server.js"
+  }
 }
 ```
 

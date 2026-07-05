@@ -204,10 +204,68 @@ export default defineConfig({
             { text: "首页", link: "/blog/index-page" },
             { text: "程序员和英语", link: "/blog/programer-and-english" },
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
-            { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
             {
-              text: "`ps`咋获取进程命令行参数的？",
-              link: "/blog/ps-how-to-get-args",
+              text: "系统编程相关（System Programming）",
+              collapsed: false,
+              items: [
+                { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
+                {
+                  text: "`ps`咋获取进程命令行参数的？",
+                  link: "/blog/ps-how-to-get-args",
+                },
+                {
+                  text: "进程——问题清单",
+                  link: "/blog/process_question",
+                },
+                {
+                  text: "System Program with C",
+                  link: "/blog/system-program-with-c",
+                },
+                {
+                  text: "与二进制文件打交道",
+                  link: "/blog/talk-to-executable",
+                },
+                {
+                  text: "函数调用ABI",
+                  link: "/blog/call-abi",
+                },
+                {
+                  text: "Talk about pthread",
+                  link: "/blog/pthread",
+                },
+                {
+                  text: "并发编程的一些零碎概念",
+                  link: "/blog/concurrent-concept",
+                },
+                {
+                  text: "百万并发？并发连接数上限怎么估计？",
+                  link: "/blog/concurrent-links",
+                },
+                {
+                  text: "协程-用C语言实现",
+                  link: "/blog/coroutine",
+                },
+                {
+                  text: "隧道、加速器和VPN——tunnel技术",
+                  link: "/blog/tunnel-tech",
+                },
+                {
+                  text: "Terminal的魔法",
+                  link: "/blog/terminal-io",
+                },
+                {
+                  text: "Kilo, Text Editor",
+                  link: "/blog/terminal-kilo",
+                },
+                {
+                  text: "coreutils解读",
+                  link: "/blog/core-utils",
+                },
+                {
+                  text: "Tokio框架简介",
+                  link: "/blog/tokio",
+                },
+              ],
             },
             { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
             {
@@ -233,18 +291,6 @@ export default defineConfig({
             {
               text: "tsconfig的魔鬼——module和moduleResolution",
               link: "/blog/module-and-moduleResolution",
-            },
-            {
-              text: "进程——问题清单",
-              link: "/blog/process_question",
-            },
-            {
-              text: "并发编程的一些零碎概念",
-              link: "/blog/concurrent-concept",
-            },
-            {
-              text: "百万并发？并发连接数上限怎么估计？",
-              link: "/blog/concurrent-links",
             },
             {
               text: "亮瞎你的眼——HDR图片",
@@ -291,14 +337,6 @@ export default defineConfig({
               link: "/blog/git-explanation",
             },
             {
-              text: "Terminal的魔法",
-              link: "/blog/terminal-io",
-            },
-            {
-              text: "Kilo, Text Editor",
-              link: "/blog/terminal-kilo",
-            },
-            {
               text: "对立统一的一点看法",
               link: "/blog/conflict-thought",
             },
@@ -329,10 +367,6 @@ export default defineConfig({
             {
               text: "浏览器加载资源小结",
               link: "/blog/browser-download-resource",
-            },
-            {
-              text: "coreutils解读",
-              link: "/blog/core-utils",
             },
             {
               text: "fucking webpack concept",
@@ -371,32 +405,8 @@ export default defineConfig({
               link: "/blog/rust-binary-is-big",
             },
             {
-              text: "与二进制文件打交道",
-              link: "/blog/talk-to-executable",
-            },
-            {
-              text: "函数调用ABI",
-              link: "/blog/call-abi",
-            },
-            {
-              text: "协程-用C语言实现",
-              link: "/blog/coroutine",
-            },
-            {
-              text: "System Program with C",
-              link: "/blog/system-program-with-c",
-            },
-            {
-              text: "隧道、加速器和VPN——tunnel技术",
-              link: "/blog/tunnel-tech",
-            },
-            {
               text: "Hardware you should Know",
               link: "/blog/hardware",
-            },
-            {
-              text: "Talk about pthread",
-              link: "/blog/pthread",
             },
             {
               text: "How to Write Interpreter",
@@ -439,6 +449,14 @@ export default defineConfig({
               link: "/blog/h3",
             },
             {
+              text: "限流算法简介",
+              link: "/blog/limiter",
+            },
+            {
+              text: "Rust版本红黑树",
+              link: "/blog/rb-tree",
+            },
+            {
               text: "博客文章阅读系列",
               collapsed: true,
               items: [
@@ -457,35 +475,35 @@ export default defineConfig({
               ],
             },
             {
-              text: 'vue系列',
+              text: "vue系列",
               collapsed: true,
               items: [
                 {
-                  text: '虚拟节点',
-                  link: '/blog/vue-around/vnode'
+                  text: "虚拟节点",
+                  link: "/blog/vue-around/vnode",
                 },
                 {
-                  text: '响应式系统',
-                  link: '/blog/vue-around/reactivity'
+                  text: "响应式系统",
+                  link: "/blog/vue-around/reactivity",
                 },
                 {
-                  text: 'Vue Instance',
-                  link: '/blog/vue-around/vueInstance'
+                  text: "Vue Instance",
+                  link: "/blog/vue-around/vueInstance",
                 },
                 {
-                  text: 'Vue SFC Compiler',
-                  link: '/blog/vue-around/sfc-compiler'
+                  text: "Vue SFC Compiler",
+                  link: "/blog/vue-around/sfc-compiler",
                 },
                 {
-                  text: '水合与SSR',
-                  link: '/blog/vue-around/hydrate'
+                  text: "水合与SSR",
+                  link: "/blog/vue-around/hydrate",
                 },
                 {
-                  text: 'Vue Devtools',
-                  link: '/blog/vue-around/devtools'
-                }
-              ]
-            }
+                  text: "Vue Devtools",
+                  link: "/blog/vue-around/devtools",
+                },
+              ],
+            },
           ],
         },
       ],
@@ -589,6 +607,7 @@ export default defineConfig({
         { text: "开发者", link: "/links/personal" },
         { text: "在线技术文档", link: "/links/document" },
         { text: "好文共赏", link: "/links/great-articles" },
+        { text: "github宝藏仓库", link: "/links/github" },
         { text: "other source", link: "/links/other-source" },
       ],
     },

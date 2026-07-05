@@ -43,8 +43,21 @@ aside: true
 如果你对直播技术、抖音、小红书、b 站等等技术话题感兴趣，可以看看
 
 ## oi wiki
+
 [前往](https://oi-wiki.org/ds/bplus-tree/)
 
-介绍众多数据结构的博客网站，比如笛卡尔树、替罪羊树、左偏红黑树、B++树、B树、线段树、划分树等等。
+介绍众多数据结构的博客网站，比如笛卡尔树、替罪羊树、左偏红黑树、B++树、B 树、线段树、划分树等等。
+
+## Algorithms for Competitive Programming
+
+[前往](https://cp-algorithms.com/)
+
+介绍竞赛用的算法，是学习算法的一个宝藏网址
+
+## Superlinear Academy
+
+[前往](https://www.superlinear.academy/c/share-your-insights/)
+
+AI Coding 交流平台，分享自己的 AI Coding 成果
 
 <Giscus />

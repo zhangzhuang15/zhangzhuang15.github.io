@@ -5,7 +5,8 @@ aside: true
 ---
 
 # Description
-向NB者学习，感觉自己也NB起来🫠
+
+向 NB 者学习，感觉自己也 NB 起来 🫠
 
 ## Niko Matsakis
 
@@ -13,8 +14,8 @@ aside: true
 
 <LoadingPreviewCard url="https://smallcultfollowing.com/babysteps/categories/" />
 
-**Niko Matsakis** 是 Rayon （一个Rust并行运算库）的作者。在他的个人网站上，分享了不少技术博客，
-记录了不少设计思路、问题思考，主要是 Rust 方面。如果你是Rust的爱好者，不容错过。
+**Niko Matsakis** 是 Rayon （一个 Rust 并行运算库）的作者。在他的个人网站上，分享了不少技术博客，
+记录了不少设计思路、问题思考，主要是 Rust 方面。如果你是 Rust 的爱好者，不容错过。
 
 ## antfu.me
 
@@ -71,44 +72,50 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 **Redis 之父**，网页内容很简练，写了他个人的基本情况，值得留意的是他
 留下的 code 理解，参会记录。
 
+[antirez 的博客](https://antirez.com/latest/0)
+
 ## Dmitry Vyukov
+
 [前往](https://www.1024cores.net/home/about-me)
 
 <LoadingPreviewCard url="https://www.1024cores.net/home/about-me" />
 
-在阅读crossbeam无锁queue代码实现时，在其注释里发现的这位老哥，是一个聚焦**多核并行无锁编程算法**
+在阅读 crossbeam 无锁 queue 代码实现时，在其注释里发现的这位老哥，是一个聚焦**多核并行无锁编程算法**
 的专家，你可以到他的个人网站上看看他给出的无锁编程算法实现，非常有价值。
 
 对了，这老哥是俄罗斯人，数学、算法方面的能力就不用多说了。
 
+## Joel Spolsky
 
-##  Joel Spolsky
 [前往](https://www.joelonsoftware.com/category/reading-lists/rock-star-developer/)
 
-逛github的时候，无意间发现的一个软件工程师，他的博客写了很多软件方面的基础，
+逛 github 的时候，无意间发现的一个软件工程师，他的博客写了很多软件方面的基础，
 简单易懂，读起来不干，偏调侃语气，很有意思，读完他的文章，真得很受启发。
 
 ## Robert C. Martin
+
 [前往](https://blog.cleancoder.com/uncle-bob/2023/01/19/functional-classes-clojure.html)
 
 知名的 Uncle Bob.
 
 不知道这个网站是不是他的博客，反正很多文章都是他写的，关于函数式编程的文章占比很多，
-代码片段以java示例为主。
+代码片段以 java 示例为主。
 
 ## Andreas Kling
+
 [前往](https://github.com/awesomekling)
 
-一位经历过戒毒的大神，手撕操作系统、浏览器内核、js执行引擎等等刁钻技术内容，最擅长c++。
+一位经历过戒毒的大神，手撕操作系统、浏览器内核、js 执行引擎等等刁钻技术内容，最擅长 c++。
 他没有自己的博客文章，但是会在 youtube 上分享视频，记录项目开发过程。
 
-
 ## Richard Stevens
+
 [前往](http://www.kohala.com/start/)
 
-传奇人物，著作有《Unix环境高级编程》、《Unix网络编程： 第一卷套接口API》、《TCP/IP详解卷1协议》等
+传奇人物，著作有《Unix 环境高级编程》、《Unix 网络编程： 第一卷套接口 API》、《TCP/IP 详解卷 1 协议》等
 
 ## Jeff Preshing‘s Blog (Preshing Program)
+
 [前往](https://preshing.com/)
 
 `C++` `Python` `system programing` `assemble` `concurrent programing`
@@ -116,6 +123,7 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 介绍很多系统编程、汇编语言、cpu、并发方面的技术，关注于较底层的开发内容。如果你有相关方面的疑问，不妨去他的网站上看看，没准儿就找到答案了。
 
 ## yushuanhsieh
+
 [前往](https://yushuanhsieh.github.io/)
 
 `operate system` `firmware` `embedded system` `c` `system programming` `go taibei`
@@ -123,8 +131,15 @@ Redux 的维护者之一，redux 相关知识问答及博客分享
 一个来自台湾的女性开发者（如果她的头像是本人的话），她开始做的前端开发，一年后，做的后端开发，大概维持了两年，之后就很突然，她就从事硬件工程师的岗位，目前她就职台积电，硬件和软件通吃。很难想象，一个女性开发者集硬件和软件于一体。
 
 ## swiftrocks
+
 [前往](https://swiftrocks.com/blog)
 
 Bruno Rocha's personal website. He focus on swift development. If you wanna learn more about ios/swift, you'd better take a look. For example, he wrote a blog introducing the underhood of `async/await`. Unlike an application developer, he also provides PR to swiftlang repo, `#unavailable` is his workout.
+
+## Evan Wallace
+
+[前往](https://madebyevan.com/)
+
+esbuild 之父的官网，介绍很多硬货项目，有难度、不枯燥
 
 <Giscus />

@@ -4,27 +4,32 @@ page: true
 aside: true
 ---
 
-# libuv学习笔记 
+# libuv 学习笔记
 
 ## Queue
-- stream-write-queue 
-- stream-read-queue 
+
+- stream-write-queue
+- stream-read-queue
 - stream-write-completed-queue
 - loop-pending_queue
 - loop-watcher_queue
 
-什么时机往这些队列加入节点，每个节点的cb函数是否拥有同样的入参数签名？
+什么时机往这些队列加入节点，每个节点的 cb 函数是否拥有同样的入参数签名？
 
-## Handles 
-- loop-closing-handles 
-- loop-timer-heap 
+## Handles
+
+- loop-closing-handles
+- loop-timer-heap
 - uv_timer-timer_cb
 
-## event loop 
-- uv__io_poll(i.g. epoll, kqueue)
+## event loop
+
+- uv\_\_io_poll(i.g. epoll, kqueue)
 
 ## Example
+
 This code is from `docs/code/cgi/main.c` in libuv source codebase.
+
 ```c
 void on_new_connection(uv_stream_t *server, int status) {
     if (status == -1) {
@@ -59,6 +64,7 @@ int main() {
     return uv_run(loop, UV_RUN_DEFAULT);
 }
 ```
+
 So, what happened ?
 
 First, create `loop` instance, a C struct;
@@ -66,6 +72,7 @@ First, create `loop` instance, a C struct;
 Second, call `uv_tcp_init`, bind `loop` and `server`, `server->loop` can access `loop`;
 
 Third, call `uv_listen`, let's say in detail:
+
 1. `server` has `io_watcher` property, which saves fd, expected event and callback. In other words, if we get expected event, we will invoke callback with fd as its argument.
 2. `loop` add `io_watcher` to its `watchers` property, which is a dynamic array.And `server`'s fd is used as the index of `watchers`.
 3. invoke `listen` system call, server is running.
@@ -75,3 +82,7 @@ Fourth, call `uv_run`, we get into event loop. In event loop, we will call `uv__
 Finally, if `loop` finds its watchers or timers are empty, or force-exit-flag is true, it will break out event loop, and our process exits.
 
 Conclusion: when we call `uv_` API, we will register a watcher to `loop` instance, watcher can tell `loop` fd, event and callback, every time `loop` traps into `uv__io_poll`, it will grasp what event is happened and which fd is active, then it will take callback from its `watchers`, and invoke callback with the active fd.
+
+## Other Tutorials
+
+[mcollina/skills](https://github.dev/mcollina/skills/blob/main/skills/nodejs-core/SKILL.md): introduce event loop from internal sight of nodejs, help you dive into libuv, nodejs or v8 deeply. The author is core contributor.
