@@ -319,7 +319,7 @@ class VNode {
   // 也可以是vue组件的名字：“app"
   tag?: string
   // 与vue组件有关的属性，都会存储在这个字段中，
-  // 比如 keep-alive, v-show, transition,
+  // 比如 keep-alive, v-show, transition, slot,
   // props, attrs, className, style, hook等等
   // 
   // hook就是函数。有vue内部的hook, 比如根据vnode创建vm的hook,
@@ -441,6 +441,268 @@ hydrate和客户端渲染本质上一样。客户端渲染的时候，我们只�
 <image src="/vue2-hydrate-3.png" style="width: 700px" />
 
 至此水合结束。
+
+## slot 
+客户端渲染和水合的整体流程已经清楚了，而vue组件渲染缺少了一个细节——插槽（slot）。针对下面的代码, `span`被`div`包裹，是`div`的子节点：
+```vue 
+<template>
+  <div class="main">
+    <span>hello</span>
+  </div>
+</template>
+```
+
+如果把`div`变成一个vue组件，`span`就是vue组件的插槽内容：
+```vue 
+<template>
+  <app-root>
+    <span>hello</span>
+  </app-root>
+</template>
+```
+
+`span`会出现在`app-root`组件内的什么位置，由`app-root`定义：
+```vue 
+<template>
+  <div class="container">
+    <div class="header">
+      <slot name="header" />
+    </div>
+    <div class="content">
+      <slot />
+    </div>
+  </div>
+</template>
+```
+这个例子中，`<span>`会插入到`<slot />`的位置。如果想插入到`<slot name="header" />`的位置，应该这样写：
+```vue 
+<template>
+  <app-root>
+    <span v-slot:header>hello</span>
+  </app-root>
+</template>
+```
+
+实际上，上述结构被编译之后，render方法会返回这样的vnode:
+```ts 
+const vnode = {
+  tag: "app-root",
+  componentOptions: {
+    Ctor: AppRoot,
+  },
+  children: [
+    {
+      tag: 'span',
+      data: {
+        slot: "header"
+      },
+      children: [
+        { text: "hello"}
+      ]
+    }
+  ]
+}
+```
+
+当渲染这个vnode的时候，会为之创建vm, vm会收集这些slot:
+```ts
+vm.$slots = {
+  header: [
+    {
+      tag: 'span',
+      data: {
+        slot: 'header'
+      },
+      children: [
+        { text: 'hello' }
+      ]
+    }
+  ]
+}
+```
+
+接下来，vm执行vm._render得到vnode2:
+```ts 
+const vnode2 = {
+  tag: "div",
+  data: {
+    attrs: {
+      class: "container",
+    }
+  },
+  children: [
+    {
+      tag: 'div',
+      data: {
+        attrs: {
+          class: "header"
+        }
+      },
+      children: normalizeChildren([vm.renderSlot("header")])
+    },
+    {
+      tag: 'div',
+      data: {
+        attrs: {
+          class: "content"
+        }
+      },
+      children: normalizeChildren([vm.renderSlot("default")])
+    }
+  ]
+}
+
+vm.renderSlot = (name: string) => {
+  const slots = vm.$slots;
+  return slots[name]
+}
+```
+
+`normalizeChildren`会将`[[vnode1], vnode2]` 拉平为`[vnode1, vnode2]`, 最终结果就是：
+```ts 
+const vnode2 = {
+  tag: "div",
+  data: {
+    attrs: {
+      class: "container",
+    }
+  },
+  children: [
+    {
+      tag: 'div',
+      data: {
+        attrs: {
+          class: "header"
+        }
+      },
+      children: [
+        {
+          tag: 'span',
+          data: {
+            slot: 'header'
+          },
+          children: [
+            { text: 'hello' }
+          ]
+        }
+      ]
+    },
+    {
+      tag: 'div',
+      data: {
+        attrs: {
+          class: "content"
+        }
+      },
+      children: null
+    }
+  ]
+}
+```
+
+此时就消除了`slot`的概念，转化为常规的vnode，照常渲染即可。
+
+## scoped slot 
+scoped slot 比 slot 更高级。
+
+```vue 
+<template>
+  <div class="container">
+    <slot v-bind:info="userInfo"></slot>
+  </div>
+</template>
+<script>
+export default {
+  name: "app-root",
+  data: {
+    userInfo: { age: 10, name: "Jack" }
+  }
+}
+</script>
+```
+
+```vue 
+<template>
+  <div>
+    <app-root>
+      <template v-slot:default="appRootBindProps">
+        {{ appRootBindProps.info.name }}
+      </template>
+    </app-root>
+  </div>
+</template>
+```
+`slot`的标记`v-bind:info="userInfo"`, `info` 是 key, `userInfo` 是值，我们只用`v-bind`建立了一个键值对，只能得到`{info: userInfo }`的对象，而`appRootBindProps`就是这个对象的引用。我门使用`appRootBindProps.info.name` 得到的就是 `Jack` 了。
+
+实际上外层组件中`<app-root>`的vnode:
+```ts 
+const vnode = {
+    tag: "app-root",
+    componentOptions: {
+      Ctor: AppRoot,
+    },
+    data: {
+      scopedSlots: {
+        "default": {
+          key: "default",
+          // 如果<template v-slot:default="{ info }"> 这么写，
+          // appRootBindProps 也就同步换成 { info } 了，这个
+          // 是 vue compiler 在 code generate 的结果，简单讲
+          // 生成的代码就是一堆字符串，直接做了字符替换，将“appRootBindProps”字符串替换为“{ info }”
+          //
+          // 可想而知，vue里边的一些看似黑魔法的表达方式，都要遵循
+          // js语法，就是因为这些表达方式被vue compiler处理后，
+          // 会被塞入到生成好的js代码上下文里
+          fn: (appRootBindProps) => {
+            const node = {
+              tag: 'template',
+              data: {
+                slot: "default"
+              },
+              children: [appRootBindProps.info.name]
+            }
+            return node;
+          },
+        }
+      }
+    }
+}
+```
+
+`app-root`是vue组件类型的vnode，为它创建vm, 然后`vm.$scopedSlots = vnode.data.scopedSlots`, 执行 vm._render, 生成vnode2:
+```ts 
+const vnode2 = {
+  tag: "div",
+  children: normalizeChildren(vm.renderSlot("default", { info: vm.userInfo })),
+}
+
+vm.renderSlot = (slotName, slotProps) => {
+  const scopeSlot = vm.$scopedSlots[slotName]
+  const scopeSlotFn = scopeSlot.fn
+  return scopeFn(slotProps)
+}
+
+// normalizeChildren会处理[[vnodeA], vnodeB]的情况，
+// 铺平为 [vnodeA, vnodeB], 也会将 vnodeA 处理为 [vnodeA]
+```
+
+最终vnode2的结果：
+```ts 
+
+const vnode2 = {
+  tag: 'div',
+  children: [
+    {
+      text: ["Jack"]
+    }
+  ]
+}
+
+// 这里去掉了 tag: "template"，是因为vue有特殊处理，
+// 这种情况返回 tag: "template" 的子vnode, 也就是
+// { text: ["Jack"] } 
+```
+
 
 ## 源码位置梳理
 上面虽然讲清楚了渲染过程，但并没有说明对应的是源码哪些代码，因此这里针对一些关键点，给出源码位置，方便读者自行深入理解。
