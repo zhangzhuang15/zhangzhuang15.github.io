@@ -206,7 +206,7 @@ export default defineConfig({
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             {
               text: "系统编程相关（System Programming）",
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
                 {
@@ -266,6 +266,22 @@ export default defineConfig({
                   link: "/blog/tokio",
                 },
               ],
+            },
+            {
+              text: "vue系列",
+              collapsed: false,
+              items: [
+                {
+                  text: 'vue2',
+                  collapsed: false,
+                  items: [
+                    {
+                      text: '渲染',
+                      link: '/blog/vue-around/vue2/vnode-render-patch'
+                    }
+                  ]
+                }
+              ]
             },
             { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
             {
