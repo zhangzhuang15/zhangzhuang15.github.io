@@ -558,6 +558,8 @@ vm.renderSlot = (name: string) => {
 }
 ```
 
+`renderSlot`源码：`src/core/instance/render-helpers/render-slot.ts#renderSlot`
+
 `normalizeChildren`会将`[[vnode1], vnode2]` 拉平为`[vnode1, vnode2]`, 最终结果就是：
 ```ts 
 const vnode2 = {
@@ -702,6 +704,196 @@ const vnode2 = {
 // 这种情况返回 tag: "template" 的子vnode, 也就是
 // { text: ["Jack"] } 
 ```
+`renderSlot`源码：`src/core/instance/render-helpers/render-slot.ts#renderSlot`
+> renderSlot的调用，以及函数入参，是 vue compiler 在解析
+> 完 template 代码块之后，自动生成的。
+
+## async component 
+上边已经解释了常规的组件如何渲染，现在我们聊聊异步组件async component怎么渲染。
+
+如果你经常使用`vue-router`，你会非常熟悉。前端路由拆分出来的组件，并不会直接被引用，而是通过`import`引入：
+```ts 
+import UserInfo from "../pages/UserInfo.vue"
+const routes = [
+  {
+    path: "/user",
+    // 同步引入，component就是一个组件class定义
+    component: UserInfo
+  },
+  {
+    path: "/shop",
+    // 异步引入，component是一个函数
+    component: () => import("../pages/Shop.vue"),
+  }
+]
+```
+
+这样处理后，`UserInfo`的代码被打包到输出的入口文件entry.js；而`Shop`的代码会单独打包到一个chunk.js的文件, 在代码运行的时候，透过`import`函数发送http请求拉取这个文件，可以减少entry.js的体积。
+
+`vue-router`之所以能够这样做，在vue框架里一定是有依据的。
+
+```vue 
+<template>
+  <div class="main">
+    <app-root />
+  </div>
+</template>
+<script>
+  export default {
+    components: {
+      AppRoot: () => import("./components/AppRoot.vue")
+    }
+  }
+</script>
+```
+这种注册vue组件的写法并不常见，这个时候`<app-root />`对应的vnode是这个样子：
+```ts 
+const vnode = {
+  tag: "app-root",
+  componentOptions: {
+    Ctor
+  }
+}
+```
+与普通vue组件的区别，在于 `Ctor` 不是固定值，每次渲染的时候，都要动态计算出来，接下来就看看`Ctor`的计算流程：
+```ts 
+const rawCtor = () => import("./components/AppRoot.vue");
+
+function resolveCtor() {
+  let Ctor = rawCtor;
+
+  // vue允许用户提供一个错误的时候应该展示的组件，这个组件
+  // 会被绑定到 Ctor.errorComp 上。这个我们后边会提到
+  if (isTrue(Ctor.error) && isDefine(Ctor.errorComp)) {
+    return Ctor.errorComp;
+  }
+
+  if (isDefine(Ctor.resolved)) {
+    return Ctor.resolved;
+  }
+
+  if (isTrue(Ctor.loading)) {
+    return Ctor.loadingComp;
+  }
+
+  // 未来加载出来的vue组件class，就用这个方法捕获
+  const resolve = (componentOrModule) => {
+    if (isESModule(componentOrModule)) {
+      Ctor.resolved = componentOrModule.default;
+      return;
+    }
+    Ctor.resolved = componentOrModule;
+    // 异步加载好了，令用到 Ctor 的父组件，强制重新渲染一次
+    // 那么在下一次渲染的时候，resolveCtor会
+    // 被重新执行一次，直接返回 Ctor.resolved
+    forceRender();
+  }
+
+  const reject = (reason) => {
+    if (isDefine(Ctor.errorComp)) {
+      Ctor.error = true;
+      // 令用到 Ctor 的父组件，强制重新渲染一次，
+      // 那么在下一次渲染的时候，resolveCtor会
+      // 被重新执行一次，就可以检测到 Ctor.error 
+      // 是 true，直接返回 Ctor.errorComp
+      forceRender();
+    }
+  }
+
+  // 执行结果有两种风格，第一种是返回Promise,
+  // 也就是我们开头举的例子，还有一种是让用户
+  // 可以自定义发生错误或者加载中，应该展示哪个
+  // 组件class定义：
+  // Ctor = () => ({
+  //   component: import("./components/AppRoot.vue"),
+  //   error: ErrorComponent,
+  //   loading: LoadingComponent,
+  // })
+  const res = Ctor(resolve, reject);
+
+  if (isObject(res)) {
+    
+    if (isPromise(res)) {
+      // 这里说明，上一步执行 Ctor 的时候，resolve没有执行
+      if (isUndefine(Ctor.resolved)) {
+        res.then(resolve, reject)
+      }
+    }
+
+    else if (isPromise(res.component)) {
+      res.component.then(resolve, reject)
+      
+      // 如果用户提供了自定义发生错误时，应该展示哪个组件
+      if (isDefine(res.error)) {
+        Ctor.errorComp = res.error
+      }
+
+      // 如果用户提供了自定义加载中，应该展示哪个组件
+      if (isDeine(res.loading)) {
+        Ctor.loadingComp = res.loading 
+        Ctor.loading = true
+      }
+    }
+  }
+
+  return Ctor.loading ? Ctor.loadingComp : Ctor.resolved
+}
+```
+
+我想你已经清楚了异步组件是怎么一回事儿了吧
+
+源码：`src/core/vdom/helpers/resolve-async-component.ts#resolveAsyncComponent`
+
+## component "is" attr 
+异步组件的精髓在于动态计算`Ctor`，里边还夹杂着http请求。而下边代码的本质，也在于动态计算`Ctor`：
+```vue 
+<template>
+  <div class="main">
+    <component :is="animal" />
+  </div>
+</template>
+<script>
+  import Dog from "./components/Dog.vue"
+  import Cat from "./components/Cat.vue"
+
+  export default {
+    components: {
+      Dog,
+      Cat
+    },
+    data: {
+      animal: "dog"
+    }
+  }
+</script>
+```
+
+`<component />` 对应的vnode是这个样子：
+```ts 
+const vnode = {
+  tag: 'dog',
+  data: {
+    is: "dog"
+  },
+  componentOptions: {
+    Ctor
+  }
+}
+
+// tag不会是 component，因为 data.is 已经表明
+// 这个 vnode 绑定了 :is 属性，data.is 的值
+// 就是 tag 
+```
+
+同样需要动态计算`Ctor`，还好，这个计算非常简单：
+```ts 
+function resolveCtor() {
+  // 这里的vm指的是 <component /> 父组件对应的vue实例
+  return vm.$options.components[vnode.data.is];
+}
+```
+
+源码： `src/core/vdom/create-element.ts#_createElement,line64`
 
 
 ## 源码位置梳理
