@@ -5,7 +5,11 @@ aside: true
 ---
 
 # Vue2 
-使用vue2.7.14版本的源码介绍vue2。
+使用vue2.7.14版本的源码介绍vue2, 对应的commit id: 49b6bd4264c25ea41408f066a1835f38bf6fe9f1
+
+```shell
+git clone git@github.com:vuejs/vue.git
+```
 
 vue2相对vue3来说封装得更简单，更好结合代码理解思路。
 

@@ -278,6 +278,10 @@ export default defineConfig({
                     {
                       text: '渲染',
                       link: '/blog/vue-around/vue2/vnode-render-patch'
+                    },
+                    {
+                      text: '生命周期函数',
+                      link: '/blog/vue-around/vue2/lifecycle-hook'
                     }
                   ]
                 }
