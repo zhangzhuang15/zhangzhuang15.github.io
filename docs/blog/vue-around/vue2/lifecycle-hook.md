@@ -239,7 +239,11 @@ vm.$destroy()
       vm执行destroyed  <----------------------------                                      
 
 ```
-这也解释了父组件和子组件的执行顺序
+这也解释了父组件和子组件的执行顺序。
+
+那么`vm.$destroy`什么时候调用呢？
+1. 用户主动调用
+2. 新vnode变成null时，在patch阶段被vue框架调用
 
 ## setup 
 这是vue后来加入的新特性，你可以自定义`setup()`或者使用`<script setup></script>`编写代码，后者会被编译器转为`setup()`方法，最终存储在`vm.$options.setup`。

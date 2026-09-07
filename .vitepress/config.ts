@@ -282,6 +282,10 @@ export default defineConfig({
                     {
                       text: '生命周期函数',
                       link: '/blog/vue-around/vue2/lifecycle-hook'
+                    },
+                    {
+                      text: '响应式系统',
+                      link: '/blog/vue-around/vue2/reactive-system'
                     }
                   ]
                 }
