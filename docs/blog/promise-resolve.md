@@ -670,26 +670,6 @@ Torque 编译之后会得到机器码，减少了 js 和 cpp 之间互调的开�
 延迟现象有关，很抱歉，我当初就是这么想的，但实际上，`deferred`关键字只是告诉编译器，被`deferred`修饰的代码块
 被执行的概率很小，可以在编译的时候做优化，和延迟执行没有关系。
 
-## snippets
-
-可能你平时都是这么用的:
-
-```js
-const t = Promise.resolve(100);
-new Promise((resolve) => {
-  t.then((v) => resolve(v));
-});
-```
-
-实际上，这也是一样的：
-
-```js
-const t = Promise.resolve(100);
-new Promise((resolve) => {
-  t.then(resolve);
-});
-```
-
 ## ECMA标准解读
 [ECMAScript 标准](https://tc39.es/ecma262/#sec-hostcalljobcallback)，接下来我们根据该标准，讲一下Promise有关的API都做了什么事情。
 
@@ -834,6 +814,99 @@ new Promise((resolve) => {
 等效于 `Promise.prototype.then(undefined, onReject)`
 
 [标准中Promise.prototype.catch的定义](https://tc39.es/ecma262/#sec-promise.prototype.catch)
+
+### `Promise.resolve`
+`Promise.resolve(A)`:
+1. A是否为Promise对象
+2. A是Promise对象，直接返回A
+3. 创建如下的对象B
+   ```ts 
+   const B = {
+    promise: null,
+    resolve: null,
+    reject: null,
+   }
+   B.promise = new Promise((resolve, reject) => {
+      B.resolve = resolve;
+      B.reject = reject;
+   })
+   ```
+4. 执行 `B.resolve(A)`
+5. 返回 `B.promise`
+
+[标准中Promise.resolve的定义](https://tc39.es/ecma262/#sec-promise.resolve)
+
+## snippets 
+有了以上的解释，下边的代码就好理解了。
+
+```ts 
+let a: Promise | Object | Function;
+async function hello() {
+  return a
+}
+
+// 等效于 
+function hello() {
+  return new Promise((resolve) => resolve(a))
+}
+```
+
+```ts 
+let a: Promise 
+
+Promise.resolve(a).then(() => {})
+
+// 等效于 
+a.then(() => {})
+```
+
+
+```ts 
+Promise.resolve({ then: (r) => r(1)}).then(v => console.log(v));
+
+Promise.resolve(2).then(v => console.log(v)).then(() => console.log(3));
+
+/**
+ * 分析一下上边的代码。
+ * 
+ * Promise.resolve({ then: (r) => r(1)}) 等效于 
+ * new Promise(resolve => resolve({ then: (r) => r(1) }))
+ * 发现resolve的入参是一个带then方法的函数，于是将函数
+ * () => ({ then: r => r(1)}).then(resolve)
+ * 加入到微任务队列，不妨称上述函数为fn1, 此时微任务队列：[fn1]
+ * 
+ * 同时Promise.resolve({ then: (r) => r(1)})是pending状态，
+ * 则then(v => console.log(v))中的函数先保存在promise身上，
+ * 这个函数不妨称为 fn2: v => console.log(v)
+ * 
+ * Promise.resolve(2)返回的是一个fulfilled状态的promise, 
+ * then(v => console.log(v))中的函数要立即加入到微任务队列，
+ * 不妨称这个函数为 fn3: v => console.log(v).
+ * 
+ * Promise.resolve(2).then(v => console.log(v))返回的promise是
+ * pending状态，函数fn4: () => console.log(3) 暂时保留在promise身上
+ * 
+ * 微任务队列：[fn1, fn3]
+ * 
+ * 宏任务执行完毕，执行微任务
+ * 
+ * 先执行 fn1, Promise.resolve({ then: (r) => r(1)}) 
+ * 变成 fullfilled, 将 fn2 立即加入到微任务队列： [fn3, fn2]
+ * 
+ * 接着执行 fn3, 有输出了 output: [2], 同时
+ * Promise.resolve(2).then(v => console.log(v))
+ * 变成 fulfilled, 将 fn4 立即加入到微任务队列：[fn2, fn4]
+ * 
+ * 执行 fn2, 有输出了 output: [2, 1]
+ * 
+ * 执行 fn4, 有输出了 output: [2,1,3]
+ * 
+ * 最终输出结果：
+ * 2
+ * 1
+ * 3
+ */
+```
 
 ## 参考
 

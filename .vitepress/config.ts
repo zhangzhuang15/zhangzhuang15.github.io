@@ -286,6 +286,10 @@ export default defineConfig({
                     {
                       text: '响应式系统',
                       link: '/blog/vue-around/vue2/reactive-system'
+                    },
+                    {
+                      text: '任务队列调度',
+                      link: '/blog/vue-around/vue2/queue'
                     }
                   ]
                 }
