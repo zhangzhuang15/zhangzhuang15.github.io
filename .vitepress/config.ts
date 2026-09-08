@@ -290,6 +290,10 @@ export default defineConfig({
                     {
                       text: '任务队列调度',
                       link: '/blog/vue-around/vue2/queue'
+                    },
+                    {
+                      text: "vue3风格的函数式api",
+                      link: "/blog/vue-around/vue2/vue3-api-wrapper",
                     }
                   ]
                 }
@@ -331,10 +335,6 @@ export default defineConfig({
             {
               text: "React梳理",
               link: "/blog/react",
-            },
-            {
-              text: "vue2梳理",
-              link: "/blog/vue2",
             },
             {
               text: "浩叔语录",

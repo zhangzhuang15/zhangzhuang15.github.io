@@ -895,6 +895,40 @@ function resolveCtor() {
 
 源码： `src/core/vdom/create-element.ts#_createElement,line64`
 
+## ref 
+vue提供了ref的方式，可以允许用户访问DOM节点或者vue实例
+
+```vue 
+<template>
+ <div>
+  <app-header ref="appHeader"></app-header>
+  <div ref="content"></div>
+ </div>
+</template>
+<script>
+export default {
+  methods: {
+    visit() {
+      const childVm = this.$refs['appHeader']
+      const divNode = this.$refs['content']
+    }
+  }
+}
+</script>
+```
+
+原理在于`vnode.data.ref`会存储“appHeader”、“content”这样的值, 同时`vnode.componentInstance`可以获取到vm, `vnode.elm` 可以获取到DOM节点，这样在渲染的时候，就可以把这些值赋值到`vm.$refs`：
+```ts 
+vm.$refs['appHeader'] = vnode1.componentInstance
+vm.$refs['content'] = vnode2.elm
+```
+
+`vnode.data.ref` 还有可能是 `ref` api 创建的响应式变量, 处理起来略有不同：
+```ts 
+vnode.data.ref.value = vnode.componentInstance || vnode.elm
+```
+
+源码： `src/core/vdom/modules/template-ref.ts#registerRef`
 
 ## 源码位置梳理
 上面虽然讲清楚了渲染过程，但并没有说明对应的是源码哪些代码，因此这里针对一些关键点，给出源码位置，方便读者自行深入理解。
@@ -928,3 +962,17 @@ function resolveCtor() {
 `render: (h) => h(App)` 的`h`函数：`src/core/vdom/create-element.ts#createElement, line27`
 
 创建vue组件类型的vnode：`src/core/vdom/create-component.ts#createComponent,line101`
+
+按照vnode.data里记录的值，更新DOM节点：
+- 更新attrs: `src/platforms/web/runtime/modules/attrs.ts`
+- 更新class: `src/platforms/web/runtime/modules/class.ts`
+- 更新style: `src/platforms/web/runtime/modules/style.ts`
+- 更新props: `src/platforms/web/runtime/modules/dom-props.ts`
+- 更新事件函数： `src/platforms/web/runtime/modules/events.ts`
+- 更新transition阶段的样式： `src/platforms/web/runtime/modules/transition.ts`
+> 这些都按照'create', 'activate', 'update', 'remove', 'destroy'的钩子函数管理，这些函数会在patchVnode的时候调用，比如
+> 根据vnode创建DOM节点后，会调用 'create' 钩子函数处理vnode，
+> 新老vnode在patch阶段，在patch它们的子vnode之前，会使用'update'钩子函数处理新老vnode
+> 根据老vnode删除DOM节点后，会调用“remove”, "destroy"钩子函数处理老vnode 
+> 当组件因为keepAlive从新被挂载时，会用"activate"钩子函数处理这个组件对应的vnode
+> 上述钩子函数的注册位置：`src/core/vdom/patch.ts,line72`
