@@ -294,6 +294,10 @@ export default defineConfig({
                     {
                       text: "vue3风格的函数式api",
                       link: "/blog/vue-around/vue2/vue3-api-wrapper",
+                    },
+                    {
+                      text: "内部工具",
+                      link: "/blog/vue-around/vue2/inner-tools",
                     }
                   ]
                 }
