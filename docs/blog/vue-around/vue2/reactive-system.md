@@ -161,6 +161,7 @@ class Observer {
   constructor(obj, shallow: boolean) {
     // 与 defineReactive一样，先准备一个 Dep
     this.dep = new Dep();
+    this.value = obj;
 
     // 定义 __ob__, 防止 obj 重复响应式化
     def(obj, "__ob__", this);
@@ -191,6 +192,65 @@ class Observer {
   }
 }
 ```
+
+## set 和 del
+了解过上边的响应式变量实现，你会发现`Object.defineProperty`有个缺陷，就是给obj增加新的属性，或者删除已有的属性，无法监听这一行为，也就无法触发DepTarget执行。
+
+为此vue2提供了`set` 和 `del` api解决。
+
+```ts 
+function set(obj, key, value) {
+  if (isArray(obj)) {
+    obj.splice(key, 1, value)
+    return value
+  }
+
+  if (key in obj && !(key in Object.prototype)) {
+    obj[key] = value 
+    return value
+  }
+
+  const ob = obj.__ob__ 
+
+  // obj不是响应式对象
+  if (isUndef(ob)) {
+    obj[key] = value 
+    return value
+  }
+  
+  // 定义新的响应式属性
+  defineReactive(ob.value, key, value, undefined, ob.shallow)
+  // 因为新增了一个属性，这里强制触发DepTarget执行，可以避免新属性
+  // 没能收集依赖的问题
+  ob.dep.notify()
+  return value
+}
+```
+源码: `src/core/observer/index.ts#set,line222`
+
+```ts 
+function del(obj, key) {
+  if (isArray(obj)) {
+    obj.splice(key, 1)
+    return
+  }
+
+  // key 不是 obj 的属性
+  if (!hasOwn(obj, key)) return 
+
+  delete obj[key]
+
+  const ob = obj.__ob__ 
+
+  // obj不是响应式对象
+  if (isUndef(ob)) return
+
+  // obj是响应式对象，少了一个属性，需要让
+  // DepTarget得到执行，感知到这种变化
+  ob.dep.notify()
+}
+```
+源码：`src/core/observer/index.ts#del,line282`
 
 ## 组件的 prop, data 如何被响应式处理
 prop值会被 `defineReactive` 处理，使得每个属性都是响应式的，然后通过 `Object.defineProperty`的代理方式，让vm可以直接访问这些属性；
