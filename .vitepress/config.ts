@@ -203,7 +203,6 @@ export default defineConfig({
           items: [
             { text: "首页", link: "/blog/index-page" },
             { text: "程序员和英语", link: "/blog/programer-and-english" },
-            { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             {
               text: "系统编程相关（System Programming）",
               collapsed: true,
@@ -304,9 +303,14 @@ export default defineConfig({
                       link: '/blog/vue-around/vue2/ssr'
                     }
                   ]
-                }
+                },
+                {
+                  text: "使用vue遇到的一些坑",
+                  link: "/blog/vue-around/vue-apply",
+                },
               ]
             },
+            { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
             {
               text: "不懂代码有可能是少了一篇论文",
@@ -453,10 +457,6 @@ export default defineConfig({
               link: "/blog/javascriptcore",
             },
             {
-              text: "使用vue遇到的一些坑",
-              link: "/blog/vue-apply",
-            },
-            {
               text: "crossbeam 学习笔记",
               link: "/blog/crossbeam-learning-notes",
             },
@@ -507,36 +507,6 @@ export default defineConfig({
                 {
                   text: "Rust",
                   link: "/blog/blog-reading/rust-program",
-                },
-              ],
-            },
-            {
-              text: "vue系列",
-              collapsed: true,
-              items: [
-                {
-                  text: "虚拟节点",
-                  link: "/blog/vue-around/vnode",
-                },
-                {
-                  text: "响应式系统",
-                  link: "/blog/vue-around/reactivity",
-                },
-                {
-                  text: "Vue Instance",
-                  link: "/blog/vue-around/vueInstance",
-                },
-                {
-                  text: "Vue SFC Compiler",
-                  link: "/blog/vue-around/sfc-compiler",
-                },
-                {
-                  text: "水合与SSR",
-                  link: "/blog/vue-around/hydrate",
-                },
-                {
-                  text: "Vue Devtools",
-                  link: "/blog/vue-around/devtools",
                 },
               ],
             },
