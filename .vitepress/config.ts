@@ -298,6 +298,10 @@ export default defineConfig({
                     {
                       text: "内部工具",
                       link: "/blog/vue-around/vue2/inner-tools",
+                    },
+                    {
+                      text: '服务端渲染',
+                      link: '/blog/vue-around/vue2/ssr'
                     }
                   ]
                 }
