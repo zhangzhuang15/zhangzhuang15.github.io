@@ -133,6 +133,8 @@ function streamUser(res) {
 }
 ```
 
+在将每个vnode转化为DOM字符串的时候，vue2使用了`有限状态机`的范式，其实现简洁也很有趣：`packages/server-renderer/src/render-context.ts, line75`。它使用一个动态数组维护状态state，每次处理的时候，都是从数组pop一个state出来，根据state的情形，执行计算，当发生状态转移时，只需要创建一个新的state，push到数组里即可。
+
 ## 从构建的角度梳理下全过程
 准备客户端代码`client-entry.ts`:
 ```ts 

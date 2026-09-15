@@ -264,6 +264,10 @@ export default defineConfig({
                   text: "Tokio框架简介",
                   link: "/blog/tokio",
                 },
+                {
+                  text: "rust编译出来的executable file比cpp大？",
+                  link: "/blog/rust-binary-is-big",
+                },
               ],
             },
             {
@@ -301,6 +305,10 @@ export default defineConfig({
                     {
                       text: '服务端渲染',
                       link: '/blog/vue-around/vue2/ssr'
+                    },
+                    {
+                      text: 'vue编译器',
+                      link: '/blog/vue-around/vue2/compiler'
                     }
                   ]
                 },
@@ -439,10 +447,6 @@ export default defineConfig({
             {
               text: "learn zig",
               link: "/blog/learning-zig",
-            },
-            {
-              text: "rust编译出来的executable file比cpp大？",
-              link: "/blog/rust-binary-is-big",
             },
             {
               text: "Hardware you should Know",
