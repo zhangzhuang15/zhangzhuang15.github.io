@@ -1007,13 +1007,13 @@ var render = function render() {
 }
 ```
 而vue loader会再增加导出语句：
-```ts 
+```ts [example.ts] {6}
 var render = function render() {
   var _vm = this, _c=_vm._self._c
   return _c("div", {}, [_vm.userName])
 }
 
-export { render } // [!code highlight]
+export { render }
 ```
 把这样的内容返回给webpack.源码位置：`lib/loaders/templateLoader.js`
 
@@ -1048,7 +1048,7 @@ exports = module.exports = {
 ```
 
 `style-loader`处理后交给webpack的代码大概是：
-```ts 
+```ts
 var content = require("!!css-loader!./index.css");
 
 // 创建style标签，把css塞进去
@@ -1063,7 +1063,7 @@ module.exports = {};
 ```
 
 `style-loader`参与处理，webpack真实的产物：
-```ts 
+```ts
 // 运行时获取css loader的产物
 const css = __webpack_require__(1); // [!code highlight]
 const styleEl = document.createElement("style");

@@ -1,7 +1,9 @@
 import DefaultTheme from "vitepress/theme";
 import type { App } from "vue";
 import { h } from "vue";
+import TwoslashFloatingVue from '@shikijs/vitepress-twoslash/client';
 import "./custom.css";
+import '@shikijs/vitepress-twoslash/style.css';
 import Giscus from "./components/Giscus.vue";
 import LoadingPreviewCard from "./components/LoadingPreviewCard.vue";
 import MemoryBoard from "./components/MemoryBoard.vue";
@@ -28,5 +30,8 @@ export default {
     app.component("TipIcon", TipIcon);
     app.component("AvatarCard", ColorFulCard);
     app.component("Card", Card);
+ 
+    // @ts-ignore
+    app.use(TwoslashFloatingVue);
   },
 };

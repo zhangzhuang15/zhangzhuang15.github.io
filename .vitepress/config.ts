@@ -1,5 +1,8 @@
 import { defineConfig } from "vitepress";
+import { transformerTwoslash } from "@shikijs/vitepress-twoslash";
+// @ts-ignore
 import MarkdownItContainer from "markdown-it-container";
+import mdPluginFenceTitle from "./markdownItPlugin/fenceFileName";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -315,6 +318,10 @@ export default defineConfig({
                 {
                   text: "使用vue遇到的一些坑",
                   link: "/blog/vue-around/vue-apply",
+                },
+                {
+                  text: 'slidev',
+                  link: '/blog/vue-around/slidev'
                 },
               ]
             },
@@ -673,6 +680,7 @@ export default defineConfig({
   },
 
   markdown: {
+    math: true,
     config(md) {
       // 添加自定义的container容器
       md.use(MarkdownItContainer, "card", {
@@ -758,6 +766,13 @@ export default defineConfig({
           }
         },
       });
+
+      md.use(mdPluginFenceTitle)
     },
+    codeTransformers: [
+      // @ts-ignore
+      transformerTwoslash()
+    ]
+    
   },
 });
