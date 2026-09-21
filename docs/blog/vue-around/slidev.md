@@ -34,6 +34,8 @@ slidev基于rough notation技术，可以让你用手写涂鸦的方式，给文
 
 你可能会问，`svg`需要设置宽和高么？答案是需要设置，但这个并不重要，给出一个初始设置就可以了，比如宽和高都是`100px`。如果下划线的位置太低，从`svg`的区域中跑出去了怎么办呢？方法也简单，给`svg`设置`overflow: visible`就可以了。
 
+你还会问到，页面表现出来的是一个动画，其实只需要给`svg`内的`path`加入一个统一的`@keyframes`动画即可，不同的`path`设置不同的延迟开始时间和动画持续时间，就能有动画效果了。
+
 ### 轮廓线的计算
 我们知道, 编写`<path>`里的绘制指令非常麻烦，难道画线条、画圈要我们手搓么？
 
@@ -210,3 +212,27 @@ const span = document.createElement("span")
 // 刷上不同的背景颜色了
 const rects = span.getClientRects()
 ```
+
+
+## @vueuse/motion 
+slidev内置了motion功能，用户可以直接使用`v-motion`的vue directive。
+
+motion意为动作，`v-motion-fade`为淡化效果，你给dom节点加入这个vue指令后，就会自动加入淡化动作。而底层，就是依靠`@vueuse/motion`实现。
+
+如果让你去实现这种状态动画，要怎么实现呢？最简单的方式就是利用`transition` css属性。给dom节点加入`transition`属性，指定好过渡时间，然后变更目标属性就可以，目标属性一定是关乎dom节点的位置或者可见性，比如`left` `transform` `opacity`。
+
+这个方案的缺陷很明显，就是太多定制化，你要手动给目标dom节点设置`transition`属性，变更目标属性。
+
+更灵活的方式，就是把这些工作全部变成js代码执行。
+
+`@vueuse/motion`给出的解决方案是这样的：
+1. 为dom节点定义好响应式变量，当响应式变量更新，自动更新dom节点的目标属性
+2. 使用`popmotion`，获取时间调度的能力，当被调度的时候，更改响应式变量。并不用设置`transition`属性，直接用js实现了等效的过渡时间风格控制
+   > `popmotion`的时间调度能力依赖`framesync`, 它基于`window.requestAnimationFrame`, 按照`ease in` `ease out` `spring`的时间特点，发起调度。使用者只需要关心调度的时候，要做什么，比如修改dom节点的left css属性，选定`ease in`的时间调度方式，这样就能实现dom节点按照`ease in`的节奏发生水平方向的移动动画。
+
+
+- [popmotion源码](https://github.com/Popmotion/popmotion)
+  
+- [@vueuse/motion源码](https://github.com/vueuse/motion/tree/main)
+
+- [@vueuse/motion官网](https://motion.vueuse.org)

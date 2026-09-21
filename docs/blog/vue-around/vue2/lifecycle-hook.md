@@ -90,7 +90,8 @@ function patch(oldVnod, vnode) {
   createElm(vnode)
 
   // vnode执行insert hook函数，这个函数是vue内部维护的，
-  // 在这个hook里会执行 mounted 函数
+  // 在这个hook里会执行 mounted 函数.
+  // 并不是组件vm.$el插入到parentElement后就立即调用mounted函数!
   invokeInsertHook(vnode);
   return vnode.elm
 }

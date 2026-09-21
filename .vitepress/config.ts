@@ -323,6 +323,10 @@ export default defineConfig({
                   text: 'slidev',
                   link: '/blog/vue-around/slidev'
                 },
+                {
+                  text: 'vue router',
+                  link: '/blog/vue-around/vue-router'
+                },
               ]
             },
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
@@ -616,6 +620,7 @@ export default defineConfig({
         { text: "misc", link: "/tool/misc" },
         { text: "arm指令清单", link: "/tool/arm" },
         { text: "CMake", link: "/tool/cmake-tool" },
+        { text: 'mathjax语法', link: "/tool/math-programmar"}
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
