@@ -329,6 +329,7 @@ export default defineConfig({
                 },
               ]
             },
+            { text: "markdown-it", link: "/blog/markdown-it" },
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
             {
