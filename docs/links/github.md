@@ -191,3 +191,87 @@ esbuild 之父用 cpp 编写的一个自制语言的解释器
 [前往](https://github.com/zhangzhuang15/tabby.git)
 
 typescript 实现的终端模拟器
+
+## cloudflare/quiche
+
+QUIC 传输协议与 HTTP3 的实现
+
+[前往](https://github.com/cloudflare/quiche)
+
+## sharkdp/fd
+
+find 命令的简洁快速替代品
+
+[前往](https://github.com/sharkdp/fd)
+
+## surrealdb/surrealdb
+
+可扩展分布式文档图数据库
+
+[前往](https://github.com/surrealdb/surrealdb)
+
+## jesseduffield/lazygit
+
+Git 命令简洁终端 UI
+
+[前往](https://github.com/jesseduffield/lazygit)
+
+## fatedier/frp
+
+NAT 穿透快速反向代理工具
+
+[前往](https://github.com/fatedier/frp)
+
+## voocel/ainovel-cli
+
+多 agent 全自动 AI 小说生成
+
+[前往](https://github.com/voocel/ainovel-cli)
+
+## JCodesMore/ai-website-cloner-template
+
+一行命令用 AI 克隆任意网站
+
+[前往](https://github.com/JCodesMore/ai-website-cloner-template)
+
+## every-app/open-seo
+
+开源 SEO 分析替代方案
+
+[前往](https://github.com/every-app/open-seo)
+
+## jamiepine/voicebox
+
+开源 AI 语音工作室克隆配音
+
+[前往](https://github.com/jamiepine/voicebox)
+
+## BuilderIO/agent-native
+
+构建原生智能体应用框架
+
+[前往](https://github.com/BuilderIO/agent-native)
+
+## DeusData/codebase-memory-mcp
+
+高性能代码智能 MCP 服务器
+
+[前往](https://github.com/DeusData/codebase-memory-mcp)
+
+## php/php-src
+
+php 解释器源码
+
+[前往](https://github.com/php/php-src)
+
+## tmux/tmux
+
+tmux 终端复用器
+
+[前往](https://github.com/tmux/tmux)
+
+## calesthio/OpenMontage
+
+开源 AI 智能视频制作系统
+
+[前往](https://github.com/calesthio/OpenMontage)

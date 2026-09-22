@@ -106,3 +106,35 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
   `
 }
 ```
+
+[markdown-it开发者文档](https://markdown-it.github.io/markdown-it/documents/Architecture.html)
+
+[markdown-it源码](https://github.com/markdown-it/markdown-it/tree/3c51991c32aaa2b002a52c009334ebe5752c84b3)
+
+## markdown-it的工作方式
+markdown-it会接收markdown的内容——1个很长的字符串。然后，按照换行符号，分割成若干行，记录每一行的首、尾字符偏移量，通过偏移量就可以确定每一行的内容。
+
+接下来，按照 block rules 在先，inline rules在后，按行处理。这也就是说，如果某个行无法匹配 block rules时，就会使用 inline rules处理。
+
+属于block范畴的有：
+- `paragraph`
+- `list`
+- `heading`
+- `fence`
+- `code`
+- `table`
+- `blockquote`
+- `reference`
+- `hr`
+- `html block`
+
+属于inline范畴的有：
+- `link`
+- `text`
+- `image`
+- `enphasis`
+- `newline`
+
+这样的处理顺序是有道理的，毕竟，行内元素一般嵌套在块级元素之中，就应该从外到内处理，先解析块级元素，再解析行内元素。
+
+经过处理之后，就会得到tokens。接下来，使用对应的renderer规则，将token转为html片段，拼接起来，就是最终渲染的结果了。
