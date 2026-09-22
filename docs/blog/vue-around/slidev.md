@@ -236,3 +236,54 @@ motion意为动作，`v-motion-fade`为淡化效果，你给dom节点加入这�
 - [@vueuse/motion源码](https://github.com/vueuse/motion/tree/main)
 
 - [@vueuse/motion官网](https://motion.vueuse.org)
+
+## magic-move 
+slidev为代码片段提供了magic-move的功能，就是一段代码动画过渡到另一段代码，这中间会看到相同的代码行发生移动，很酷。
+
+其内部实现，还是依靠css的transition功能。
+
+前期准备工作，创建一个dom节点作为container，代码片段之后就加入它里边。再创建一个`position: absolute; top: 0; left: 0` 的span节点，作为container的第一个节点。span节点作用是当作一个锚点，代码行的dom节点可以通过span节点的位置，计算出它自己相对container的top和left有多少距离。
+
+首先，新、老代码对比，双方都有的代码行的dom节点存入move数组，不出现在新代码里的老代码行的dom节点存入leave数组，所有新代码的代码行的dom节点存入newChildren里。新代码中有，老代码里没有的，放入enter数组。
+
+之后，使用`container.replaceChildren(spanNode, ...newChildren, ...leave)`，实现新代码替换旧代码。
+
+等等，新代码都在`newChildren`里，为什么还要有`leave`？因为我们即将对`leave`里的代码行加入离开动画，需要它们不能直接被删除。
+
+为move里的代码行的dom节点，加入过渡属性。用`el.getBoundingClientRect()`读取它们最新的位置，然后计算出与旧位置的差距（旧位置是提前计算好存储起来的），之后使用`transform: translate`把它们重新调整到旧位置。因为移动动画要求节点从旧位置开始。
+
+处理leave里的代码行的dom节点。将这些节点设置为`position: absolute`，然后在设置left和top属性，把它们调整到旧位置。因为离开动画要求节点从旧位置开始。
+
+处理enter里的代码行的dom节点。为它们设置好预先的class，让它们处于`opacity: 0`的状态。因为enter内的代码行是新建的，应该执行淡入动画效果。
+
+处理container。伴随着内部节点的变化，container的size也发生了变化，这种变化也需要过渡动画。因此，应该将container当前的width和height设置为旧尺寸。
+
+读取`document.body.offsetHeight`。这一步非常精妙，意图是主动触发浏览器reflow。我们在修改节点位置后，浏览器并不会立即重新计算布局，而是等到当前宏任务执行之后再执行。而transition动画的精髓在于，**当前页面处于状态A，然后被修改成状态B，浏览器计算A和B之间的差距，加入差值过渡**。这一步就是要浏览器重新布局渲染，使页面强行进入状态A。这一步执行后，我们上述的节点修改，才会在页面里看到效果。
+
+接下来我们要做的就是把页面状态改成B。
+
+最开始的动画，一定是container的resize动画。只需要将container的尺寸重新设置为新尺寸即可。
+
+接下来，是移动动画。只需要把move里每个dom节点的`transform`属性设置为空字符串即可。
+
+然后是离开动画。只需要将leave里的每个dom节点设置`opacity: 0`。
+
+最后就是进入动画。将enter里的每个dom节点设置`opacity: 1`。
+
+状态B已经设置好了。但我们还要考虑删除leave里的dom节点。删除的时机肯定是等浏览器完成过渡动画之后。这个时机的计算方法：
+```ts 
+let move: Element[]
+let enter: Element[]
+let leave: Element[]
+
+const promises = [...move, ...enter, ...leave].map(el => {
+  const promises = el.getAnimations().map(animation => animation.finished)
+  return Promise.allSettled(promises)
+})
+
+Promise.all(promises).then(() => {
+  removeLeaveNodes() // [!code highlight]
+})
+```
+
+[magic-move的核心代码](https://github.com/shikijs/shiki/blob/main/packages/magic-move/src/renderer.ts)
