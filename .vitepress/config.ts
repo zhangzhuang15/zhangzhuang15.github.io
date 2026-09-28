@@ -327,6 +327,10 @@ export default defineConfig({
                   text: 'vue router',
                   link: '/blog/vue-around/vue-router'
                 },
+                {
+                  text: 'vitepress',
+                  link: '/blog/vue-around/vitepress'
+                }
               ]
             },
             { text: "markdown-it", link: "/blog/markdown-it" },
