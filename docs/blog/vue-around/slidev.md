@@ -287,3 +287,75 @@ Promise.all(promises).then(() => {
 ```
 
 [magic-move的核心代码](https://github.com/shikijs/shiki/blob/main/packages/magic-move/src/renderer.ts)
+
+## twoslash
+slidev使用了twoslash, 可以做到给fence块（```开头、结尾的）内的ts代码加入类型检测、api文档hover提示框。我没有直接看slidev源码如何搞的，不过vitepress里边可以做到这点。
+
+[twoslash官网](https://twoslash.netlify.app/guide/install)
+
+[shiki官网介绍如何在vitepress使用twoslash](https://shiki.style/packages/vitepress):
+```ts [.vitepress/config.ts]
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash' // [!code highlight]
+import { defineConfig } from 'vitepress'
+
+export default defineConfig({
+  markdown: {
+    codeTransformers: [
+      transformerTwoslash() // [!code highlight]
+    ],
+    // Explicitly load these languages for types highlighting
+    languages: ['js', 'jsx', 'ts', 'tsx']
+  }
+})
+```
+
+```ts [.vitepress/theme/index.ts]
+import type { EnhanceAppContext } from 'vitepress'
+import TwoslashFloatingVue from '@shikijs/vitepress-twoslash/client' // [!code highlight]
+import Theme from 'vitepress/theme'
+
+import '@shikijs/vitepress-twoslash/style.css'
+
+export default {
+  extends: Theme,
+  enhanceApp({ app }: EnhanceAppContext) {
+    app.use(TwoslashFloatingVue) // [!code highlight]
+  },
+}
+```
+
+vitepress在内部处理markdown文件时，依赖`markdown-it`。`markdown-it`会将markdown的内容转换成一个一个token，再将每个token转换成html片段。对于fence块的token, 它的content就是代码片段，`markdown-it`如果发现用户提供了highlight工具，就会把代码片段交给这个工具，直接转换html片段。
+
+vitepress就基于`shiki`提供的`createHighlighter`, 提供了`markdown-it`的higlight选项。
+
+于是就有了这样的处理逻辑，`markdown-it`把fence块内的代码片段交给`shiki`的highlighter处理。
+
+`shiki`的 highlighter 会将代码片段转成tokens, 再将tokens转成hast，最后将hast转成html片段。
+
+`codeTransformers`的 `transformerTwoslash()` 就是设置 highlighter的行为，具体地说：
+1. 注册`preprocess`函数，处理代码片段。在这个步骤，使用了`twoslash`的功能，收集ts代码的类型信息、文档提示信息。
+2. 注册`tokens`函数，将`shiki`已经拆分好的token, 按照twoslash收集到的信息，继续做拆分。
+3. 注册`code`函数，将`shiki`根据token转换出来的hast node，做进一步处理，植入floating vue组件库的组件标签
+
+经过上述步骤之后，生成的html片段里，就加入了floating vue组件库的组件和twoslash提供的信息，再经过vite vue plugin处理后，floating vue组件库里的hover提示窗组件就会被激活，就能展示ts文档信息和类型信息了。
+
+所以你可以理解，第二个代码片段里，为什么要` app.use(TwoslashFloatingVue)`, 不加入这个东西，vitepress就找不到 floating vue 组件库的各个组件定义。
+
+接下来，说下`shiki`已经提供了token, 为什么还要根据twoslash做拆分。
+
+看这个代码片段：
+```ts 
+let 1abfdf = 10;
+```
+
+`shiki`处理之后，会得到这样的一个token: `{ content:"1abfdf" }`, 但twoslash会告诉我们，这里有语法错误，`1`不能作为变量名的开头，那么，我们就应该对数字1在渲染的时候，做特殊助理，比如换个颜色什么的，因此，我们需要把刚才的token拆成两个：
+-  `{ content: "1", color: "red" }`
+-  `{ content: "abfdf", color: "normal" }`
+  
+
+那twoslash如何获取到ts代码片段的信息呢？答案是利用typescript的languageService API的能力，它可以检测ts代码片段有哪些错误，还能提供补全提示信息，还能提供api文档说明信息:
+- `getQuickInfoAtPosition` 提供文档说明 
+- `getCompletionsAtPosition` 提供补全信息 
+- `getSemanticDiagnostics` 提供语义诊断信息
+- `getSyntacticDiagnostics` 提供语法诊断信息
+
