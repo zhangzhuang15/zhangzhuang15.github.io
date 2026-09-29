@@ -337,7 +337,7 @@ vitepress就基于`shiki`提供的`createHighlighter`, 提供了`markdown-it`的
 2. 注册`tokens`函数，将`shiki`已经拆分好的token, 按照twoslash收集到的信息，继续做拆分。
 3. 注册`code`函数，将`shiki`根据token转换出来的hast node，做进一步处理，植入floating vue组件库的组件标签
 
-经过上述步骤之后，生成的html片段里，就加入了floating vue组件库的组件和twoslash提供的信息，再经过vite vue plugin处理后，floating vue组件库里的hover提示窗组件就会被激活，就能展示ts文档信息和类型信息了。
+经过上述步骤之后，生成的html片段里，就加入了[floating vue组件库](https://floating-vue.starpad.dev)的组件和twoslash提供的信息，再经过vite vue plugin处理后，[floating vue组件库](https://floating-vue.starpad.dev)里的hover提示窗组件就会被激活，就能展示ts文档信息和类型信息了。
 
 所以你可以理解，第二个代码片段里，为什么要` app.use(TwoslashFloatingVue)`, 不加入这个东西，vitepress就找不到 floating vue 组件库的各个组件定义。
 

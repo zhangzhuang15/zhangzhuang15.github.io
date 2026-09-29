@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import * as THREE from 'three'
 import Stats from 'three/addons/libs/stats.module.js'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { OutlineEffect } from 'three/addons/effects/OutlineEffect.js'
 import { MMDLoader } from 'three/examples/jsm/loaders/MMDLoader.js';
 import "ammo.js"
@@ -10,69 +10,127 @@ import "ammo.js"
 const containerRef = ref<HTMLDivElement | null>(null)
 
 onMounted(() => {
-  function loadMMD(scene: THREE.Scene, camera: THREE.Camera) {
+  async function loadMMD(options: {
+    scene: THREE.Scene, 
+    camera: THREE.Camera,
+    effect: OutlineEffect,
+    renderer: THREE.WebGLRenderer,
+  }) {
+    const { scene, camera, effect, renderer } = options
+    const clock = new THREE.Clock()
+    const actionPanel: Map<string, THREE.AnimationAction> = new Map()
+    const actionHutaoDance = "hutao_qiuqiu_ren"
+    let mixer: THREE.AnimationMixer | undefined
+
+
+    function animate() {
+      requestAnimationFrame(animate)
+      const delta = clock.getDelta();
+      mixer?.update(delta);
+      effect.render(scene, camera)
+      
+    }
     const loader = new MMDLoader()
 
-    loader.load(
-      "/models/hutao.pmx",
-      async (mesh) => {
-        mesh.position.y = -10
-        const materials = mesh.material as THREE.Material[]
-        materials.forEach(material => {
-          material.lightMap = material.map
-          material.lightMapIntensity = 5
-          material.shininess = 10
-        })
+    const skinnedMesh = await loader.loadAsync("/models/hutao.pmx")
+    const materials = skinnedMesh.material as THREE.Material[]
+    materials.forEach(material => {
+      const m = material as any
+      m.lightMap = m.map
+      m.lightMapIntensity = 3
+      m.shininess = 1
+    })
+    skinnedMesh.position.y = -10
+    scene.add(skinnedMesh)
 
-        scene.add(mesh)
-
-        function animate() {
-          requestAnimationFrame(animate)
-          effect.render(scene, camera)
+    loader.loadAnimation(
+      "/models/hutao.vmd", 
+      skinnedMesh,
+      (animationClip) => {
+        const clip = animationClip as THREE.AnimationClip
+        mixer = new THREE.AnimationMixer(skinnedMesh)
+        const action = mixer.clipAction(clip);
+        actionPanel.set(actionHutaoDance, action)
+        
+        const playOnce = () => {
+          action.reset()
+          action.paused = false 
+          action.loop = THREE.LoopOnce
+          action.clampWhenFinished = true
+          action.play()
         }
 
-        animate()
-      },
-      async (xhr) => {
-        console.log((xhr.loaded / xhr.total * 100) + '% loadedstore');
-      },
-      function (error) { 
-        console.log('An error happened');
+        playOnce()
+        action.startAt(4)
+        
+        window.addEventListener("keydown", (e) => {
+          if (e.key === 'p' && action.paused) {
+           playOnce()
+          }
+        })
+
+        renderer.domElement.addEventListener("mousemove", () => {
+          if (action.paused) {
+            playOnce()
+          }
+        })
       }
     )
+
+    
+
+    animate()
   }
 
-  const camera = new THREE.PerspectiveCamera(
-    45,
-    containerRef.value!.offsetWidth / containerRef.value!.offsetHeight,
-    1,
-    2000
-  )
-  camera.position.z = 30
+  function createCamera() {
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      containerRef.value!.offsetWidth / containerRef.value!.offsetHeight,
+      1,
+      2000
+    )
+    camera.position.z = 30
+    return camera
+  }
 
-  const scene = new THREE.Scene();
+  function addLightToScene(scene: THREE.Scene) {
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
+    scene.add(ambientLight)
+  
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3)
+    directionalLight.position.set(10, 15, 10)
+    scene.add(directionalLight)
+  }
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.1)
-  directionalLight.position.set(1, 1, 1).normalize()
+  function createRenderer() {
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      alpha: true,
+    })
+    renderer.setClearColor(0x000000, 0)
+    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.setSize(
+      containerRef.value!.offsetWidth, 
+      containerRef.value!.offsetHeight
+    )
+    return renderer
+  }
 
-  scene.add(directionalLight)
+  const scene = new THREE.Scene()
+  addLightToScene(scene)
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setSize(containerRef.value!.offsetWidth, containerRef.value!.offsetHeight)
-
-  containerRef.value!.appendChild(renderer.domElement)
-
+  const renderer = createRenderer()
   const effect = new OutlineEffect(renderer)
 
+  containerRef.value!.appendChild(renderer.domElement)
   const stats = new Stats()
   containerRef.value!.appendChild(stats.dom)
 
-  loadMMD(scene, camera)
+  const camera = createCamera()
+  
 
-  const controls = new OrbitControls(camera, renderer.domElement)
-  controls.minDistance = 10
-  controls.maxDistance = 100  
+ 
+  loadMMD({ scene, camera, effect, renderer })
 })
 </script>
 
@@ -83,8 +141,12 @@ onMounted(() => {
 <style scoped>
 .model-container {
   width: 400px;
-  height: 400px;
+  height: 600px;
   margin: 0 auto;
-  border: 1px solid #ccc;
+  border: none;
+  position: fixed;
+  left: 0;
+  top: 40px;
+  background: transparent;
 }
 </style> 
