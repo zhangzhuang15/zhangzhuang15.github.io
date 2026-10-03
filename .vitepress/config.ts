@@ -333,6 +333,15 @@ export default defineConfig({
                 }
               ]
             },
+            {
+              text: "react系列",
+              collapsed: false,
+              items: [
+                { text: '前言', link: "/blog/react-around/preface" },
+                { text: 'fiber介绍', link: "/blog/react-around/fiber" },
+                { text: "render & commit", link: "/blog/react-around/render-commit" }
+              ]
+            },
             { text: "markdown-it", link: "/blog/markdown-it" },
             { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
