@@ -140,6 +140,133 @@ DOM创建会在render的fiber收尾工作里完成，但是DOM更新和删除，
 
 这便是主体流程的大致内容。
 
+## diff fiber 
+fiber的diff，不是新fiber和老fiber之间的比较，而是老fiber和新reactElement的比较，比较的结果就是创建出新的fiber。
+
+情形一：新reactElement是空的
+<image src="/react-fiber-diff-1.png" style="width: 700px" />
+此时，只需要将fiber1到fiber4加入到`fiber1.return.deletions`，在commit阶段等着删除即可。
+
+情形二：老fiber是空的
+<image src="/react-fiber-diff-2.png" style="width: 700px" />
+此时，只需要根据reactElement1和reactElement2，创建新的fiber，并标记`Placement`的flag，在render阶段每个fiber的收尾工作期间，创建对应的DOM节点。
+
+情形三：老fiber多，new reactElement少
+<image src="/react-fiber-diff-3.png" style="width: 700px" />
+为了尽可能复用老fiber, 从fiber1开始，寻找`fiber1.index <= reactElement.index`的 `reactElement`，如图所示，找到`reactElement1`，但是发现二者的`type`不相等，意味着fiber1无法直接复用。
+
+于是，改为遍历`reactElement`，从老fiber中寻找key值相等的fiber，如果能找到，那么直接复用fiber作为新fiber，把reactElement的信息同步到fiber上，并给fiber打上`Placement`和`Update`的flags, 这样，在commit阶段，就可以调整原有DOM节点的顺序，并更新属性值。
+
+如果找不到，那么就根据reactElement创建新的fiber即可。
+
+在上述方式处理完毕后，old fiber肯定有没有能够复用上的，把这些fiber加入到`fiber1.return.deletions`, 等commit阶段删除即可。
+
+按照我们的例子，reactElement1复用fiber4,reactElement2复用fiber1, fiber2和fiber3删除。
+
+情形四：老fiber少，new reactElement多
+<image src="/react-fiber-diff-4.png" style="width: 700px" />
+与情形三的处理方式一样。old fiber中可能会有没能复用上的，这些fiber会被记录，等着commit阶段删除。而reactElement里肯定有没被处理的，直接根据剩余的reactElement创建出新的fiber，等着commit阶段插入即可。
+
+上述过程来自于`reconcileChildrenArray`, 源码位置：`packages/react-reconciler/src/ReactChildFiber.new.js,line736`
+
+## 简单代码概括commit阶段
+```ts 
+function commitRoot() {
+  // 执行 useEffect 创建的 effect
+  mayFlushPassiveEffect()
+
+  // 执行 useInsertionEffect 创建的 effect；
+  // 执行 DOM 更新、删除、插入
+  commitMutationEffects()
+
+  // 新 fiber 树变成旧fiber树，
+  // fiberRoot.current永远指向老fiber树
+  fiberRoot.current = finishedWork
+
+  // 执行 useLayoutEffect 创建的 effect
+  commitLayoutEffects()
+
+  // 通知调度器，在当前frame结束后中断，留给
+  // 浏览器空隙可以重新绘制页面
+  requestPaint()
+
+  // 安排下一次调度, 执行渲染任务
+  ensureRootIsScheduled()
+
+  // 执行 useEffect 创建的 effect
+  mayFlushPassiveEffect()
+
+  // 执行同步任务，在同步渲染模式下会用到，
+  // 但是在并发渲染模式下，不会用到
+  mayFlushSyncQueue()
+}
+```
+
+## 简单代码概括render阶段
+```ts 
+function performConcurrentRender() {
+  const status = renderRootConcurrent()
+  if (status === RootCompleted) {
+    commitRoot()
+  }
+  else {
+    // 处理其他情况，比如发生错误了，渲染没有完成
+    dealWithOtherCase()
+  }
+
+  // 安排下一次调度执行performConcurrentRender，
+  // 防止本次没有渲染完。这就是我们前边说的，渲染工作
+  // 可以分散到多个宏任务里执行
+  ensureRootIsScheduled()
+  return null
+}
+
+function renderRootConcurrent() {
+  // 准备workInProgress，已经存在就不用准备了
+  mayPrepareFreshStack()
+  do {
+    workLoopConcurrent()
+    break 
+  } while(true)
+}
+
+function workLoopConcurrent() {
+  // 检测到时间片不够时，调度系统会设置有关变量，
+  // 使得shouldYield()返回true,结束本次渲染任务
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
+  }
+}
+
+function performUnitOfWork(unitOfWorkFiber) {
+  // 生成下一个新fiber节点, 这个节点作为
+  // unitOfWorkFiber.child
+  let next = beginWork(unitOfWorkFiber)
+
+  // 说明fiber树已经达到叶子节点了，此时会
+  // 往fiber.sibling和fiber.return的方向
+  // 回溯，发生在completeUnitOfWork
+  if (next === null) {
+    // 回溯，以及render阶段的收尾工作
+    completeUnitOfWork(unitOfWorkFiber)
+  } 
+  else {
+    workInProgress = next
+  }
+}
+```
+
+## `HostComponent`的fiber怎么更新的
+tag值是`HostComponent`的fiber，对应的是DOM节点，因此它是如何更新的，是绝大多数页面更新的场景，有必要说说。
+
+这类fiber在收尾工作阶段，会创建一个特殊的对象`updatePayload`, 这个对象会存储要更新的信息，随后，该对象就会绑定到`fiber.updateQueue`，并给fiber打上`Update`的flag。可见，`updateQueue`的数据结构很灵活，不只有循环队列一种，之后我们讨论`updateQueue`的时候，会详细讨论。
+
+在commit阶段，处理这个fiber的时候，发现有`Update`的flag标记，就会取出`fiber.updateQueue`，得到要更新的信息，将这些信息同步到`fiber.stateNode`，DOM就更新了。
+
+创建`updatePayload`发生在`updateHostComponent`, 源码位置：`packages/react-reconciler/src/ReactFiberCompleteWork.new.js,line252`
+
+commit阶段同步更新的信息，发生在`packages/react-reconciler/src/ReactFiberCommitWork.new.js,line2100`
+
 ## 源码关键位置
 每次调度的入口函数：`performConcurrentWorkOnRoot`, 源码位置：`packages/react-reconciler/src/ReactFiberWorkLoop.new.js, line881`
 

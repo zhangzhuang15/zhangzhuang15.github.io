@@ -18,7 +18,7 @@ git checkout -b learning d20c3af9d11ea4a35bfc76cb44c15af9d42059c4
 我们后边讨论，都以此为准。
 
 后边我们会讨论一下的内容：
-- react的ReactNode和Fiber是什么
+- react的ReactElement和Fiber是什么
 - react是如何基于Fiber Tree完成页面渲染的
 - react hooks的本质是什么，为什么一调用后，页面会更新
 - react里的effects都是什么时候执行的

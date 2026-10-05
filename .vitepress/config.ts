@@ -339,7 +339,9 @@ export default defineConfig({
               items: [
                 { text: '前言', link: "/blog/react-around/preface" },
                 { text: 'fiber介绍', link: "/blog/react-around/fiber" },
-                { text: "render & commit", link: "/blog/react-around/render-commit" }
+                { text: "render & commit", link: "/blog/react-around/render-commit" },
+                { text: "updateQueue和Effect", link: "/blog/react-around/updateQueue" },
+                { text: "hook函数", link: "/blog/react-around/hooks" }
               ]
             },
             { text: "markdown-it", link: "/blog/markdown-it" },
@@ -700,6 +702,9 @@ export default defineConfig({
 
   markdown: {
     math: true,
+    image: {
+      lazyLoading: true
+    },
     config(md) {
       // 添加自定义的container容器
       md.use(MarkdownItContainer, "card", {
