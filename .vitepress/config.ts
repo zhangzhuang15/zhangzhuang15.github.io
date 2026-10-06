@@ -341,7 +341,9 @@ export default defineConfig({
                 { text: 'fiber介绍', link: "/blog/react-around/fiber" },
                 { text: "render & commit", link: "/blog/react-around/render-commit" },
                 { text: "updateQueue和Effect", link: "/blog/react-around/updateQueue" },
-                { text: "hook函数", link: "/blog/react-around/hooks" }
+                { text: "hook函数", link: "/blog/react-around/hooks" },
+                { text: '任务调度', link: "/blog/react-around/scheduler" },
+                { text: "suspense组件和lazy组件", link: "/blog/react-around/suspense" }
               ]
             },
             { text: "markdown-it", link: "/blog/markdown-it" },

@@ -256,6 +256,11 @@ function performUnitOfWork(unitOfWorkFiber) {
 }
 ```
 
+## 与vue的对比
+react在渲染页面是两段式。要把fiber树整体创建出来后，再整体处理一遍DOM。
+
+vue一边生成vnode的时候，就会立即对该vnode对应的DOM做处理。
+
 ## `HostComponent`的fiber怎么更新的
 tag值是`HostComponent`的fiber，对应的是DOM节点，因此它是如何更新的，是绝大多数页面更新的场景，有必要说说。
 
