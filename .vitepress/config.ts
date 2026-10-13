@@ -1,5 +1,8 @@
 import { defineConfig } from "vitepress";
+import { transformerTwoslash } from "@shikijs/vitepress-twoslash";
+// @ts-ignore
 import MarkdownItContainer from "markdown-it-container";
+import mdPluginFenceTitle from "./markdownItPlugin/fenceFileName";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -203,10 +206,9 @@ export default defineConfig({
           items: [
             { text: "首页", link: "/blog/index-page" },
             { text: "程序员和英语", link: "/blog/programer-and-english" },
-            { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             {
               text: "系统编程相关（System Programming）",
-              collapsed: false,
+              collapsed: true,
               items: [
                 { text: "向pm2学习进程管理", link: "/blog/learn-pm2" },
                 {
@@ -265,8 +267,87 @@ export default defineConfig({
                   text: "Tokio框架简介",
                   link: "/blog/tokio",
                 },
+                {
+                  text: "rust编译出来的executable file比cpp大？",
+                  link: "/blog/rust-binary-is-big",
+                },
               ],
             },
+            {
+              text: "vue系列",
+              collapsed: false,
+              items: [
+                {
+                  text: 'vue2',
+                  collapsed: false,
+                  items: [
+                    {
+                      text: '渲染',
+                      link: '/blog/vue-around/vue2/vnode-render-patch'
+                    },
+                    {
+                      text: '生命周期函数',
+                      link: '/blog/vue-around/vue2/lifecycle-hook'
+                    },
+                    {
+                      text: '响应式系统',
+                      link: '/blog/vue-around/vue2/reactive-system'
+                    },
+                    {
+                      text: '任务队列调度',
+                      link: '/blog/vue-around/vue2/queue'
+                    },
+                    {
+                      text: "vue3风格的函数式api",
+                      link: "/blog/vue-around/vue2/vue3-api-wrapper",
+                    },
+                    {
+                      text: "内部工具",
+                      link: "/blog/vue-around/vue2/inner-tools",
+                    },
+                    {
+                      text: '服务端渲染',
+                      link: '/blog/vue-around/vue2/ssr'
+                    },
+                    {
+                      text: 'vue编译器',
+                      link: '/blog/vue-around/vue2/compiler'
+                    }
+                  ]
+                },
+                {
+                  text: "使用vue遇到的一些坑",
+                  link: "/blog/vue-around/vue-apply",
+                },
+                {
+                  text: 'slidev',
+                  link: '/blog/vue-around/slidev'
+                },
+                {
+                  text: 'vue router',
+                  link: '/blog/vue-around/vue-router'
+                },
+                {
+                  text: 'vitepress',
+                  link: '/blog/vue-around/vitepress'
+                }
+              ]
+            },
+            {
+              text: "react系列",
+              collapsed: false,
+              items: [
+                { text: '前言', link: "/blog/react-around/preface" },
+                { text: 'fiber介绍', link: "/blog/react-around/fiber" },
+                { text: "render & commit", link: "/blog/react-around/render-commit" },
+                { text: "updateQueue和Effect", link: "/blog/react-around/updateQueue" },
+                { text: "hook函数", link: "/blog/react-around/hooks" },
+                { text: '任务调度', link: "/blog/react-around/scheduler" },
+                { text: "suspense组件和lazy组件", link: "/blog/react-around/suspense" }
+              ]
+            },
+            { text: "markdown-it", link: "/blog/markdown-it" },
+            { text: "偷师tapable三个技术点", link: "/blog/tapable" },
             { text: "eslint配置再掉坑笔记", link: "/blog/eslint" },
             {
               text: "不懂代码有可能是少了一篇论文",
@@ -303,10 +384,6 @@ export default defineConfig({
             {
               text: "React梳理",
               link: "/blog/react",
-            },
-            {
-              text: "vue2梳理",
-              link: "/blog/vue2",
             },
             {
               text: "浩叔语录",
@@ -401,10 +478,6 @@ export default defineConfig({
               link: "/blog/learning-zig",
             },
             {
-              text: "rust编译出来的executable file比cpp大？",
-              link: "/blog/rust-binary-is-big",
-            },
-            {
               text: "Hardware you should Know",
               link: "/blog/hardware",
             },
@@ -415,10 +488,6 @@ export default defineConfig({
             {
               text: "Explore JavaScriptCore",
               link: "/blog/javascriptcore",
-            },
-            {
-              text: "使用vue遇到的一些坑",
-              link: "/blog/vue-apply",
             },
             {
               text: "crossbeam 学习笔记",
@@ -471,36 +540,6 @@ export default defineConfig({
                 {
                   text: "Rust",
                   link: "/blog/blog-reading/rust-program",
-                },
-              ],
-            },
-            {
-              text: "vue系列",
-              collapsed: true,
-              items: [
-                {
-                  text: "虚拟节点",
-                  link: "/blog/vue-around/vnode",
-                },
-                {
-                  text: "响应式系统",
-                  link: "/blog/vue-around/reactivity",
-                },
-                {
-                  text: "Vue Instance",
-                  link: "/blog/vue-around/vueInstance",
-                },
-                {
-                  text: "Vue SFC Compiler",
-                  link: "/blog/vue-around/sfc-compiler",
-                },
-                {
-                  text: "水合与SSR",
-                  link: "/blog/vue-around/hydrate",
-                },
-                {
-                  text: "Vue Devtools",
-                  link: "/blog/vue-around/devtools",
                 },
               ],
             },
@@ -599,6 +638,7 @@ export default defineConfig({
         { text: "misc", link: "/tool/misc" },
         { text: "arm指令清单", link: "/tool/arm" },
         { text: "CMake", link: "/tool/cmake-tool" },
+        { text: 'mathjax语法', link: "/tool/math-programmar"}
       ],
       "/links": [
         { text: "首页", link: "/links/index-page" },
@@ -663,6 +703,10 @@ export default defineConfig({
   },
 
   markdown: {
+    math: true,
+    image: {
+      lazyLoading: true
+    },
     config(md) {
       // 添加自定义的container容器
       md.use(MarkdownItContainer, "card", {
@@ -748,6 +792,13 @@ export default defineConfig({
           }
         },
       });
+
+      md.use(mdPluginFenceTitle)
     },
+    codeTransformers: [
+      // @ts-ignore
+      transformerTwoslash()
+    ]
+    
   },
 });

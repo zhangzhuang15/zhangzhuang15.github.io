@@ -3,7 +3,7 @@
   src: url("/JetBrainsMonoNL-Bold.ttf");
 }
 
-:root .custom-block-title {
+:root .custom-block-title, :root .vp-code-title {
   color: rgb(136, 145, 236);
 }
 
@@ -70,6 +70,25 @@
 :root .vp-doc strong {
   font-weight: 800;
   color: var(--strong-color);
+}
+
+
+:root .vp-code-block-with-title {
+  background-color: var(--vp-code-block-bg);
+}
+
+/* 代码块标题样式 */
+:root .vp-code-block-with-title .vp-code-title {
+  margin-left: 24px;
+  padding-top: 10px;
+  padding-bottom: 4px;
+  font: 24px bold italic;
+  width: fit-content;
+  border-bottom: 3px solid rgba(136, 145, 236, 0.3);
+}
+
+:root .vp-code-block-with-title div[class*='language-'] {
+  margin-top: 0px;
 }
 
 @media (max-width: 415px), (max-width: 320px) {

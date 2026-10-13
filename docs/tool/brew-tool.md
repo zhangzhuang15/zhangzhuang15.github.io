@@ -230,4 +230,12 @@ pyenv global 2.7.18
 
 [直接从python官网安装](https://www.python.org/downloads/release/python-2718/)
 
+
+## tag 
+```shell 
+brew install tag
+```
+
+以命令行的方式为文件夹加入标签
+
 <Giscus />

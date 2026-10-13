@@ -316,6 +316,11 @@ iframe.html: timeout 3s
 - 普通script
 - 被阻塞的iframe
 
+**使用建议**
+1. 如果script注重前后执行顺序或者有访问DOM节点的需要，使用`defer`, 或者 `type="module"`
+2. 如果script之间没有依赖关系，也不需要访问DOM节点，使用`async`
+
+
 :::tip <TipIcon />
 图片，css文件，音视频，字体文件不会阻塞DOM Tree的解析.
 
