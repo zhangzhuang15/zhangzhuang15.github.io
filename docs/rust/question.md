@@ -2423,4 +2423,24 @@ your-module.rs
 
 2018 edition 之前的老项目，继续使用老模块方式，但是针对新项目，官方推荐使用新模块方式。
 
+## Copy 和 Clone 
+实现Copy的类型，必须实现Clone。
+
+Copy trait描述的是隐式拷贝，栈bit位拷贝（memcpy）。
+
+Clone trait描述的是显式拷贝，用户可以调用`.clone()`方法。
+
+`move`闭包的强制移动语义，不适用于实现Clone的类型。
+
+## Eq 和 PartialEq 
+实现Eq的类型，必须遵循：
+1. `a == a` 
+2. `a == b` 且 `b == c` ，则 `a == c` 
+   
+实现Eq的类型，必须实现 PartialEq， 其`eq`方法的实现，必须实现上述两个原则。
+
+PartialEq 只是部分相等的语义，可以允许`a != a`。
+
+遇到`==`，会调用`.eq()` 方法
+
 <Giscus />
