@@ -1,16 +1,32 @@
 <script setup lang="ts">
-import { NButton, NIcon, NDivider } from "naive-ui";
+import { NButton, NIcon } from "naive-ui";
 import { useData, useRouter } from "vitepress";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
+import {
+    _React as React, _Vue as VueLogo, Nestjs, Python,
+    Go, Javascript, TypescriptIconRound as Typescript, Eslint,
+    TailwindIcon as Tailwind, Prettier, Vite, Vitest, Ansible,
+    DockerIcon as Docker, Nginx, TerraformIcon as Terraform,
+    NextjsIcon as Nextjs, Webpack, Sass, Less, MongodbIcon as Mongodb,
+    Redis, Gin, Pinia, Postcss, Pnpm, Yarn, Bun, AntDesign, Electron,
+    Java, Babel
+} from "@dev.icons/vue";
+import { Rust, Axios, MysqlIcon as Mysql, Stylelint, Kafka } from "@dev.icons/vue/mono";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import MusicIconButton from "./MusicIconButton.vue";
 import MemoryBoard from "./MemoryBoard.vue";
 import CharacterModel from "./CharacterModel.vue";
+
+const LOGOSIZE = 40;
 
 const { isDark } = useData();
 
 const { go } = useRouter();
 
-const borderColor = computed(() => `border-color: ${isDark.value ? "rgba(255, 255, 255, 0.07)": "rgba(0, 0, 0, 0.1)"}`);
+const loadCharacterModel = ref(false);
+
+const borderColor = computed(() => `border-color: ${isDark.value ? "rgba(255, 255, 255, 0.07)" : "rgba(0, 0, 0, 0.1)"}`);
 
 const cardMessages: { title: string; content: string; key: number }[] = [
     {
@@ -37,9 +53,70 @@ const visitMe = () => go("/me/work-experience");
 
 const visitBlog = () => go("/blog/index-page");
 
+gsap.registerPlugin(ScrollTrigger);
+onMounted(() => {
+    const zMaskHeight = document.getElementById("z-mask")?.offsetHeight || 0
+    const tl = gsap.timeline({
+        scrollTrigger: {
+            trigger: "#z-mask",
+            start: "center 56%",
+            end: `+=${zMaskHeight}`,
+            scrub: 0.5,
+            pin: "#z-logo",
+            pinSpacing: false,
+        },
+    });
+    tl.fromTo("#z-logo",
+        { rotate: 180 },
+        { rotate: 0, duration: 2, ease: "power3.inOut" },
+    )
+    tl.fromTo("#z-logo",
+        { scale: 4, opacity: 1 },
+        { scale: 150, opacity: 0, duration: 4 },
+        0.5
+    )
+    tl.to("#z-logo", { scale: 1 })
+
+    tl.fromTo("#intro",
+        { scale: 10, opacity: 0, xPercent: 100, rotate: 125, yPercent: -(Math.random() * 20 + 10 + 100) },
+        { scale: 0.8, opacity: 1, xPercent: 0, rotate: 0, yPercent: 0, duration: 3, ease: "back.inOut" },
+        2.5)
+    tl.to("#intro", { scale: 1.1, ease: "power1.inOut" })
+
+    tl.fromTo(".message-box",
+        { yPercent: 40, opacity: 0 },
+        {
+            yPercent: 0, opacity: 1, ease: "sine.out",
+            stagger: 0.4, onComplete: () => {
+                loadCharacterModel.value = true
+                gsap.to(".tech-logo",
+                    {
+                        opacity: 1,
+                        duration: 1,
+                        ease: "sine.out",
+                        scale: 1,
+                        stagger: {
+                            from: "random",
+                            each: 0.15
+                        },
+                        delay: 0.8
+                    }
+                )
+            }
+        },
+    )
+
+    gsap.set(".tech-logo", { opacity: 0, scale: 0.4 })
+
+
+});
+
 </script>
 <template>
-    <section>
+    <section id="z-mask" class="flex items-center justify-center relative h-screen">
+        <div class="intro-title roll origin-center absolute" id="z-logo">Z</div>
+    </section>
+    <section id="intro">
         <h1 class="text-center intro-title roll">Welcome To</h1>
         <h1 class="text-center intro-title roll">JasonZhang's</h1>
         <h1 class="text-center intro-title roll">Personal Website !</h1>
@@ -47,18 +124,9 @@ const visitBlog = () => go("/blog/index-page");
             <cite>If it's interesting, take a try;</cite>
             <cite>Don't hesitate here and there, take a try.</cite>
         </h3>
-    </section>
 
-    <section class="gap-space">
-        <CharacterModel />
-    </section>
-
-    <section class="gap-space flex flex-evenly">
-        <NButton 
-          type="primary" 
-          icon-placement="right" 
-          @click="() => visitMe()"
-          style="
+        <section class="gap-space flex justify-evenly">
+            <NButton type="primary" icon-placement="right" @click="() => visitMe()" style="
             --n-color: rgb(65, 105, 185);
             --n-color-hover: rgb(65, 105, 255);
             --n-color-pressed: rgb(65, 105, 245);
@@ -68,16 +136,20 @@ const visitBlog = () => go("/blog/index-page");
             --n-border-pressed: 1px solid rgb(65, 105, 245);
             --n-border-focus: 1px solid rgb(65, 105, 245);
             outline: none;
-            "
-        >
-            <template #icon>
-                <NIcon size="18"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 20"><g fill="none"><path d="M9 2c.607 0 1.157.36 1.4.916l2.368 5.41l3.236-.201a1.879 1.879 0 0 1 1.992 1.758L18 10a1.879 1.879 0 0 1-1.879 1.879l-.117-.004l-3.236-.202l-2.367 5.41A1.529 1.529 0 0 1 9 18a.883.883 0 0 1-.883-.883l.002-.055l.703-5.636l-2.458-.154l-1.14 2.28A.809.809 0 0 1 4.5 14a.5.5 0 0 1-.5-.5v-2.376l-1.062-.065A1 1 0 0 1 2 10.06v-.122a1 1 0 0 1 .938-.998L4 8.875V6.5a.5.5 0 0 1 .5-.5c.306 0 .587.173.724.447l1.139 2.28l2.459-.154l-.698-5.58A.883.883 0 0 1 9 2z" fill="currentColor"></path></g></svg></NIcon>
-            </template>
-            快速认识我</NButton>
-        <NButton 
-          type="tertiary" 
-          @click="() => visitBlog()"
-          style="
+            ">
+                <template #icon>
+                    <NIcon size="18"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                            viewBox="0 0 20 20">
+                            <g fill="none">
+                                <path
+                                    d="M9 2c.607 0 1.157.36 1.4.916l2.368 5.41l3.236-.201a1.879 1.879 0 0 1 1.992 1.758L18 10a1.879 1.879 0 0 1-1.879 1.879l-.117-.004l-3.236-.202l-2.367 5.41A1.529 1.529 0 0 1 9 18a.883.883 0 0 1-.883-.883l.002-.055l.703-5.636l-2.458-.154l-1.14 2.28A.809.809 0 0 1 4.5 14a.5.5 0 0 1-.5-.5v-2.376l-1.062-.065A1 1 0 0 1 2 10.06v-.122a1 1 0 0 1 .938-.998L4 8.875V6.5a.5.5 0 0 1 .5-.5c.306 0 .587.173.724.447l1.139 2.28l2.459-.154l-.698-5.58A.883.883 0 0 1 9 2z"
+                                    fill="currentColor"></path>
+                            </g>
+                        </svg></NIcon>
+                </template>
+                快速认识我
+            </NButton>
+            <NButton type="tertiary" @click="() => visitBlog()" style="
            --n-text-color-hover: rgb(65, 105, 235);
            --n-text-color-pressed: rgb(65, 105, 245);
            --n-text-color-focus: rgb(65, 105, 245);
@@ -85,43 +157,75 @@ const visitBlog = () => go("/blog/index-page");
            --n-border-pressed: 1px solid rgb(65, 105, 245);
            --n-border-focus: 1px solid rgb(65, 105, 245);
            outline: none;">瞧瞧我的博客</NButton>
+        </section>
     </section>
 
-    <section class="gap-space">
-        <NDivider />
-    </section>
-   
-
-    <section id="card-group" class="gap-space flex gap-12px">
-        <div 
-            class="evenly-flex-item bordered space-spare-box hover-box" 
-            :style="borderColor"
-            v-for="message in cardMessages" 
-            :key="message.key">
-                <h3 style="margin-top: 0px">{{ message.title }}</h3>
-                <div style="margin-top: 8px">{{ message.content }}</div>
+    <section id="card-group" class="gap-space flex gap-12px px-[10%]">
+        <div class="evenly-flex-item bordered space-spare-box hover-box message-box" :style="borderColor"
+            v-for="message in cardMessages" :key="message.key">
+            <h3 style="margin-top: 0px">{{ message.title }}</h3>
+            <div style="margin-top: 8px">{{ message.content }}</div>
         </div>
     </section>
+
+    <section id="tech-wall" class="flex gap-[36px] flex-wrap px-[10%] my-[32px]">
+        <Rust :size="LOGOSIZE" color="#fff" alt="rust" class="tech-logo" />
+        <React :size="LOGOSIZE" class="tech-logo" />
+        <VueLogo :size="LOGOSIZE" class="tech-logo" />
+        <Nestjs :size="LOGOSIZE" class="tech-logo" />
+        <Python :size="LOGOSIZE" class="tech-logo" />
+        <Go :size="LOGOSIZE" class="tech-logo" />
+        <Javascript :size="LOGOSIZE" class="tech-logo" />
+        <Typescript :size="LOGOSIZE" class="tech-logo" />
+        <Eslint :size="LOGOSIZE" class="tech-logo" />
+        <Tailwind :size="LOGOSIZE" class="tech-logo" />
+        <Prettier :size="LOGOSIZE" class="tech-logo" />
+        <Vite :size="LOGOSIZE" class="tech-logo" />
+        <Vitest :size="LOGOSIZE" class="tech-logo" />
+        <Ansible :size="LOGOSIZE" class="tech-logo" />
+        <Docker :size="LOGOSIZE" class="tech-logo" />
+        <Nginx :size="LOGOSIZE" class="tech-logo" />
+        <Terraform :size="LOGOSIZE" class="tech-logo" />
+        <Nextjs :size="LOGOSIZE" class="tech-logo" />
+        <Axios :size="LOGOSIZE" class="tech-logo" />
+        <Webpack :size="LOGOSIZE" class="tech-logo" />
+        <Sass :size="LOGOSIZE" class="tech-logo" />
+        <Less :size="LOGOSIZE" class="tech-logo" />
+        <Mongodb :size="LOGOSIZE" class="tech-logo" />
+        <Redis :size="LOGOSIZE" class="tech-logo" />
+        <Mysql :size="LOGOSIZE" class="tech-logo" />
+        <Gin :size="LOGOSIZE" class="tech-logo" />
+        <Pinia :size="LOGOSIZE" class="tech-logo" />
+        <Stylelint :size="LOGOSIZE" class="tech-logo" />
+        <Postcss :size="LOGOSIZE" class="tech-logo" />
+        <Pnpm :size="LOGOSIZE" class="tech-logo" />
+        <Yarn :size="LOGOSIZE" class="tech-logo" />
+        <Bun :size="LOGOSIZE" class="tech-logo" />
+        <AntDesign :size="LOGOSIZE" class="tech-logo" />
+        <Kafka :size="LOGOSIZE" class="tech-logo" />
+        <Electron :size="LOGOSIZE" class="tech-logo" />
+        <Java :size="LOGOSIZE" class="tech-logo" />
+        <Babel :size="LOGOSIZE" class="tech-logo" />
+    </section>
+
+    <section class="absolute">
+        <CharacterModel v-if="loadCharacterModel" />
+    </section>
+
 
     <div class="button-container">
         <div class="memory-board">
-          <MemoryBoard />
+            <MemoryBoard />
         </div>
 
         <div class="music">
-          <MusicIconButton :size="'100%'" :source="themeMusic"/>
+            <MusicIconButton :size="'100%'" :source="themeMusic" />
         </div>
-    </div>   
+    </div>
+
 </template>
 
 <style lang="scss" scoped>
-.text-left {
-    text-align: left;
-}
-.text-center {
-    text-align: center;
-}
-
 @property --spin-angle {
     syntax: "<angle>";
     inherits: false;
@@ -129,17 +233,17 @@ const visitBlog = () => go("/blog/index-page");
 }
 
 @keyframes spinKeyFrame {
-   from {
-    --spin-angle: 135deg;
-   }
+    from {
+        --spin-angle: 135deg;
+    }
 
-   to {
-    --spin-angle: 495deg;
-   }
+    to {
+        --spin-angle: 495deg;
+    }
 }
 
 .roll {
-    animation: spinKeyFrame 5s ease-in-out 100ms infinite ;
+    animation: spinKeyFrame 5s ease-in-out 100ms infinite;
 }
 
 .intro-title {
@@ -151,7 +255,7 @@ const visitBlog = () => go("/blog/index-page");
     word-break: break-all;
     background-clip: text !important;
     -webkit-background-clip: text !important;
-    background: linear-gradient(var(--spin-angle), grey, rgb(33, 61, 187),rgb(152, 217, 125),rgb(233, 112, 20), rgb(139, 18, 139), black); // to right bottom
+    background: linear-gradient(var(--spin-angle), grey, rgb(33, 61, 187), rgb(152, 217, 125), rgb(233, 112, 20), rgb(139, 18, 139), black); // to right bottom
 }
 
 
@@ -165,18 +269,18 @@ const visitBlog = () => go("/blog/index-page");
     top: 10rem;
 
     .memory-board {
-      position: relative;
-      flex: none;
-      height: var(--home-circle-size);
-      // 必须显示设置好，如果不设置的话，
-      // 从 hover 状态切换回去的话，
-      // 会导致页面层级不符合预期
-      z-index: 1;
-     
-      &:hover {
+        position: relative;
+        flex: none;
+        height: var(--home-circle-size);
+        // 必须显示设置好，如果不设置的话，
+        // 从 hover 状态切换回去的话，
+        // 会导致页面层级不符合预期
+        z-index: 1;
+
+        &:hover {
             // hover 的时候，要把音乐按钮完全遮挡
             z-index: 9;
-      }
+        }
     }
 
     .music {
@@ -232,14 +336,6 @@ const visitBlog = () => go("/blog/index-page");
     margin-top: 40px;
 }
 
-.flex {
-    display: flex;
-}
-
-.flex-evenly {
-    justify-content: space-evenly;
-}
-
 .evenly-flex-item {
     flex: 1 1;
     -webkit-flex: 1 1;
@@ -257,6 +353,7 @@ const visitBlog = () => go("/blog/index-page");
 .hover-box {
     transition: all .4s;
 }
+
 .hover-box:hover {
     box-shadow: 1px 1px 8px 4px rgba(0, 0, 0, 0.5);
     transform: translateY(-4px);

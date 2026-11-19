@@ -48,11 +48,11 @@ let frame = match window_attributes.inner_size {
         let scale_factor = msg_send![screen, scale];
         let size = dim.to_logical::<f64>(scale_factor);
         CGRect {
-        origin: screen_bounds.origin,
-        size: CGSize {
-            width: size.width as _,
-            height: size.height as _,
-        },
+          origin: screen_bounds.origin,
+          size: CGSize {
+              width: size.width as _,
+              height: size.height as _,
+          },
         }
     }
     None => screen_bounds,

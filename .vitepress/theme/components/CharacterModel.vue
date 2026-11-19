@@ -16,7 +16,7 @@ const deferRun = (runner: () => any, milliseconds: number) => {
 
 onMounted(() => {
   async function loadMMD(options: {
-    scene: THREE.Scene, 
+    scene: THREE.Scene,
     camera: THREE.Camera,
     effect: OutlineEffect,
     renderer: THREE.WebGLRenderer,
@@ -32,7 +32,7 @@ onMounted(() => {
       const delta = clock.getDelta()
       mixer?.update(delta)
       effect.render(scene, camera)
-      
+
     }
 
     const loader = new MMDLoader()
@@ -48,11 +48,11 @@ onMounted(() => {
     scene.add(skinnedMesh)
 
     loader.loadAnimation(
-      "/models/hutao1.vmd", 
+      "/models/hutao1.vmd",
       skinnedMesh,
       async (animationClip) => {
         const clip = animationClip as THREE.AnimationClip
-        
+
         mixer = new THREE.AnimationMixer(skinnedMesh)
         const action = mixer.clipAction(clip);
         actionPanel.set(actionHutaoDance, action)
@@ -68,11 +68,11 @@ onMounted(() => {
         // const buffer = await audioLoader.loadAsync('/models/hutao-audio.mp3');
         // sound.setBuffer(buffer);
         // sound.setVolume(0.8);
-        
+
         const playOnce = () => {
           action.reset()
           action.time = 0.5
-          action.paused = false 
+          action.paused = false
           action.loop = THREE.LoopOnce
           action.clampWhenFinished = true
           action.play()
@@ -80,7 +80,7 @@ onMounted(() => {
         }
 
         playOnce()
-        
+
         window.addEventListener("keydown", (e) => {
           if (e.key === 'p' && action.paused) {
             deferRun(playOnce, 100)
@@ -95,7 +95,7 @@ onMounted(() => {
       }
     )
 
-    
+
 
     animate()
   }
@@ -114,21 +114,21 @@ onMounted(() => {
   function addLightToScene(scene: THREE.Scene) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
     scene.add(ambientLight)
-  
+
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3)
     directionalLight.position.set(10, 15, 10)
     scene.add(directionalLight)
   }
 
   function createRenderer() {
-    const renderer = new THREE.WebGLRenderer({ 
+    const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
     })
     renderer.setClearColor(0x000000, 0)
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(
-      containerRef.value!.offsetWidth, 
+      containerRef.value!.offsetWidth,
       containerRef.value!.offsetHeight
     )
     return renderer
@@ -145,9 +145,9 @@ onMounted(() => {
   containerRef.value!.appendChild(stats.dom)
 
   const camera = createCamera()
-  
 
- 
+
+
   loadMMD({ scene, camera, effect, renderer })
 })
 </script>
@@ -166,5 +166,14 @@ onMounted(() => {
   left: 0;
   top: 40px;
   background: transparent;
+  z-index: 2;
 }
-</style> 
+
+/** 适配iphone16 */
+@media (max-width: 400px) {
+  .model-container {
+    width: 100px;
+    height: 160px;
+  }
+}
+</style>

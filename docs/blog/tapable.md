@@ -77,7 +77,7 @@ let sayHello = new Function("name",
 // 我们也可以在函数体内使用 arguments 变量
 ```
 再来简单说下tapable中的场景：
-tapable将一个回调函数格式定义为一个hook，这个hook表明了回调函数的入参名字叫什么。这个hook上可以定义多个事件，但是这些事件的回调函数格式都是一样，拥有一样的入参。hook上每定义一个，tapable称之为顶一个tap。当hook被触发时，hook上定义的所有事件就会被触发，事件回调函数就会执行。
+tapable将一个回调函数格式定义为一个hook，这个hook表明了回调函数的入参名字叫什么。这个hook上可以定义多个事件，但是这些事件的回调函数格式都是一样，拥有一样的入参。hook上每定义一个事件，tapable称之为一个tap。当hook被触发时，hook上定义的所有事件就会被触发，事件回调函数就会执行。
 
 按照这种逻辑，我们会把tap存储到一个队列中，然后依次取出来，执行回调函数就可以了。
 
@@ -150,6 +150,125 @@ tapable有严密的面向对象设计格式，而不是函数式。不过呢，�
 直接在父类的compile方法**故意抛错**，强制子类去覆盖此方法，这是在拿运行时来保证，有点狠啊。
 
 除此之外，在 python 的一些框架中也有这样的设计处理，可能就是一种行业默认的套路吧。
+
+## 简易tapable 
+```ts 
+type EventInfo = {
+  name: string
+  before?: string[]
+  stage?: number
+}
+
+class Hook {
+  private taps = []
+  constructor(private parameterNameList: string[]) {}
+
+  tap(eventInfo, fn) {
+      const tap = {
+        eventInfo,
+        fn
+      }
+      this.taps.push(taps)
+  }
+
+  call(...args) {}
+}
+
+class SyncHook extends Hook {
+  call(...args) {
+      for (const tap of this.taps) {
+        tap.fn(...args)
+      }
+  }
+}
+
+class SyncBailHook extends Hook {
+  call(...args) {
+      for (const tap of this.taps) {
+        const result = tap.fn(...args)
+        if (isNotNil(result)) 
+          return result
+      }
+  }
+}
+
+class SyncWaterfallHook extends Hook {
+  call(initialValue, ...rest) {
+      assert(rest.length > 0)
+      let currentValue = initialValue
+      for (const tap of this.taps) {
+        currentValue = tap.fn(currentValue, ...rest)
+      }
+      return currentValue
+  }
+}
+
+class AsyncSeriesHook extends Hook {
+  call(...args) {
+      const [...params, callback] = args
+      let i = -1
+      const executeNextTap = () => {
+        i++ 
+
+        if (i >= this.taps.length)
+          return
+
+        this.taps[i].fn(...params, executeNextTap)
+
+        if (i === this.taps.length - 1)
+          callback()
+      }
+      executeNextTap()
+  }
+}
+
+function createDeferPromise() {
+  let resolve, reject, promise 
+  promise = new Promise((rs, rj) => {
+      resolve = rs; reject = rj 
+  })
+  return { resolve, reject, promise }
+}
+
+class AsyncParallelHook extends Hook {
+  call(...args) {
+    const [...params, callback] = args
+    let completedTap = 0 
+    const { resolve, promise } = createDeferPromise()
+    promise.then(callback)
+    const done = () => {
+      completedTap++
+      if (completedTap === this.taps.length) resolve()
+    }
+    // 模拟并行
+    Promise.all(this.taps.map(tap => tap.fn(...params, done)))
+  }
+}
+
+class AsyncSeriesWaterfallHook extends Hook {
+  call(initialValue, ...rest) {
+      let currentValue = initialValue
+      const [...args, callback] = rest
+      let i = -1
+      const done = () => {
+        i++
+
+        if (i >= this.taps.length) 
+          return
+
+        currentValue = this.taps[i].fn(
+            currentValue, ...args, done
+        )
+
+        if (i === this.taps.length - 1) 
+          callback(currentValue)
+      }
+      
+      // 模拟异步调度
+      setTimeout(done, 3000)
+  }
+}
+```
 
 ## 结语
 这只是能用得上的小技术点而已，对于tapable而言，其整体编码架构才更值得称叹，结构非常有条理，耦合解开得也很棒，扩展性特别棒。就是读起代码，想梳理清楚，不是那么轻松。

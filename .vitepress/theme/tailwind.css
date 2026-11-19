@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* 相对于当前css文件，指向你的md目录 */
+@source './**/*.vue';

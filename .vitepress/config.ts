@@ -1,5 +1,6 @@
 import { defineConfig } from "vitepress";
 import { transformerTwoslash } from "@shikijs/vitepress-twoslash";
+import tailwindcss from '@tailwindcss/vite';
 // @ts-ignore
 import MarkdownItContainer from "markdown-it-container";
 import mdPluginFenceTitle from "./markdownItPlugin/fenceFileName";
@@ -398,10 +399,6 @@ export default defineConfig({
               link: "/blog/you-cant-think",
             },
             {
-              text: "vitepress如何支持markdown使用vue组件",
-              link: "/blog/vitepress",
-            },
-            {
               text: "react官网如何实现用markdown编写页面",
               link: "/blog/react-dev",
             },
@@ -692,6 +689,8 @@ export default defineConfig({
         allow: ["../.."],
       },
     },
+    //@ts-ignore
+    plugins: [tailwindcss()],
   },
 
   vue: {
@@ -801,4 +800,5 @@ export default defineConfig({
     ]
     
   },
+  
 });

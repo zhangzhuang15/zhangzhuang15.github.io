@@ -3,6 +3,7 @@ import type { App } from "vue";
 import { h } from "vue";
 import TwoslashFloatingVue from '@shikijs/vitepress-twoslash/client';
 import "./custom.css";
+import "./tailwind.css";
 import '@shikijs/vitepress-twoslash/style.css';
 import Giscus from "./components/Giscus.vue";
 import LoadingPreviewCard from "./components/LoadingPreviewCard.vue";

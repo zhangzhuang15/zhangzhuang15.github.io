@@ -196,6 +196,31 @@ dist
 
 这是基本的原理解释，vitepress为此还构建了自己的前端route系统，没有使用vue router那套东西。
 
+
+### markdown-it插件汇总 
+vitepress完成上述工作，使用了不少markdown-it生态的插件，这里简单介绍一些。
+
+`@mdit-vue/plugin-component`
+让markdown文件里的vue组件标签，不会被默认处理。比如vue组件标签是 `<Card />`，markdown-it 会把它解析为 `tag: "inline"` 的 token, 渲染出来的结果是`&lt;Card /&gt;`; 用这个插件处理后，markdown-it 会把它解析为 `tag: "html_inline"` 的 token, 渲染出来的结果是 `<Card />`。
+
+`@mdit-vue/plugin-sfc`
+markdown文件内部允许按照vue sfc风格编写`<script>` `<style>`, 这个插件会将它们提取出来，存储到markdown-it render方法的env参数，render方法内访问`env.sfcBlocks` 就可以拿到它们。
+
+`@mdit-vue/plugin-toc`
+支持toc目录
+
+`markdown-it-anchor`
+支持`[]()`这种语法
+
+`markdown-it-emoji`
+支持渲染emoji
+
+`markdown-it-mathjax3`
+支持mathjax3语法，渲染数学公式
+
+`mardown-it-container`
+支持解析`:::code-group`这样的语法, 也允许vitepress用户自定义自己的语法，比如`:::Data`。
+
 ## dev原理 
 本地起研发服务器的原理更加简单了，vitepress在读取自己的`config.ts`后，将起转化为vite的`createServer` api所需要的入参，启动vite服务器即可。
 

@@ -1116,13 +1116,66 @@ if (module.hot) { // [!code focus:19]
 ```
 先解释一下`module.hot.accept`的用途。
 
-`module.hot.accept()`表示当前模块接受自己发生更新，并且这种更新不会传导到父模块；
+```js 
+// A.js 
+import b from "./b.js"
 
-`module.hot.accept("xxx", () => {})` 表示当模块xxx发生更新后，执行回调函数。
+console.log("update")
+
+module.hot.accept("./b.js", () => {
+  // 获取到最新的b模块
+  const newBModule = require("./b.js").default
+})
+```
+
+当 `b.js`的内容发生变化，就会按照父子module的关系，向上传导给A, A里边已经注册了`accept("./b.js")`，就会执行回调函数，执行完毕后，不再往上传导。
+
+```js 
+// A.js 
+import b from "./b.js"
+
+console.log("update")
+
+module.hot.accept()
+
+module.hot.accept("./b.js", () => {
+  const newBModule = require("./b.js").exports.default
+})
+```
+
+当`A.js`发生变化了，就会重新执行一遍`A.js`，于是打印`update`，但是在变化之前，`module.hot.accept()`就已经执行过了，这会使得本次A的变动，不会传导给A的父module。执行完毕后，最新的A模块就得到了，webpack运行时用它替换掉旧的模块。
+
+```js 
+// b.js 
+export function hello() {
+  console.log("hello") // [!code --]
+  console.log("hello world") // [!code ++]
+}
+```
+
+```js 
+// a.js
+import { hello } from "./b.js"
+
+module.hot.accept("./b.js", () => {
+  hello()
+})
+```
+
+当`b.js`更新后，`a.js`里的accept回调被触发，hello执行后，打印出来的信息就是`hello world`。这是因为，经过webpack处理后，`a.js`变成：
+```js 
+const bModule = __webpack_modules__["./b.js"]
+
+module.hot.accept("./b.js", () => {
+  bModule.exports.hello()
+})
+```
+
+`b.js`更新后，`bModule.exports`被替换成新的定义，但是`bModule`本身的引用没有发生变化，因此`bModule.exports.hello`访问的是最新的`hello`。
 
 在研发环境，vue loader在计算id的时候，直接使用的是vue文件的路径，因此，当vue文件的内容发生变化的时候，id是不变的。
 
-如果你修改了组件的`<template>`内容，就会导致`./app.vue?vue&type=template&scoped=true&id=233abcddef`这个模块发生变化，此时就会调用回调，促使组件rerender，使用新的render方法从新渲染。
+如果你修改了组件的`<template>`内容，就会导致`./app.vue?vue&type=template&scoped=true&id=233abcddef`这个模块发生变化，此时执行回调，促使组件rerender，使用新的render方法从新渲染。
 
 如果你修改了组件的`<style>`或者`<script>`的内容，子模块的更新就会传导到本模块，`api.reload('233abcddef', component.options)`就会执行，组件就会重新渲染一次。
 

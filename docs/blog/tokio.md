@@ -52,7 +52,11 @@ Runtime 内部持有三个子系统的引用：Scheduler、Reactor、Timer，负
 
 ## Scheduler
 
-决定哪个 task 在哪个线程上运行。具体来讲，它负责创建`全局Task队列`，负责创建工作线程，负责创建工作线程的`local Task队列`，负责挂起(park)或者唤醒(unpark)工作线程。
+决定哪个 task 在哪个线程上运行。具体来讲，它负责:
+- 创建`全局Task队列`
+- 创建工作线程
+- 创建工作线程的`local Task队列`
+- 挂起(park)或者唤醒(unpark)工作线程
 
 在主线程`spawn`一个 task 的时候，Scheduler 将它加入到`全局Task队列`;
 
@@ -107,13 +111,13 @@ Timer 负责管理定时器有关的场景，内部维护一个当前时间戳�
 
 这就意味着，tokio 提供的 api（读取文件，设置定时任务），其内部要实现:
 
-- 定义好`Future`的实现，而不是依赖编译器提供的`async`生成`Future`。这就类似递归运算，必须给出最底层的运算结果。
-- 当`Future`是`Pending`，创建 Waker，存储到 Reactor
+- 给出`Future`的实现，而不是依赖编译器提供的`async`自动生成`Future`。这就类似递归运算，必须给出最底层的运算结果。
+- 当`Future`是`Pending`状态，创建 Waker，存储到 Reactor
 - 给出`Waker.wake()`的实现，将 Task 重新加入到 Scheduler
 
 Reactor 和 Timer 运行在一个独立的工作线程。主线程可以通过改变 reactor_is_alive 为 false，结束该线程。
 
-除了 io 事件，Reactor 还能监听进程信号，当信号被接收到的时候，会被封装为`Future`变成`Ready`。实现思路如下：
+除了 io 事件，Reactor 还能监听进程信号，当信号被接收到的时候，会被封装为`Ready`状态的`Future`。实现思路如下：
 
 ```txt
 1. 创建一个 pipe

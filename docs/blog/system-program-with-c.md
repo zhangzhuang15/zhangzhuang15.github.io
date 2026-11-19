@@ -1240,14 +1240,14 @@ int main() {
 #define PORT 6000
 
 typedef struct Vec {
-    int* data;
+    int *data;
     int cap;
     int current;
     int active;
 } Vec;
 
 Vec init_vect(int cap) {
-    int* data = malloc((sizeof(int)) * cap);
+    int *data = malloc((sizeof(int)) * cap);
     Vec v;
     v.cap = cap;
     v.data = data;
@@ -1319,6 +1319,9 @@ int main() {
     fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
 
     // server is running
+    // 2 means if there are 2 connection are building,
+    // and third request comes for connecting, third 
+    // request will be failed
     listen(fd, 2);
     printf("server is running...\n");
 
@@ -1596,10 +1599,11 @@ int main() {
     fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
 
     // server is running
+    // 2 means if there are 2 connection are building,
+    // and third request comes for connecting, third 
+    // request will be failed
     listen(fd, 2);
     printf("server is running...\n");
-
-
 
     Vec read_fds = init_vect(10);
     Vec write_fds = init_vect(10);
@@ -1879,6 +1883,9 @@ int main() {
     fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
 
     // server is running
+    // 2 means if there are 2 connection are building,
+    // and third request comes for connecting, third 
+    // request will be failed
     listen(fd, 2);
     printf("server is running...\n");
 
@@ -2164,6 +2171,9 @@ int main() {
     fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
 
     // server socket is running
+    // 2 means if there are 2 connection are building,
+    // and third request comes for connecting, third 
+    // request will be failed
     listen(fd, 2);
     printf("server is running...\n");
 
@@ -3105,7 +3115,8 @@ inline int wait_init(struct wait_lock *w) {
     return 0;
 };
 
-inline int wait_wakeup(struct wait_lock *w) {
+// invoke thread blocked on condition var
+inline int wait_unblock(struct wait_lock *w) {
     pthread_mutex_lock(&w->lock);
 
     pthread_cond_signal(&w->ready);
@@ -3115,11 +3126,21 @@ inline int wait_wakeup(struct wait_lock *w) {
     return 0;
 };
 
-inline int wait_sleep(struct wait_lock *w) {
+// block thread with condition var
+inline int wait_block(struct wait_lock *w) {
+    pthread_mutex_lock(&w->lock);
     w->sleeping = 1;
-    // sleep here
+  
+    // take atomic actions:
+    // 1. release w->lock (why require lock at above code)
+    // 2. block thread itself on w->ready
+    //
+    // if thread is unblocked by pthread_cond_signal,
+    // and continue to execute, it will require w->lock 
+    // again (why release lock before function returns)
     pthread_cond_wait(&w->ready, &w->lock);
 
+    pthread_mutex_unlock(&w->lock);
     return 0;
 };
 
