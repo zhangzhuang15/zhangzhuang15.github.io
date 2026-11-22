@@ -26,6 +26,9 @@ importers:
       gsap:
         specifier: ^3.15.1
         version: 3.15.1
+      konfeti:
+        specifier: ^0.6.0
+        version: 0.6.0
       ky:
         specifier: ^0.33.3
         version: 0.33.3
@@ -2167,6 +2170,9 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
+
+  konfeti@0.6.0:
+    resolution: {integrity: sha512-mzFqaOjlP+zMvQmI9sxuO3drTJPMgECC3zY5ayP8O8IqUY2M+NkA0HuTiZ0IWcKH3bolaLEZf69Bc9kd7Shdrw==}
 
   ky@0.33.3:
     resolution: {integrity: sha512-CasD9OCEQSFIam2U8efFK81Yeg8vNMTBUqtMOHlrcWQHqUX3HeCl9Dr31u4toV7emlH8Mymk5+9p0lL6mKb/Xw==}
@@ -5362,6 +5368,8 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
+
+  konfeti@0.6.0: {}
 
   ky@0.33.3: {}
 

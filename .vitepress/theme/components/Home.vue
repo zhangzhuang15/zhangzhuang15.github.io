@@ -59,35 +59,49 @@ onMounted(() => {
     const tl = gsap.timeline({
         scrollTrigger: {
             trigger: "#z-mask",
+            // z-mask的中心到达viewport高度56%的位置时，
+            // 开启scroll动画
             start: "center 56%",
+            // 滚动条往下滚动 zMaskHeight后结束scroll动画
             end: `+=${zMaskHeight}`,
+            // 滚动条回拉，动画倒放
             scrub: 0.5,
+            // 滚动条滚动时，z-logo在viewport的位置不动
             pin: "#z-logo",
+            // 不需要额外增加padding，实现pin效果
             pinSpacing: false,
         },
     });
+
+    // 字母 z 的旋转动画
     tl.fromTo("#z-logo",
         { rotate: 180 },
         { rotate: 0, duration: 2, ease: "power3.inOut" },
     )
+    // 字母Z的缩放渐隐动画
     tl.fromTo("#z-logo",
         { scale: 4, opacity: 1 },
         { scale: 150, opacity: 0, duration: 4 },
         0.5
     )
+    // 字母Z恢复到原状，否则 gsap 会增加太多的空间，导致纵向滚动条太长
     tl.to("#z-logo", { scale: 1 })
 
+    // intro 标签动画
     tl.fromTo("#intro",
         { scale: 10, opacity: 0, xPercent: 100, rotate: 125, yPercent: -(Math.random() * 20 + 10 + 100) },
         { scale: 0.8, opacity: 1, xPercent: 0, rotate: 0, yPercent: 0, duration: 3, ease: "back.inOut" },
         2.5)
     tl.to("#intro", { scale: 1.1, ease: "power1.inOut" })
 
+    // message box 的渐显动画
     tl.fromTo(".message-box",
         { yPercent: 40, opacity: 0 },
         {
             yPercent: 0, opacity: 1, ease: "sine.out",
             stagger: 0.4, onComplete: () => {
+                // message box 渐显动画结束后，执行
+                // 技术栈logo的显示动画
                 loadCharacterModel.value = true
                 gsap.to(".tech-logo",
                     {
@@ -106,9 +120,8 @@ onMounted(() => {
         },
     )
 
+    // 技术栈logo图标初始状态，缩小，并隐藏
     gsap.set(".tech-logo", { opacity: 0, scale: 0.4 })
-
-
 });
 
 </script>
@@ -168,6 +181,7 @@ onMounted(() => {
         </div>
     </section>
 
+    <!-- refer:https://devicons.io/docs/vue/ -->
     <section id="tech-wall" class="flex gap-[36px] flex-wrap px-[10%] my-[32px]">
         <Rust :size="LOGOSIZE" color="#fff" alt="rust" class="tech-logo" />
         <React :size="LOGOSIZE" class="tech-logo" />

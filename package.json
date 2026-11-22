@@ -20,6 +20,7 @@
     "@tailwindcss/vite": "^4.3.5",
     "ammo.js": "^0.0.10",
     "gsap": "^3.15.1",
+    "konfeti": "^0.6.0",
     "ky": "^0.33.3",
     "markdown-it-container": "^4.0.0",
     "search-insights": "^1.0.0",

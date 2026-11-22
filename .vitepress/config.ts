@@ -423,6 +423,10 @@ export default defineConfig({
               link: "/blog/flex-intro",
             },
             {
+              text: '刮刮乐背后的canvas实现',
+              link: "/blog/scratcher-example"
+            },
+            {
               text: "jest学习笔记",
               link: "/blog/jest-learn",
             },
